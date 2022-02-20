@@ -83,66 +83,38 @@ async function getForList(key: string): Promise<SingingStreamForSearch[] | null>
 }
 
 async function createSingingStream(): Promise<void> {
-  const videoId = 'Gapv5ikX3xY';
-  const videoPublishedAt = '2022-01-30T11:00:00+00:00';
-  // const videos: Video[] = [
-  //   {
-  //     id: uuid(),
-  //     video_id: videoId,
-  //     title: '【歌】きゅうに決めたせいで何もきまってない歌配信【戌亥とこ/にじさんじ】',
-  //     length: 3921,
-  //     url: 'https://www.youtube.com/watch?v=Gapv5ikX3xY&t=31s',
-  //     published_at: videoPublishedAt,
-  //     created_at: DateTime.now().toISOTime(),
-  //     updated_at: DateTime.now().toISOTime(),
-  //   },
-  // ];
-  // await supabase.from('video').insert(videos);
+  const isoDateTime = `${DateTime.now().toISODate()}T${DateTime.now().toISOTime()}`;
+  console.log(isoDateTime);
+  const videoId = 'N029UUlH1Dc';
+  const videoPublishedAt = '2021-11-26T21:00:00+00:00';
+  const videos: Video[] = [
+    {
+      id: uuid(),
+      video_id: videoId,
+      title: 'フォニイ / 星街すいせい(Cover)',
+      length: 189,
+      url: `https://www.youtube.com/watch?v=${videoId}`,
+      published_at: videoPublishedAt,
+      created_at: isoDateTime,
+      updated_at: isoDateTime,
+    },
+  ];
+  await supabase.from('video').insert(videos);
 
+  const partialVideo: Pick<Video, 'video_id' | 'published_at' | 'created_at' | 'updated_at'> = {
+    video_id: videos[0].video_id,
+    published_at: videos[0].published_at,
+    created_at: videos[0].created_at,
+    updated_at: videos[0].updated_at,
+  };
   const singingStreams: SingingStream[] = [
     {
+      ...partialVideo,
       id: uuid(),
-      song_title: 'glow',
-      song_artist: 'keeno feat.初音ミク',
-      start: 2253,
-      end: 2535,
-      video_id: videoId,
-      published_at: videoPublishedAt,
-      created_at: DateTime.now().toISOTime(),
-      updated_at: DateTime.now().toISOTime(),
-    },
-    {
-      id: uuid(),
-      song_title: 'ハム太郎とっとこうた',
-      song_artist: 'ハムちゃんず',
-      start: 2689,
-      end: 2778,
-      video_id: videoId,
-      published_at: videoPublishedAt,
-      created_at: DateTime.now().toISOTime(),
-      updated_at: DateTime.now().toISOTime(),
-    },
-    {
-      id: uuid(),
-      song_title: 'エイリアンエイリアン',
-      song_artist: 'ナユタン星人',
-      start: 2920,
-      end: 3099,
-      video_id: videoId,
-      published_at: videoPublishedAt,
-      created_at: DateTime.now().toISOTime(),
-      updated_at: DateTime.now().toISOTime(),
-    },
-    {
-      id: uuid(),
-      song_title: '上弦の月',
-      song_artist: '黒うさP feat.KAITO',
-      start: 3538,
-      end: 3771,
-      video_id: videoId,
-      published_at: videoPublishedAt,
-      created_at: DateTime.now().toISOTime(),
-      updated_at: DateTime.now().toISOTime(),
+      song_title: 'フォニイ',
+      song_artist: '星街すいせい(Cover)',
+      start: 0,
+      end: 189,
     },
   ];
 
