@@ -44,7 +44,7 @@ function SingingStreamsPage() {
   return (
     <Layout
       title="歌枠検索"
-      description="風真いろはさんが歌枠等の放送内で歌った曲を検索することが出来ます"
+      description="曲を検索することが出来ます"
       className={styles.root}
     >
       <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>

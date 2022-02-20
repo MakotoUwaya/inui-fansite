@@ -1,15 +1,18 @@
 import Link from 'next/link';
-import { FaTwitter, FaYoutube } from 'react-icons/fa';
-import { IconLink } from '../components/IconLink/IconLink';
 import { Layout } from '../components/Layout/Layout';
+import { useCreateSingingStream } from '../hooks/singing-stream';
 import styles from './index.module.scss';
 
 function IndexPage() {
+  const { createSingingStream } = useCreateSingingStream();
   return (
     <Layout className={styles.root} title="ホーム">
-      <h1 className={styles.title}>gozaru.fans</h1>
+      <h1 className={styles.title}>inui.fans</h1>
       <div className={styles.message}>
         <p>TOP ページは現在製作中です。</p>
+        <button onClick={createSingingStream}>
+          データを新規投入
+        </button>
         <p>
           <Link href="/singing-streams">
             <a className={styles.link}>歌枠検索</a>
@@ -18,39 +21,8 @@ function IndexPage() {
         </p>
       </div>
       <p>
-        gozaru.fans はホロライブ6期生 (holoX) の用心棒、風真いろはさんの<b>非公式</b>ファンサイトです。
+        inui.fans は<b>非公式</b>ファンサイトです。
       </p>
-      <p>
-        詳しくは{' '}
-        <Link href="/about">
-          <a className={styles.link}>当サイトについて</a>
-        </Link>{' '}
-        をご覧ください。
-      </p>
-      <div className={styles.socialLinks}>
-        <div>
-          <IconLink
-            className={styles.socialLink}
-            Icon={FaYoutube}
-            href="https://www.youtube.com/channel/UC_vMYWcDjmfdpH6r4TTn1MQ?sub_confirmation=1"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Iroha ch. 風真いろは - holoX -
-          </IconLink>
-        </div>
-        <div>
-          <IconLink
-            className={styles.socialLink}
-            Icon={FaTwitter}
-            href="https://twitter.com/kazamairohach"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            @kazamairohach
-          </IconLink>
-        </div>
-      </div>
     </Layout>
   );
 }
