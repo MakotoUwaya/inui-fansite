@@ -29,7 +29,7 @@ export type SingingStream = {
   created_at: string;
   updated_at: string;
   published_at: string;
-  video: Video;
+  video?: Video;
 };
 
 export type SingingStreamForSearch = Pick<SingingStream, 'id' | 'start' | 'video_id' | 'published_at'> & {

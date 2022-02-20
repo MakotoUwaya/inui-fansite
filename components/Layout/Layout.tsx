@@ -12,13 +12,13 @@ type Props = {
   children: ReactNode;
 };
 
-const DEFAULT_DESCRIPTION = 'gozaru.fans はホロライブ6期生 (holoX) の用心棒、風真いろはさんの非公式ファンサイトです。';
+const DEFAULT_DESCRIPTION = 'inui.fans は非公式ファンサイトです。';
 
 export const Layout = memo(function Layout({ className, title, description, padding = 'all', children }: Props) {
   return (
     <>
       <Head>
-        <title>{title} | gozaru.fans</title>
+        <title>{title} | inui.fans</title>
         <meta name="description" content={description ?? DEFAULT_DESCRIPTION} />
       </Head>
       <div>
