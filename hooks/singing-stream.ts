@@ -85,14 +85,15 @@ async function getForList(key: string): Promise<SingingStreamForSearch[] | null>
 async function createSingingStream(): Promise<void> {
   const isoDateTime = `${DateTime.now().toISODate()}T${DateTime.now().toISOTime()}`;
   console.log(isoDateTime);
-  const videoId = 'N029UUlH1Dc';
-  const videoPublishedAt = '2021-11-26T21:00:00+00:00';
+  const videoId = 'oygRG7OrYQI';
+  const videoPublishedAt = '2022-08-20T03:00:00+00:00';
   const videos: Video[] = [
     {
       id: uuid(),
       video_id: videoId,
-      title: 'フォニイ / 星街すいせい(Cover)',
-      length: 189,
+      title:
+        '【#NIJIMelodyTime】 end of summer singing time~! 【NIJISANJI EN | Elira Pendora】',
+      length: 1830,
       url: `https://www.youtube.com/watch?v=${videoId}`,
       published_at: videoPublishedAt,
       created_at: isoDateTime,
@@ -111,10 +112,42 @@ async function createSingingStream(): Promise<void> {
     {
       ...partialVideo,
       id: uuid(),
-      song_title: 'フォニイ',
-      song_artist: '星街すいせい(Cover)',
-      start: 0,
-      end: 189,
+      song_title: 'Lemon',
+      song_artist: '米津玄師',
+      start: 145,
+      end: 400,
+    },
+    {
+      ...partialVideo,
+      id: uuid(),
+      song_title: 'プラチナ',
+      song_artist: '坂本真綾',
+      start: 484,
+      end: 730,
+    },
+    {
+      ...partialVideo,
+      id: uuid(),
+      song_title: '夜に駆ける',
+      song_artist: 'YOASOBI',
+      start: 890,
+      end: 1152,
+    },
+    {
+      ...partialVideo,
+      id: uuid(),
+      song_title: 'ナーヴ・インパルス',
+      song_artist: 'Police Piccadilly',
+      start: 1200,
+      end: 1460,
+    },
+    {
+      ...partialVideo,
+      id: uuid(),
+      song_title: 'shake it!',
+      song_artist: 'emon',
+      start: 1548,
+      end: 1780,
     },
   ];
 
