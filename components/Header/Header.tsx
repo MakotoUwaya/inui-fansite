@@ -11,9 +11,6 @@ export const Header = memo(function Header() {
       <ActiveLink href="/singing-streams" className={styles.link} activeClassName={styles.activeLink}>
         歌枠検索
       </ActiveLink>
-      <ActiveLink href="/add-songs" className={styles.link} activeClassName={styles.activeLink}>
-        曲登録
-      </ActiveLink>
       <ActiveLink href="/about" className={styles.link} activeClassName={styles.activeLink}>
         当サイトについて
       </ActiveLink>
