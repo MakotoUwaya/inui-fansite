@@ -74,7 +74,7 @@ function parseTimetable(text: string): ParsedSong[] {
 
     // アーティスト名・曲名末尾の注記（例: "（🍹ソロ", "（🛼ソロ", "(デュエット)" など）を除去
     artist = artist.replace(/[(（][^()（）]*(?:ソロ|デュエット|コラボ|🍹|🛼|☯️)[^()（）]*[)）]?$/gu, '').trim();
-    // アーティスト名の余分な括弧開き（例: "荒井由実（松任谷由実）" の後の閉じ忘れなど）を整える
+    // アーティスト名の余分な括弧開きを整える
     artist = artist.replace(/[(（][^()（）]*$/g, '').trim();
 
     if (title) {
@@ -111,18 +111,49 @@ async function fetchTrackDuration(title: string, artist?: string): Promise<numbe
 }
 
 /**
- * YouTube oEmbed API を利用して動画タイトルを取得
+ * YouTube のページからタイトルと配信日時（公開日時）を取得
  */
-async function fetchYouTubeTitle(videoId: string): Promise<string | null> {
+async function fetchYouTubeMetadata(videoId: string): Promise<{ title: string | null; publishedAt: string | null }> {
+  let title: string | null = null;
+  let publishedAt: string | null = null;
+
   try {
-    const url = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.title || null;
+    const res = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'ja,en-US;q=0.9,en;q=0.8',
+      },
+    });
+    if (res.ok) {
+      const html = await res.text();
+      // タイトル
+      const titleMatch = html.match(/<title>(.*?)<\/title>/);
+      if (titleMatch) {
+        title = titleMatch[1].replace(/\s*-\s*YouTube$/, '').trim();
+      }
+      // 配信日時 (startTimestamp または publishDate または datePublished)
+      const startMatch = html.match(/"startTimestamp":"(.*?)"/);
+      const publishMatch = html.match(/"publishDate":"(.*?)"/) || html.match(/itemprop="datePublished" content="(.*?)"/);
+      publishedAt = startMatch ? startMatch[1] : (publishMatch ? publishMatch[1] : null);
+    }
   } catch (e) {
-    return null;
+    // ignore
   }
+
+  // oEmbed によるフォールバック
+  if (!title) {
+    try {
+      const oembedRes = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+      if (oembedRes.ok) {
+        const oembedData = await oembedRes.json();
+        title = oembedData.title || null;
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  return { title, publishedAt };
 }
 
 async function main() {
@@ -142,6 +173,7 @@ async function main() {
   let videoId = '';
   let timetableText = '';
   let customSongs: ParsedSong[] = [];
+  let customPublishedAt: string | undefined;
 
   // JSONファイル直接指定の場合
   if (args.length === 1 && (args[0].endsWith('.json') || fs.existsSync(args[0]))) {
@@ -150,6 +182,7 @@ async function main() {
       const payload = JSON.parse(content);
       videoId = extractVideoId(payload.video?.video_id || payload.video?.url || '');
       customSongs = payload.songs || [];
+      customPublishedAt = payload.video?.published_at;
     } catch (e) {
       console.error('JSON読み込みエラー:', e);
       process.exit(1);
@@ -174,10 +207,12 @@ async function main() {
 
   console.log(`\n========================================`);
   console.log(`[1/4] 動画情報の取得中: ${videoId}`);
-  const videoTitle = (await fetchYouTubeTitle(videoId)) || `歌枠 (${videoId})`;
-  const now = new Date().toISOString();
+  const metadata = await fetchYouTubeMetadata(videoId);
+  const videoTitle = metadata.title || `歌枠 (${videoId})`;
+  const publishedAt = customPublishedAt || metadata.publishedAt || new Date().toISOString();
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
   console.log(`タイトル: ${videoTitle}`);
+  console.log(`配信日時: ${publishedAt}`);
 
   // 曲情報の準備
   let songs: ParsedSong[] = customSongs;
@@ -225,16 +260,21 @@ async function main() {
         title: videoTitle,
         length: videoLength,
         url: videoUrl,
-        published_at: now,
-        created_at: now,
-        updated_at: now,
+        published_at: publishedAt,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       },
     ]);
     if (videoError) throw videoError;
+  } else {
+    // 既存動画の更新（配信日時が正しくなければ反映）
+    await supabase.from('video').update({ published_at: publishedAt, title: videoTitle }).eq('video_id', videoId);
   }
 
   // 2. song & singing_stream テーブル一括登録
   let registeredCount = 0;
+  const now = new Date().toISOString();
+
   for (const s of songs) {
     const songId = crypto.randomUUID();
     const { error: songError } = await supabase.from('song').insert([
@@ -257,7 +297,7 @@ async function main() {
         video_id: videoId,
         start: s.start,
         end: s.end,
-        published_at: now,
+        published_at: publishedAt,
         created_at: now,
         updated_at: now,
       },
@@ -274,6 +314,7 @@ async function main() {
   console.log(`\n========================================`);
   console.log(`🎉 登録完了: ${registeredCount} / ${songs.length} 曲を登録しました！`);
   console.log(`動画: [${videoId}] ${videoTitle}`);
+  console.log(`配信日時: ${publishedAt}`);
   console.log(`========================================\n`);
 }
 
