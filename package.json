@@ -11,7 +11,9 @@
     "deploy": "npx vercel --prod",
     "test": "jest",
     "storybook": "start-storybook -p 6006 -s ./public",
-    "build-storybook": "build-storybook -s public"
+    "build-storybook": "build-storybook -s public",
+    "test-db": "ts-node scripts/test-db-connection.ts",
+    "setup-db": "ts-node -e \"require('./utils/postgresClient').db.query(require('fs').readFileSync('./schema.sql', 'utf8'))\""
   },
   "license": "MIT",
   "dependencies": {

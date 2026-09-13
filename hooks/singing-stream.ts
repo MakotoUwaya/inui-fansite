@@ -24,7 +24,7 @@ export function useSingingStreamsForSearch(keyword: string = '') {
 }
 
 export function useSingingStreamForWatch(id: string | undefined) {
-  // Do not fetch when id is falsy
+  // idがfalsyの場合はフェッチしない
   const { data, error } = useSWRImmutable(id ? `${KEYS.watch}-${id}` : null, getForWatch);
   return {
     stream: data,
@@ -87,67 +87,18 @@ async function createSingingStream(): Promise<void> {
   console.log(isoDateTime);
   const videoId = 'oygRG7OrYQI';
   const videoPublishedAt = '2022-08-20T03:00:00+00:00';
-  const videos: Video[] = [
-    {
-      id: uuid(),
-      video_id: videoId,
-      title:
-        '【#NIJIMelodyTime】 end of summer singing time~! 【NIJISANJI EN | Elira Pendora】',
-      length: 1830,
-      url: `https://www.youtube.com/watch?v=${videoId}`,
-      published_at: videoPublishedAt,
-      created_at: isoDateTime,
-      updated_at: isoDateTime,
-    },
-  ];
-  await supabase.from('video').insert(videos);
 
-  const partialVideo: Pick<Video, 'video_id' | 'published_at' | 'created_at' | 'updated_at'> = {
-    video_id: videos[0].video_id,
-    published_at: videos[0].published_at,
-    created_at: videos[0].created_at,
-    updated_at: videos[0].updated_at,
-  };
   const singingStreams: SingingStream[] = [
     {
-      ...partialVideo,
       id: uuid(),
       song_title: 'Lemon',
       song_artist: '米津玄師',
       start: 145,
       end: 400,
-    },
-    {
-      ...partialVideo,
-      id: uuid(),
-      song_title: 'プラチナ',
-      song_artist: '坂本真綾',
-      start: 484,
-      end: 730,
-    },
-    {
-      ...partialVideo,
-      id: uuid(),
-      song_title: '夜に駆ける',
-      song_artist: 'YOASOBI',
-      start: 890,
-      end: 1152,
-    },
-    {
-      ...partialVideo,
-      id: uuid(),
-      song_title: 'ナーヴ・インパルス',
-      song_artist: 'Police Piccadilly',
-      start: 1200,
-      end: 1460,
-    },
-    {
-      ...partialVideo,
-      id: uuid(),
-      song_title: 'shake it!',
-      song_artist: 'emon',
-      start: 1548,
-      end: 1780,
+      video_id: videoId,
+      published_at: videoPublishedAt,
+      created_at: isoDateTime,
+      updated_at: isoDateTime,
     },
   ];
 
