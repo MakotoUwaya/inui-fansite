@@ -5,14 +5,14 @@ import { supabase } from '../utils/supabaseClient';
 
 interface SongInput {
   title: string;
-  artist: string;
+  artist?: string;
   start: number;
-  end: number;
+  end?: number;
 }
 
 interface VideoInput {
   video_id: string;
-  title: string;
+  title?: string;
   url?: string;
   published_at?: string;
   length?: number;
@@ -23,19 +23,45 @@ interface AddSongsPayload {
   songs: SongInput[];
 }
 
-function parseTime(timeStr: string): number {
-  const parts = timeStr.trim().split(':').map(Number);
-  if (parts.some(isNaN)) {
-    throw new Error(`無効な時間フォーマットです: ${timeStr}`);
+/**
+ * iTunes Search API を利用して原曲の長さ（秒）を取得
+ */
+async function fetchTrackDuration(title: string, artist?: string): Promise<number | null> {
+  try {
+    const query = `${title} ${artist || ''}`.trim();
+    const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=1`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const trackTimeMillis = data.results?.[0]?.trackTimeMillis;
+    if (trackTimeMillis && typeof trackTimeMillis === 'number') {
+      return Math.round(trackTimeMillis / 1000);
+    }
+  } catch (e) {
+    // ネットワークエラー等は無視してフォールバック
   }
-  if (parts.length === 3) {
-    return parts[0] * 3600 + parts[1] * 60 + parts[2];
-  } else if (parts.length === 2) {
-    return parts[0] * 60 + parts[1];
-  } else if (parts.length === 1) {
-    return parts[0];
+  return null;
+}
+
+/**
+ * YouTube oEmbed API を利用して動画タイトルを取得
+ */
+async function fetchYouTubeTitle(videoId: string): Promise<string | null> {
+  try {
+    const url = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.title || null;
+  } catch (e) {
+    return null;
   }
-  return 0;
+}
+
+function formatTime(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
 async function main() {
@@ -66,11 +92,14 @@ async function main() {
 
   const now = new Date().toISOString();
   const videoUrl = video.url || `https://www.youtube.com/watch?v=${video.video_id}`;
-  const videoTitle = video.title || `歌枠 (${video.video_id})`;
+  let videoTitle = video.title;
+  if (!videoTitle) {
+    const oembedTitle = await fetchYouTubeTitle(video.video_id);
+    videoTitle = oembedTitle || `歌枠 (${video.video_id})`;
+  }
   const publishedAt = video.published_at || now;
-  const videoLength = video.length || (songs.length > 0 ? Math.max(...songs.map(s => s.end || s.start)) + 60 : 0);
 
-  console.log(`\n=== 動画情報の処理中: ${video.video_id} ===`);
+  console.log(`\n=== 動画情報の処理: [${video.video_id}] ${videoTitle} ===`);
 
   // 1. video テーブルの確認・登録
   const { data: existingVideos, error: videoSelectError } = await supabase
@@ -82,6 +111,8 @@ async function main() {
     console.error('videoテーブル検索エラー:', videoSelectError);
     process.exit(1);
   }
+
+  const videoLength = video.length || (songs.length > 0 ? Math.max(...songs.map(s => s.end || (s.start + 300))) + 120 : 7200);
 
   if (!existingVideos || existingVideos.length === 0) {
     const newVideoId = crypto.randomUUID();
@@ -102,17 +133,40 @@ async function main() {
       console.error('videoテーブル登録エラー:', videoInsertError);
       process.exit(1);
     }
-    console.log(`動画を新規登録しました: [${video.video_id}] ${videoTitle}`);
+    console.log(`動画を新規登録しました: ${videoTitle}`);
   } else {
-    console.log(`動画は既に登録済みです: [${video.video_id}] ${existingVideos[0].title}`);
+    console.log(`動画は既に登録済みです: ${existingVideos[0].title}`);
   }
 
-  // 2. 各曲の登録
-  console.log(`\n=== 楽曲登録開始 (${songs.length} 曲) ===`);
+  // 2. 各曲の終了時刻補完 & 登録
+  console.log(`\n=== 楽曲情報の検証と登録開始 (${songs.length} 曲) ===`);
   let successCount = 0;
 
   for (let i = 0; i < songs.length; i++) {
     const s = songs[i];
+    const nextSong = songs[i + 1];
+    let end = s.end;
+
+    // 終了時刻が未指定、または次の曲まで6分以上空いている場合は原曲長でスマート補正
+    const nextStart = nextSong ? nextSong.start : null;
+    const intervalToNext = nextStart ? nextStart - s.start : null;
+
+    if (!end || (intervalToNext && intervalToNext > 360)) {
+      // 原曲の長さを取得
+      const trackDuration = await fetchTrackDuration(s.title, s.artist);
+      if (trackDuration) {
+        // 原曲の長さ + 余韻・アウトロバッファ（8秒）
+        const estimatedEnd = s.start + trackDuration + 8;
+        end = nextStart ? Math.min(estimatedEnd, nextStart) : estimatedEnd;
+        console.log(`[自動計算] 「${s.title}」原曲長: ${formatTime(trackDuration)} -> 終了時刻: ${formatTime(end)} (${end}s)`);
+      } else {
+        // 原曲が取得できない場合は 4分30秒 (270s) をデフォルトとする
+        const defaultEnd = s.start + 270;
+        end = nextStart ? Math.min(defaultEnd, nextStart) : defaultEnd;
+        console.log(`[デフォルト設定] 「${s.title}」-> 終了時刻: ${formatTime(end)} (${end}s)`);
+      }
+    }
+
     const songId = crypto.randomUUID();
 
     // song テーブル登録
@@ -137,7 +191,7 @@ async function main() {
         id: songId,
         video_id: video.video_id,
         start: s.start,
-        end: s.end || s.start + 240, // 終了時刻が未指定の場合は4分後を暫定値
+        end: end,
         published_at: publishedAt,
         created_at: now,
         updated_at: now,
@@ -150,10 +204,10 @@ async function main() {
     }
 
     successCount++;
-    console.log(`[${i + 1}/${songs.length}] 登録完了: ${s.title} / ${s.artist || '不明'} (${s.start}s - ${s.end}s)`);
+    console.log(`[${i + 1}/${songs.length}] 登録完了: ${s.title} / ${s.artist || '不明'} (${formatTime(s.start)} - ${formatTime(end)})`);
   }
 
-  console.log(`\n=== 登録完了: ${successCount} / ${songs.length} 曲 ===\n`);
+  console.log(`\n=== 全処理完了: ${successCount} / ${songs.length} 曲 ===\n`);
 }
 
 main().catch((err) => {
