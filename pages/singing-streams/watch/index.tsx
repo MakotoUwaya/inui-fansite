@@ -42,6 +42,13 @@ function SingingStreamsWatchPage() {
   const [currentTime, setCurrentTime] = useState(0);
   const [isMobilePlaylistVisible, setMobilePlaylistVisible] = useState(false);
   const [streams, setStreams] = useState<SingingStreamForSearch[]>([]);
+  const [isAutoPlay, setIsAutoPlay] = useState(false);
+  const isAutoPlayRef = useRef(false);
+
+  const enableAutoPlay = useCallback(() => {
+    isAutoPlayRef.current = true;
+    setIsAutoPlay(true);
+  }, []);
 
   const [isMute, setMute] = useLocalStorage('isMute', false);
   const [repeatType, setRepeatType] = useLocalStorage<RepeatType>('repeatType', 'none');
@@ -69,8 +76,9 @@ function SingingStreamsWatchPage() {
 
   const onPlay = useCallback(() => {
     if (!player) return;
+    enableAutoPlay();
     player.playVideo();
-  }, [player]);
+  }, [player, enableAutoPlay]);
 
   const onPause = useCallback(() => {
     if (!player) return;
@@ -79,6 +87,7 @@ function SingingStreamsWatchPage() {
 
   const onSkipPrev = useCallback(() => {
     if (!streams || !currentStream || !player) return;
+    enableAutoPlay();
     if (currentTime >= 5) {
       player.seekTo(currentStream.start);
       setCurrentTime(0);
@@ -90,17 +99,18 @@ function SingingStreamsWatchPage() {
     if (prevStream) {
       router.push(`/singing-streams/watch?v=${prevStream.id}`);
     }
-  }, [currentStream, currentTime, player, router, streams]);
+  }, [currentStream, currentTime, player, router, streams, enableAutoPlay]);
 
   const onSkipNext = useCallback(() => {
     if (!streams || !currentStream) return;
+    enableAutoPlay();
     const playingStreamIndex = streams.findIndex((stream) => stream.id === currentStream.id);
     if (playingStreamIndex === streams.length - 1) return;
     const nextStream = streams[playingStreamIndex + 1];
     if (nextStream) {
       router.push(`/singing-streams/watch?v=${nextStream.id}`);
     }
-  }, [currentStream, router, streams]);
+  }, [currentStream, router, streams, enableAutoPlay]);
 
   const onVolumeChange = useCallback(
     (value) => {
@@ -154,6 +164,7 @@ function SingingStreamsWatchPage() {
 
     // playing
     if (event.data === 1) {
+      enableAutoPlay();
       const currentTime = event.target.getCurrentTime();
       if (currentTime < startSeconds) {
         event.target.seekTo(startSeconds);
@@ -167,7 +178,7 @@ function SingingStreamsWatchPage() {
     } else {
       setPlaying(false);
     }
-  }, []);
+  }, [enableAutoPlay]);
 
   const onMobilePlayerVisibleChange = useCallback(() => {
     setMobilePlaylistVisible((visible) => !visible);
@@ -243,7 +254,9 @@ function SingingStreamsWatchPage() {
         startSeconds: currentStream.start,
         endSeconds: currentStream.end,
       };
-      isPlayedVideo(currentStream.video_id) ? player.loadVideoById(param) : player.cueVideoById(param);
+      isAutoPlayRef.current || isPlayedVideo(currentStream.video_id)
+        ? player.loadVideoById(param)
+        : player.cueVideoById(param);
     }
   }, [player, currentStream, isPlayedVideo, isPlayedOnce]);
 
@@ -263,6 +276,7 @@ function SingingStreamsWatchPage() {
   // When the video ends, streams will be played in order.
   useEffect(() => {
     if (!streams || !isEnded || !isPlayedOnce || !currentStream) return;
+    enableAutoPlay();
     const playingStreamIndex = streams.findIndex((s) => s.id === currentStream.id);
     const nextStreamId =
       playingStreamIndex === streams.length - 1
@@ -273,7 +287,7 @@ function SingingStreamsWatchPage() {
     if (nextStreamId) {
       router.push(`/singing-streams/watch?v=${nextStreamId}`);
     }
-  }, [isEnded, isPlayedOnce, currentStream, streams, router, repeatType]);
+  }, [isEnded, isPlayedOnce, currentStream, streams, router, repeatType, enableAutoPlay]);
 
   useEffect(() => {
     if (!isPlayedOnce || !currentStream) return;
@@ -282,6 +296,8 @@ function SingingStreamsWatchPage() {
       addPlayedVideo(currentStream.video_id);
     }
   }, [currentStream, isPlayedOnce, isPlayedVideo, addPlayedVideo]);
+
+  const needNativePlayPush = !isAutoPlay && !isPlayedVideo(currentStream?.video_id ?? '');
 
   return (
     <Layout className={styles.root} title={currentStream?.song.title || ''} padding={isMobile ? 'all' : 'horizontal'}>
@@ -312,7 +328,7 @@ function SingingStreamsWatchPage() {
               isSkipPrevDisabled={isFirstStream}
               isSkipNextDisabled={isLastStream}
               isShuffled={isShuffledOnce}
-              needNativePlayPush={!isPlayedVideo(currentStream.video_id)}
+              needNativePlayPush={needNativePlayPush}
               length={currentStream.end - currentStream.start}
               videoId={currentStream.video_id}
               publishedAt={currentStream.published_at}
@@ -335,7 +351,7 @@ function SingingStreamsWatchPage() {
               isSkipPrevDisabled={isFirstStream}
               isSkipNextDisabled={isLastStream}
               isShuffled={isShuffledOnce}
-              needNativePlayPush={!isPlayedVideo(currentStream.video_id)}
+              needNativePlayPush={needNativePlayPush}
               length={currentStream.end - currentStream.start}
               repeatType={repeatType}
               volume={volume}
