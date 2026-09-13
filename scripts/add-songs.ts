@@ -54,8 +54,11 @@ function parseTimetable(text: string): ParsedSong[] {
     // 絵文字や装飾記号を先頭から除去
     rest = rest.replace(/^[\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d\s]+/u, '').trim();
 
+    // 曲番号プレフィックス (例: "M01. ", "01. ", "#1 ") を除去
+    rest = rest.replace(/^(?:M\d{1,2}|#?\d{1,2})[\.\s、\-:]+\s*/i, '').trim();
+
     // 歌唱でないノイズ行を除外
-    if (/^(声入り|OP|ED|開始|待機|オープニング|エンディング|雑談|挨拶|トーク)$/i.test(rest)) {
+    if (/^(声入り|OP|ED|開始|待機|オープニング|エンディング|雑談|挨拶|トーク|SET\s*LIST)/i.test(rest)) {
       continue;
     }
 
@@ -68,6 +71,11 @@ function parseTimetable(text: string): ParsedSong[] {
       title = delimiterMatch[1].trim();
       artist = delimiterMatch[2].trim();
     }
+
+    // アーティスト名・曲名末尾の注記（例: "（🍹ソロ", "（🛼ソロ", "(デュエット)" など）を除去
+    artist = artist.replace(/[(（][^()（）]*(?:ソロ|デュエット|コラボ|🍹|🛼|☯️)[^()（）]*[)）]?$/gu, '').trim();
+    // アーティスト名の余分な括弧開き（例: "荒井由実（松任谷由実）" の後の閉じ忘れなど）を整える
+    artist = artist.replace(/[(（][^()（）]*$/g, '').trim();
 
     if (title) {
       results.push({
