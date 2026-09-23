@@ -38,8 +38,9 @@ export const SingingStreamMediaObject = memo(function SingingStreamMediaObject({
           <Image
             src={`https://i.ytimg.com/vi/${singingStream.video_id}/hqdefault.jpg`}
             alt={singingStream.video.title}
-            layout="fill"
-            objectFit="cover"
+            fill
+            sizes="(max-width: 768px) 120px, 160px"
+            style={{ objectFit: 'cover' }}
           />
         </a>
       </Link>

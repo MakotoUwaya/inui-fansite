@@ -43,9 +43,10 @@ export const PlaylistItem = memo(({ className, stream, isPlaying }: Props) => {
         <a className={styles.thumbnail}>
           <Image
             alt={stream.song.title}
-            layout="fill"
             src={`https://i.ytimg.com/vi/${stream.video_id}/default.jpg`}
-            objectFit="cover"
+            fill
+            sizes="64px"
+            style={{ objectFit: 'cover' }}
           />
           {isHovering && !isPlaying ? (
             <div className={styles.hovering}>

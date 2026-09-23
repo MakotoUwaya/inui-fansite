@@ -5,7 +5,14 @@ const path = require('path');
  */
 module.exports = {
   images: {
-    domains: ['i.ytimg.com']
+    domains: ['i.ytimg.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'i.ytimg.com',
+        pathname: '/**',
+      },
+    ],
   },
   sassOptions: {
     includePaths: [path.join(__dirname, 'styles')]
