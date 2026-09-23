@@ -95,3 +95,49 @@
     font-size: 0.7em;
   }
 }
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.35rem 0;
+
+  @include responsive(sm) {
+    gap: 0.25rem;
+    margin: 0.2rem 0;
+  }
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  white-space: nowrap;
+
+  @include responsive(sm) {
+    font-size: 0.6rem;
+    padding: 0.1rem 0.35rem;
+  }
+}
+
+.tagNight {
+  background-color: rgba(99, 102, 241, 0.2);
+  color: #a5b4fc;
+  border: 1px solid rgba(165, 180, 252, 0.3);
+}
+
+.tagGenre {
+  background-color: rgba(236, 72, 153, 0.15);
+  color: #f472b6;
+  border: 1px solid rgba(244, 114, 182, 0.25);
+}
+
+.tagMood {
+  background-color: rgba(20, 184, 166, 0.15);
+  color: #5eead4;
+  border: 1px solid rgba(94, 234, 212, 0.25);
+}

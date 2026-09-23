@@ -34,6 +34,29 @@ export const SingingStreamMediaObject = memo(function SingingStreamMediaObject({
               <span className={styles.songArtist}>{singingStream.song.artist}</span>
             </div>
             <span className={styles.videoTitle}>{singingStream.video.title}</span>
+            {singingStream.song.song_metadata && (
+              <div className={styles.tags}>
+                {singingStream.song.song_metadata.is_night_pick && (
+                  <span className={`${styles.tag} ${styles.tagNight}`}>🌙 夜におすすめ</span>
+                )}
+                {singingStream.song.song_metadata.genre && (
+                  <span className={`${styles.tag} ${styles.tagGenre}`}>
+                    #{singingStream.song.song_metadata.genre === 'anime' ? 'アニソン' :
+                      singingStream.song.song_metadata.genre === 'vocaloid' ? 'ボカロ' :
+                      singingStream.song.song_metadata.genre === 'nostalgic' ? 'レトロ' :
+                      singingStream.song.song_metadata.genre === 'vtuber' ? 'VTuber' : 'J-POP'}
+                  </span>
+                )}
+                {singingStream.song.song_metadata.mood && (
+                  <span className={`${styles.tag} ${styles.tagMood}`}>
+                    {singingStream.song.song_metadata.mood === 'ballad' ? 'バラード' :
+                     singingStream.song.song_metadata.mood === 'emotional' ? 'エモい' :
+                     singingStream.song.song_metadata.mood === 'cool' ? 'クール' :
+                     singingStream.song.song_metadata.mood === 'bright' ? 'ポップ' : 'ジャジー'}
+                  </span>
+                )}
+              </div>
+            )}
           </a>
         </Link>
         <span className={styles.publishedAt}>{format(new Date(singingStream.published_at), 'yyyy/MM/dd')} 配信</span>

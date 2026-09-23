@@ -32,11 +32,24 @@ export type SingingStream = {
   video?: Video;
 };
 
+export type SongMetadata = {
+  mood: 'ballad' | 'emotional' | 'cool' | 'bright' | 'jazz_rnb' | string;
+  genre: 'anime' | 'vocaloid' | 'jpop' | 'nostalgic' | 'vtuber' | string;
+  is_night_pick: boolean;
+  confidence_mood?: number;
+  confidence_genre?: number;
+  prob_night_pick?: number;
+};
+
 export type SingingStreamForSearch = Pick<SingingStream, 'id' | 'start' | 'video_id' | 'published_at'> & {
-  song: Pick<Song, 'title' | 'artist' | 'title_en' | 'artist_en'>;
+  song: Pick<Song, 'title' | 'artist' | 'title_en' | 'artist_en'> & {
+    song_metadata?: SongMetadata | null;
+  };
   video: Pick<Video, 'title' | 'url'>;
 };
 
 export type SingingStreamForWatch = Pick<SingingStream, 'id' | 'start' | 'end' | 'video_id' | 'published_at'> & {
-  song: Pick<Song, 'title' | 'artist' | 'title_en' | 'artist_en'>;
+  song: Pick<Song, 'title' | 'artist' | 'title_en' | 'artist_en'> & {
+    song_metadata?: SongMetadata | null;
+  };
 };

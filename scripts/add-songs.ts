@@ -378,6 +378,53 @@ async function main() {
     }
 
     registeredCount++;
+
+    // Jev による自動タグ付け (TYPESAFE_API_KEY が設定されている場合)
+    if (process.env.TYPESAFE_API_KEY) {
+      try {
+        const { TypeSafeClient, choice, noul } = await import('@typesafe-ai/sdk');
+        const jev = new TypeSafeClient({ apiKey: process.env.TYPESAFE_API_KEY });
+        const response = await jev.systemOne({
+          state: {
+            song_title: s.title,
+            artist: s.artist || '',
+          },
+          questions: {
+            mood: choice('この楽曲の全体的な雰囲気・ムードに最も近いものはどれですか？', {
+              ballad: 'しっとり・バラード・静か・落ち着いた雰囲気（夜に聴きたい）',
+              emotional: 'エモい・切ない・ドラマチック・心に深く響く',
+              cool: 'クール・かっこいい・力強い・ロック・スタイリッシュ',
+              bright: '明るい・ポップ・楽しい・前向き・テンションが上がる',
+              jazz_rnb: 'おしゃれ・大人・ジャジー・グルーヴィー',
+            }),
+            genre: choice('この楽曲が最も認知されているカテゴリ・ジャンルはどれですか？', {
+              vocaloid: 'ボカロ曲（VOCALOID・音声合成ソフト歌唱曲、またはツミキ/ナユタン星人等のボカロP制作楽曲）',
+              anime: 'アニソン（テレビアニメ主題歌・劇場版映画主題歌・アニソンタイアップ曲）',
+              jpop: 'J-POP / J-ROCK / 邦楽アーティスト一般',
+              nostalgic: '歌謡曲 / シティポップ / 昭和・平成レトロ名曲',
+              vtuber: 'VTuberオリジナルソング / にじさんじ等のバーチャルシンガー楽曲',
+            }),
+            night_pick: noul('夜や深夜に静かにリラックスして聴くのに特に適した楽曲ですか？'),
+          },
+        });
+
+        const { answers } = response;
+        await supabase.from('song_metadata').upsert({
+          song_id: songId,
+          mood: answers.mood.choice,
+          genre: answers.genre.choice,
+          is_night_pick: answers.night_pick.noul >= 0.5,
+          confidence_mood: answers.mood.confidence,
+          confidence_genre: answers.genre.confidence,
+          prob_night_pick: answers.night_pick.noul,
+          raw_jev_data: answers,
+          updated_at: new Date().toISOString(),
+        });
+        console.log(`  🏷️  Jev 自動タグ付け完了: ${answers.mood.choice} / ${answers.genre.choice}`);
+      } catch (tagErr: any) {
+        console.warn(`  ⚠️ Jev タグ付けスキップ (${s.title}):`, tagErr.message);
+      }
+    }
     console.log(`✓ 登録: ${s.title} / ${s.artist || '不明'} (${formatTime(s.start)} - ${formatTime(s.end || 0)})`);
   }
 

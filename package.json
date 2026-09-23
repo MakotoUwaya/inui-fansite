@@ -14,12 +14,15 @@
     "build-storybook": "build-storybook -s public",
     "test-db": "ts-node scripts/test-db-connection.ts",
     "setup-db": "ts-node -e \"require('./utils/postgresClient').db.query(require('fs').readFileSync('./schema.sql', 'utf8'))\"",
-    "add-songs": "tsx --env-file=.env scripts/add-songs.ts"
+    "add-songs": "tsx --env-file=.env scripts/add-songs.ts",
+    "test-jev": "tsx scripts/test-jev-tagging.ts",
+    "tag-songs": "tsx scripts/tag-all-songs.ts"
   },
   "license": "MIT",
   "dependencies": {
     "@popperjs/core": "^2.11.2",
     "@supabase/supabase-js": "^1.30.0",
+    "@typesafe-ai/sdk": "^0.6.0",
     "@vercel/postgres": "0.10.0",
     "clsx": "^1.1.1",
     "date-fns": "^2.28.0",
