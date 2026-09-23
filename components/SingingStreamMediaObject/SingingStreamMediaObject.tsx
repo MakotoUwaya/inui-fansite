@@ -1,10 +1,11 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { memo, useMemo } from 'react';
+import { format } from 'date-fns';
 import type { SingingStreamForSearch } from '../../types';
 import { KebabMenu } from '../KebabMenu/KebabMenu';
-import { format } from 'date-fns';
 import styles from './SingingStreamMediaObject.module.scss';
-import { memo } from 'react';
 import { ExternalLink } from '../ExternalLink/ExternalLink';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
@@ -14,9 +15,25 @@ type Props = {
 
 export const SingingStreamMediaObject = memo(function SingingStreamMediaObject({ singingStream }: Props) {
   const isMobile = useIsMobile();
+  const router = useRouter();
+
+  const watchHref = useMemo(() => {
+    const query: Record<string, string> = { v: singingStream.id };
+    if (router.query.filter && typeof router.query.filter === 'string') {
+      query.filter = router.query.filter;
+    }
+    if (router.query.singer && typeof router.query.singer === 'string') {
+      query.singer = router.query.singer;
+    }
+    if (router.query.keyword && typeof router.query.keyword === 'string') {
+      query.keyword = router.query.keyword;
+    }
+    return { pathname: '/singing-streams/watch', query };
+  }, [singingStream.id, router.query]);
+
   return (
     <article className={styles.root}>
-      <Link href={`/singing-streams/watch?v=${singingStream.id}`}>
+      <Link href={watchHref}>
         <a className={styles.thumbnail}>
           <Image
             src={`https://i.ytimg.com/vi/${singingStream.video_id}/hqdefault.jpg`}
@@ -27,7 +44,7 @@ export const SingingStreamMediaObject = memo(function SingingStreamMediaObject({
         </a>
       </Link>
       <div className={styles.info}>
-        <Link href={`/singing-streams/watch?v=${singingStream.id}`}>
+        <Link href={watchHref}>
           <a>
             <div className={styles.song}>
               <h2 className={styles.songTitle}>{singingStream.song.title}</h2>

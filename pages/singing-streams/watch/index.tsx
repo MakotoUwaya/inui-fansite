@@ -14,6 +14,7 @@ import { useIsMobile } from '../../../hooks/useIsMobile';
 import { useIsPlayedVideos } from '../../../hooks/useIsPlayedVideos';
 import { useLocalStorage } from '../../../hooks/useLocalStorage';
 import { useYTPlayer } from '../../../hooks/useYTPlayer';
+import { filterStreams, getFilterSummary } from '../../../utils/songFilter';
 import type { SingingStreamForSearch } from '../../../types';
 import styles from './index.module.scss';
 
@@ -32,8 +33,33 @@ function SingingStreamsWatchPage() {
     return;
   }, [router]);
 
+  // クエリパラメータから絞り込み条件を抽出
+  const filterQuery = typeof router.query.filter === 'string' ? router.query.filter : undefined;
+  const singerQuery = typeof router.query.singer === 'string' ? router.query.singer : undefined;
+  const keywordQuery = typeof router.query.keyword === 'string' ? router.query.keyword : undefined;
+
+  const filterOptions = useMemo(
+    () => ({ filter: filterQuery, singer: singerQuery, keyword: keywordQuery }),
+    [filterQuery, singerQuery, keywordQuery],
+  );
+
+  const filterSummary = useMemo(() => getFilterSummary(filterOptions), [filterOptions]);
+
   const { stream: currentStream } = useSingingStreamForWatch(streamId);
   const { streams: rawStreams } = useSingingStreamsForSearch();
+
+  // 絞り込み条件に合致するストリーム一覧（現在再生中の曲が含まれない場合はリスト先頭に追加）
+  const baseStreams = useMemo(() => {
+    if (!rawStreams) return [];
+    const filtered = filterStreams(rawStreams, filterOptions);
+    if (streamId && !filtered.some((s) => s.id === streamId)) {
+      const currentSearchStream = rawStreams.find((s) => s.id === streamId);
+      if (currentSearchStream) {
+        return [currentSearchStream, ...filtered];
+      }
+    }
+    return filtered;
+  }, [rawStreams, filterOptions, streamId]);
 
   const [isPlaying, setPlaying] = useState(false);
   const [isEnded, setEnded] = useState(false);
@@ -66,6 +92,27 @@ function SingingStreamsWatchPage() {
     [streams, streamId],
   );
 
+  // 絞り込みクエリパラメータを保持したまま曲を切り替えるヘルパー
+  const navigateToStream = useCallback(
+    (targetStreamId: string) => {
+      const query: Record<string, string> = { v: targetStreamId };
+      if (filterQuery) query.filter = filterQuery;
+      if (singerQuery) query.singer = singerQuery;
+      if (keywordQuery) query.keyword = keywordQuery;
+      router.push({ pathname: '/singing-streams/watch', query });
+    },
+    [filterQuery, singerQuery, keywordQuery, router],
+  );
+
+  // 全曲再生モードに切り替える（フィルター解除）
+  const onClearFilter = useCallback(() => {
+    if (!streamId) return;
+    router.push({
+      pathname: '/singing-streams/watch',
+      query: { v: streamId },
+    });
+  }, [streamId, router]);
+
   const { player, ...ytPlayerProps } = useYTPlayer({
     mountId: 'singing-stream-player',
     controls: false,
@@ -97,9 +144,9 @@ function SingingStreamsWatchPage() {
     if (playingStreamIndex === 0) return;
     const prevStream = streams[playingStreamIndex - 1];
     if (prevStream) {
-      router.push(`/singing-streams/watch?v=${prevStream.id}`);
+      navigateToStream(prevStream.id);
     }
-  }, [currentStream, currentTime, player, router, streams, enableAutoPlay]);
+  }, [currentStream, currentTime, player, streams, enableAutoPlay, navigateToStream]);
 
   const onSkipNext = useCallback(() => {
     if (!streams || !currentStream) return;
@@ -108,9 +155,9 @@ function SingingStreamsWatchPage() {
     if (playingStreamIndex === streams.length - 1) return;
     const nextStream = streams[playingStreamIndex + 1];
     if (nextStream) {
-      router.push(`/singing-streams/watch?v=${nextStream.id}`);
+      navigateToStream(nextStream.id);
     }
-  }, [currentStream, router, streams, enableAutoPlay]);
+  }, [currentStream, streams, enableAutoPlay, navigateToStream]);
 
   const onVolumeChange = useCallback(
     (value) => {
@@ -185,18 +232,18 @@ function SingingStreamsWatchPage() {
   }, []);
 
   const onShuffle = useCallback(() => {
-    if (!rawStreams || !streamId) return;
-    const currentStream = rawStreams.find((stream) => stream.id === streamId);
-    if (!currentStream) return;
-    setStreams([currentStream].concat(shuffle(without(streams, currentStream))));
+    if (!streams || !streamId) return;
+    const current = streams.find((stream) => stream.id === streamId);
+    if (!current) return;
+    setStreams([current].concat(shuffle(without(streams, current))));
     setShuffledOnce(true);
-  }, [rawStreams, streamId, streams]);
+  }, [streamId, streams]);
 
   useEffect(() => {
-    if (rawStreams) {
-      setStreams(rawStreams);
+    if (baseStreams.length > 0) {
+      setStreams(baseStreams);
     }
-  }, [rawStreams]);
+  }, [baseStreams]);
 
   // When repeatType is changed, the local variable is also changed.
   useEffect(() => {
@@ -285,9 +332,9 @@ function SingingStreamsWatchPage() {
           : null
         : streams[playingStreamIndex + 1]?.id;
     if (nextStreamId) {
-      router.push(`/singing-streams/watch?v=${nextStreamId}`);
+      navigateToStream(nextStreamId);
     }
-  }, [isEnded, isPlayedOnce, currentStream, streams, router, repeatType, enableAutoPlay]);
+  }, [isEnded, isPlayedOnce, currentStream, streams, repeatType, enableAutoPlay, navigateToStream]);
 
   useEffect(() => {
     if (!isPlayedOnce || !currentStream) return;
@@ -310,6 +357,24 @@ function SingingStreamsWatchPage() {
             <div className={styles.sidePanelSkeleton} />
           ) : (
             <div className={styles.sidePanel}>
+              <div className={styles.playlistHeader}>
+                <div className={styles.playlistTitleGroup}>
+                  <span className={styles.playlistTitle}>
+                    {filterSummary.isFiltered ? filterSummary.label : '再生リスト'}
+                  </span>
+                  <span className={styles.playlistCount}>({streams.length}曲)</span>
+                </div>
+                {filterSummary.isFiltered && (
+                  <button
+                    type="button"
+                    className={styles.clearFilterButton}
+                    onClick={onClearFilter}
+                    title="フィルターを解除して全曲再生モードに切り替えます"
+                  >
+                    全曲再生にする
+                  </button>
+                )}
+              </div>
               <Playlist className={styles.playlist} streams={streams} />
             </div>
           )
@@ -387,6 +452,24 @@ function SingingStreamsWatchPage() {
           <button className={styles.mobilePlaylistVisibilityToggle} onClick={onMobilePlayerVisibleChange}>
             <MdQueueMusic />
           </button>
+          <div className={styles.playlistHeader}>
+            <div className={styles.playlistTitleGroup}>
+              <span className={styles.playlistTitle}>
+                {filterSummary.isFiltered ? filterSummary.label : '再生リスト'}
+              </span>
+              <span className={styles.playlistCount}>({streams.length}曲)</span>
+            </div>
+            {filterSummary.isFiltered && (
+              <button
+                type="button"
+                className={styles.clearFilterButton}
+                onClick={onClearFilter}
+                title="フィルターを解除して全曲再生モードに切り替えます"
+              >
+                全曲再生にする
+              </button>
+            )}
+          </div>
           <Playlist className={styles.mobilePlaylist} streams={streams} />
         </motion.div>
       ) : null}

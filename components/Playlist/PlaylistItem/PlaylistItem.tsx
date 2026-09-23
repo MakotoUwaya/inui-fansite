@@ -3,7 +3,8 @@ import { format } from 'date-fns';
 import { Reorder } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { memo, useRef } from 'react';
+import { useRouter } from 'next/router';
+import { memo, useMemo, useRef } from 'react';
 import { MdPlayArrow, MdVolumeUp } from 'react-icons/md';
 import { useHovering } from '../../../hooks/useHovering';
 import type { SingingStreamForSearch } from '../../../types';
@@ -20,10 +21,25 @@ type Props = {
 export const PlaylistItem = memo(({ className, stream, isPlaying }: Props) => {
   const ref = useRef<HTMLDivElement>(null);
   const isHovering = useHovering(ref);
+  const router = useRouter();
+
+  const watchHref = useMemo(() => {
+    const query: Record<string, string> = { v: stream.id };
+    if (router.query.filter && typeof router.query.filter === 'string') {
+      query.filter = router.query.filter;
+    }
+    if (router.query.singer && typeof router.query.singer === 'string') {
+      query.singer = router.query.singer;
+    }
+    if (router.query.keyword && typeof router.query.keyword === 'string') {
+      query.keyword = router.query.keyword;
+    }
+    return { pathname: '/singing-streams/watch', query };
+  }, [stream.id, router.query]);
 
   return (
     <Reorder.Item className={clsx(styles.item, className)} value={stream} dragListener={false} ref={ref}>
-      <Link href={`/singing-streams/watch?v=${stream.id}`}>
+      <Link href={watchHref}>
         <a className={styles.thumbnail}>
           <Image
             alt={stream.song.title}
@@ -43,7 +59,7 @@ export const PlaylistItem = memo(({ className, stream, isPlaying }: Props) => {
           ) : null}
         </a>
       </Link>
-      <Link href={`/singing-streams/watch?v=${stream.id}`}>
+      <Link href={watchHref}>
         <a className={styles.info}>
           <h2 className={styles.songTitle}>{stream.song.title}</h2>
           <span className={styles.songArtist}>
