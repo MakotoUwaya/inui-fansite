@@ -42,7 +42,7 @@ async function getForWatch(key: string) {
 
   const id = match[1];
   const { data, error } = await supabase
-    .from<SingingStreamForWatch>('singing_stream')
+    .from('singing_stream')
     .select('id, start, end, video_id, published_at, singers, song(title, artist, song_metadata(mood, genre, is_night_pick)), video!video_id(title, url)')
     .eq('id', id)
     .single();
@@ -50,7 +50,7 @@ async function getForWatch(key: string) {
   if (error) {
     throw error;
   }
-  return data;
+  return data as unknown as SingingStreamForWatch;
 }
 
 async function getForList(key: string): Promise<SingingStreamForSearch[] | null> {
@@ -79,7 +79,7 @@ async function getForList(key: string): Promise<SingingStreamForSearch[] | null>
   const { data, error } = await query;
 
   if (error) throw error;
-  return data;
+  return data as unknown as SingingStreamForSearch[];
 }
 
 async function createSingingStream(): Promise<void> {

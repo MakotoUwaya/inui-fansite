@@ -160,7 +160,7 @@ function SingingStreamsWatchPage() {
   }, [currentStream, streams, enableAutoPlay, navigateToStream]);
 
   const onVolumeChange = useCallback(
-    (value) => {
+    (value: number) => {
       if (!player) return;
       player.setVolume(value);
       setVolume(value);
