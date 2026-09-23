@@ -64,15 +64,13 @@ function IndexPage() {
           </div>
 
           <h1 className={styles.heroTitle}>
-            戌亥とこの歌を、
-            <br className={styles.spBr} />
-            <span className={styles.heroTitleHighlight}>いつでも、その瞬間に。</span>
+            聴きたい歌を、いつでもその瞬間に。
           </h1>
 
           <p className={styles.heroLead}>
             YouTubeの歌枠アーカイブから、聴きたい楽曲をワンクリックでシーク再生。
             <br />
-            AI（Jev）によるムード・ジャンル分析で、今の気分にぴったりの1曲が見つかります。
+            気分やジャンル、歌唱メンバーでの絞り込みで、今聴きたい1曲がすぐ見つかります。
           </p>
 
           {/* クイック検索バー */}
@@ -139,7 +137,7 @@ function IndexPage() {
               <div className={`${styles.featureIconBox} ${styles.iconAi}`}>
                 <MdGraphicEq />
               </div>
-              <h3 className={styles.featureCardTitle}>AI（Jev）によるムード分類</h3>
+              <h3 className={styles.featureCardTitle}>気分・ムードから探せる</h3>
               <p className={styles.featureCardDesc}>
                 「しっとりバラード」「クール・ロック」「明るいポップ」など、雰囲気やジャンルで直感的に曲を探せます。
               </p>
