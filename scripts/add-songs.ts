@@ -79,6 +79,28 @@ function resolveSingers(
     if (singer === '渚トラウト' && /とらうと|トラウト|渚/.test(note)) {
       matchedSingers.push(singer);
     }
+    // NIJISANJI EN ライバー
+    if (singer === 'Elira Pendora' && /☀️|💙|Elira|エリーラ/i.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === 'Finana Ryugu' && /💚|Finana|フィナーナ/i.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === 'Enna Alouette' && /🐣|Enna|エナ/i.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === 'Millie Parfait' && /🌂|Millie|ミリー/i.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === 'Ren Zotto' && /🥽|Ren|レン/i.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === 'Reimu Endou' && /(?:❤️‍🩹|Reimu|レイム)/i.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === 'Aster Arcadia' && /🦁|Aster|アスター/i.test(note)) {
+      matchedSingers.push(singer);
+    }
   }
 
   const unique = Array.from(new Set(matchedSingers));
@@ -101,21 +123,28 @@ function parseTimetable(text: string, videoSingers: string[] = ['戌亥とこ'])
     const line = rawLine.trim();
     if (!line) continue;
 
-    // タイムスタンプの抽出 (H:)?MM:SS
-    const timeMatch = line.match(/^(\d{1,2}:\d{2}(?::\d{2})?)\s+(.*)$/);
-    if (!timeMatch) continue;
+    // タイムスタンプの抽出 (先頭または末尾の (H:)?MM:SS)
+    let timeStr = '';
+    let rest = line;
 
-    const timeStr = timeMatch[1];
-    let rest = timeMatch[2].trim();
+    const leadingTimeMatch = line.match(/^(\d{1,2}:\d{2}(?::\d{2})?)\s+(.*)$/);
+    const trailingTimeMatch = line.match(/^(.*?)\s+(\d{1,2}:\d{2}(?::\d{2})?)$/);
 
-    // 絵文字や装飾記号を先頭から除去
-    rest = rest.replace(/^[\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d\s]+/u, '').trim();
+    if (leadingTimeMatch) {
+      timeStr = leadingTimeMatch[1];
+      rest = leadingTimeMatch[2].trim();
+    } else if (trailingTimeMatch) {
+      timeStr = trailingTimeMatch[2];
+      rest = trailingTimeMatch[1].trim();
+    } else {
+      continue;
+    }
 
-    // 曲番号プレフィックス (例: "M01. ", "01. ", "#1 ") を除去
-    rest = rest.replace(/^(?:M\d{1,2}|#?\d{1,2})[\.\s、\-:]+\s*/i, '').trim();
+    // 全角英数記号の正規化など
+    rest = rest.replace(/^[0-9０-９]+[．\.]\s*/, '').trim();
 
-    // 歌唱でないノイズ行を除外
-    if (/^(声入り|OP|ED|開始|待機|オープニング|エンディング|雑談|挨拶|トーク|SET\s*LIST)/i.test(rest)) {
+    // 歌唱でないノイズ行を除外 (OPやEDは単語・境界として判定)
+    if (/^(?:声入り|開始|待機|オープニング|エンディング|雑談|挨拶|トーク|SET\s*LIST|(?:OP|ED)(?:[\s:：、\-]|$))/i.test(rest)) {
       continue;
     }
 
@@ -134,14 +163,20 @@ function parseTimetable(text: string, videoSingers: string[] = ['戌亥とこ'])
       artist = delimiterMatch[2].trim();
     }
 
-    // アーティスト名または曲名末尾の注記（例: "（🍹ソロ", "（🛼ソロ", "(デュエット)" など）を抽出
-    const noteMatch = artist.match(/[(（]([^()（）]+)[)）]?$/) || title.match(/[(（]([^()（）]+)[)）]?$/);
+    // アーティスト名または曲名末尾の注記（例: "（🍹ソロ", "（🛼ソロ", "(デュエット)", "／💚" など）を抽出
+    const noteMatch =
+      artist.match(/[(（]([^()（）]+)[)）]?$/) ||
+      artist.match(/[\/／]\s*([\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d]+)/u) ||
+      artist.match(/([\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d]+)$/u) ||
+      title.match(/[(（]([^()（）]+)[)）]?$/);
     if (noteMatch) {
       note = noteMatch[1].trim();
     }
 
     // アーティスト名末尾の注記を除去してクリーンにする
-    artist = artist.replace(/[(（][^()（）]*(?:ソロ|デュエット|コラボ|全員|合唱|🍹|🛼|☯️)[^()（）]*[)）]?$/gu, '').trim();
+    artist = artist.replace(/[(（][^()（）]*(?:ソロ|デュエット|コラボ|全員|合唱|🍹|🛼|☯️|☀️|💙|💚|🐣|🌂|🥽|🦁)[^()（）]*[)）]?$/gu, '').trim();
+    artist = artist.replace(/[\/／]\s*[\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d]+/gu, '').trim();
+    artist = artist.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d]+$/gu, '').trim();
     artist = artist.replace(/[(（][^()（）]*$/g, '').trim();
 
     const songSingers = resolveSingers(note, videoSingers);
@@ -186,8 +221,23 @@ function parseSongFromVideoTitle(videoTitle: string): { title: string; artist: s
  * 動画タイトルから歌唱者リストを抽出・推測
  */
 function extractSingersFromTitle(title: string): string[] {
-  const bracketMatches = title.match(/[【\[(（]([^【\[(（）)\]】]+)[)）\]】]/g) || [];
   const foundSingers = new Set<string>();
+
+  // 特別なコラボキーワードの検出
+  if (/SHEESHFEESH/i.test(title)) {
+    foundSingers.add('Elira Pendora');
+    foundSingers.add('Finana Ryugu');
+  }
+  if (/EliraGotCake2025/i.test(title)) {
+    foundSingers.add('Elira Pendora');
+    foundSingers.add('Enna Alouette');
+    foundSingers.add('Millie Parfait');
+    foundSingers.add('Ren Zotto');
+    foundSingers.add('Reimu Endou');
+    foundSingers.add('Aster Arcadia');
+  }
+
+  const bracketMatches = title.match(/[【\[(（]([^【\[(（）)\]】]+)[)）\]】]/g) || [];
 
   for (const bracket of bracketMatches) {
     const inner = bracket.slice(1, -1);
