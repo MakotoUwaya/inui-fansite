@@ -34,9 +34,66 @@ function extractVideoId(input: string): string {
 }
 
 /**
+ * タイムテーブル行の注記や動画出演者から、その曲の歌唱者を判定する
+ */
+function resolveSingers(
+  note: string,
+  videoSingers: string[]
+): string[] {
+  if (videoSingers.length <= 1) {
+    return videoSingers;
+  }
+
+  // 1. デュエット・コラボ・全員合唱の表記
+  if (/デュエット|コラボ|全員|合唱/i.test(note)) {
+    return videoSingers;
+  }
+
+  // 2. 絵文字やライバー名によるソロ・歌唱者指定
+  const matchedSingers: string[] = [];
+
+  for (const singer of videoSingers) {
+    // ライバー名そのものが含まれているか
+    if (note.includes(singer) || (singer.length > 2 && note.includes(singer.slice(0, 2)))) {
+      matchedSingers.push(singer);
+    }
+    // 絵文字マッピング
+    if (singer === '戌亥とこ' && /🍹|いぬい|戌亥/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '長尾景' && /☯|ながお|長尾/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '珠乃井ナナ' && /🛼|なな|ナナ|珠乃井/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '立伝都々' && /とと|立伝/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '北見遊征' && /きたみ|北見/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '早乙女ベリー' && /べりー|ベリー|早乙女/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '渚トラウト' && /とらうと|トラウト|渚/.test(note)) {
+      matchedSingers.push(singer);
+    }
+  }
+
+  const unique = Array.from(new Set(matchedSingers));
+  if (unique.length > 0) {
+    return unique;
+  }
+
+  // 注記がなく判定できない場合はコラボ枠なので全員とする
+  return videoSingers;
+}
+
+/**
  * タイムテーブルテキストを行ごとにパースする
  */
-function parseTimetable(text: string): ParsedSong[] {
+function parseTimetable(text: string, videoSingers: string[] = ['戌亥とこ']): ParsedSong[] {
   const lines = text.split('\n');
   const results: ParsedSong[] = [];
 
@@ -64,6 +121,7 @@ function parseTimetable(text: string): ParsedSong[] {
 
     let title = rest;
     let artist = '';
+    let note = '';
 
     // "曲名 / アーティスト名" または "曲名 - アーティスト名" を分割
     const delimiterMatch = rest.match(/^(.*?)\s*[\/／]\s*(.*)$/) || rest.match(/^(.*?)\s+[-–—]\s+(.*)$/);
@@ -72,9 +130,17 @@ function parseTimetable(text: string): ParsedSong[] {
       artist = delimiterMatch[2].trim();
     }
 
-    // アーティスト名・曲名末尾の注記（例: "（🍹ソロ", "（🛼ソロ", "(デュエット)" など）を除去
-    artist = artist.replace(/[(（][^()（）]*(?:ソロ|デュエット|コラボ|🍹|🛼|☯️)[^()（）]*[)）]?$/gu, '').trim();
+    // アーティスト名または曲名末尾の注記（例: "（🍹ソロ", "（🛼ソロ", "(デュエット)" など）を抽出
+    const noteMatch = artist.match(/[(（]([^()（）]+)[)）]?$/) || title.match(/[(（]([^()（）]+)[)）]?$/);
+    if (noteMatch) {
+      note = noteMatch[1].trim();
+    }
+
+    // アーティスト名末尾の注記を除去してクリーンにする
+    artist = artist.replace(/[(（][^()（）]*(?:ソロ|デュエット|コラボ|全員|合唱|🍹|🛼|☯️)[^()（）]*[)）]?$/gu, '').trim();
     artist = artist.replace(/[(（][^()（）]*$/g, '').trim();
+
+    const songSingers = resolveSingers(note, videoSingers);
 
     if (title) {
       results.push({
@@ -82,6 +148,7 @@ function parseTimetable(text: string): ParsedSong[] {
         artist,
         start: parseSeconds(timeStr),
         startStr: timeStr,
+        singers: songSingers,
       });
     }
   }
@@ -293,11 +360,12 @@ async function main() {
   console.log(`配信日時: ${publishedAt}`);
 
   let songs: ParsedSong[] = customSongs;
+  const videoSingers = extractSingersFromTitle(videoTitle);
 
   // タイムテーブルテキストがある場合はパース
   if (songs.length === 0 && timetableText.trim()) {
     console.log(`\n[2/4] タイムテーブルの自動パース中...`);
-    songs = parseTimetable(timetableText);
+    songs = parseTimetable(timetableText, videoSingers);
     console.log(`${songs.length} 曲のタイムスタンプを検出しました。`);
   }
 
@@ -315,7 +383,8 @@ async function main() {
           artist: singleArtist,
           start: 0,
           startStr: '00:00',
-          end: videoDuration,
+          end: videoDuration > 0 ? videoDuration : undefined,
+          singers: videoSingers,
         },
       ];
       console.log(`単曲登録: 「${singleTitle}」/ ${singleArtist} (00:00 - ${formatTime(videoDuration)})`);
@@ -394,7 +463,7 @@ async function main() {
       continue;
     }
 
-    const singers = extractSingersFromTitle(videoTitle);
+    const songSingers = s.singers && s.singers.length > 0 ? s.singers : videoSingers;
 
     const { error: streamError } = await supabase.from('singing_stream').insert([
       {
@@ -403,7 +472,7 @@ async function main() {
         start: s.start,
         end: s.end || finalVideoLength,
         published_at: publishedAt,
-        singers,
+        singers: songSingers,
         created_at: now,
         updated_at: now,
       },
