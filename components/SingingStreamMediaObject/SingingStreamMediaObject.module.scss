@@ -24,25 +24,43 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  flex: 1 0;
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
   margin-left: 1em;
+
+  @include responsive(sm) {
+    margin-left: 0.75em;
+  }
+}
+
+.infoLink {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
 }
 
 .song {
   display: flex;
   align-items: flex-end;
   margin-bottom: 1rem;
+  min-width: 0;
 
   @include responsive(sm) {
     flex-direction: column;
     align-items: flex-start;
     margin-bottom: 0;
+    width: 100%;
   }
 }
 
 .songTitle {
   font-size: 1.5em;
   font-weight: bold;
+  word-break: break-all;
 
   @include responsive(lg) {
     font-size: 1.25em;
@@ -51,10 +69,13 @@
   @include responsive(sm) {
     @include lineClamp(1);
     font-size: 1em;
+    width: 100%;
   }
 }
 
 .songArtist {
+  word-break: break-all;
+
   &::before {
     content: '/';
     margin: 0 0.5em;
@@ -67,15 +88,19 @@
     }
     @include lineClamp(1);
     font-size: 0.7em;
+    width: 100%;
   }
 }
 
 .videoTitle {
   @include lineClamp(3);
   margin: 0.25rem 0;
+  word-break: break-all;
+
   @include responsive(sm) {
     @include lineClamp(1);
     font-size: 0.5em;
+    width: 100%;
   }
 }
 
@@ -88,6 +113,7 @@
 
 .menu {
   align-self: flex-start;
+  flex-shrink: 0;
 }
 
 .originalLink {
@@ -101,6 +127,7 @@
   flex-wrap: wrap;
   gap: 0.4rem;
   margin: 0.35rem 0;
+  max-width: 100%;
 
   @include responsive(sm) {
     gap: 0.25rem;
@@ -111,6 +138,7 @@
 .tag {
   display: inline-flex;
   align-items: center;
+  max-width: 100%;
   font-size: 0.75rem;
   padding: 0.15rem 0.5rem;
   border-radius: 9999px;
@@ -147,4 +175,17 @@
   color: #fbbf24;
   border: 1px solid rgba(251, 191, 36, 0.3);
   font-weight: 500;
+  min-width: 0;
+}
+
+.tagIcon {
+  flex-shrink: 0;
+  margin-right: 0.25rem;
+}
+
+.singerText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }

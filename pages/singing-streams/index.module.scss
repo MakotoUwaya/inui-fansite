@@ -35,6 +35,10 @@
 .singerChip {
   display: inline-flex;
   align-items: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   padding: 0.35rem 0.75rem;
   border-radius: 6px;
   background-color: lighten($base-black, 15);

@@ -10,28 +10,46 @@
 
 .streamInfo {
   display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.thumbnailWrapper {
+  flex-shrink: 0;
+  width: 96px;
+  height: 54px;
+  position: relative;
+  border-radius: 4px;
+  overflow: hidden;
 }
 
 .meta {
   display: flex;
   flex-direction: column;
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .songTitle {
   @include lineClamp(1);
   font-weight: bold;
+  word-break: break-all;
 }
 
 .songArtist {
   @include lineClamp(1);
   font-size: 0.75rem;
+  word-break: break-all;
 }
 
 .publishedAt {
   margin-top: auto;
   font-size: 0.75rem;
+  white-space: nowrap;
 }
 
 .slider {

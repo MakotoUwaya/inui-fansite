@@ -59,8 +59,13 @@ export const PlaylistItem = memo(({ className, stream, isPlaying }: Props) => {
         ) : null}
       </Link>
       <Link href={watchHref} className={styles.info}>
-        <h2 className={styles.songTitle}>{stream.song.title}</h2>
-        <span className={styles.songArtist}>
+        <h2 className={styles.songTitle} title={stream.song.title}>
+          {stream.song.title}
+        </h2>
+        <span
+          className={styles.songArtist}
+          title={`${stream.song.artist} / ${format(new Date(stream.published_at), 'yyyy-MM-dd')} 配信`}
+        >
           {stream.song.artist} / {format(new Date(stream.published_at), 'yyyy-MM-dd')} 配信
         </span>
       </Link>

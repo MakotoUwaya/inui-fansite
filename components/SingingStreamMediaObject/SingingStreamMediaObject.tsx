@@ -43,7 +43,7 @@ export const SingingStreamMediaObject = memo(function SingingStreamMediaObject({
         />
       </Link>
       <div className={styles.info}>
-        <Link href={watchHref}>
+        <Link href={watchHref} className={styles.infoLink}>
           <div className={styles.song}>
             <h2 className={styles.songTitle}>{singingStream.song.title}</h2>
             <span className={styles.songArtist}>{singingStream.song.artist}</span>
@@ -52,8 +52,8 @@ export const SingingStreamMediaObject = memo(function SingingStreamMediaObject({
           <div className={styles.tags}>
             {singingStream.singers && singingStream.singers.length > 0 && (
               <span className={`${styles.tag} ${styles.tagSinger}`}>
-                {singingStream.singers.length > 1 ? '👥 ' : '🎤 '}
-                {singingStream.singers.join(' / ')}
+                <span className={styles.tagIcon}>{singingStream.singers.length > 1 ? '👥' : '🎤'}</span>
+                <span className={styles.singerText}>{singingStream.singers.join(' / ')}</span>
               </span>
             )}
             {singingStream.song.song_metadata && (

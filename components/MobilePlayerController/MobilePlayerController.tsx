@@ -56,16 +56,18 @@ export const MobilePlayerController = memo(function MobilePlayerController({
   return (
     <div className={styles.root}>
       <div className={styles.streamInfo}>
-        <Image
-          alt={songTitle}
-          width={96}
-          height={54}
-          src={`https://i.ytimg.com/vi/${videoId}/default.jpg`}
-          objectFit="cover"
-        />
+        <div className={styles.thumbnailWrapper}>
+          <Image
+            alt={songTitle}
+            width={96}
+            height={54}
+            src={`https://i.ytimg.com/vi/${videoId}/default.jpg`}
+            objectFit="cover"
+          />
+        </div>
         <div className={styles.meta}>
-          <div className={styles.songTitle}>{songTitle}</div>
-          <div className={styles.songArtist}>{songArtist}</div>
+          <div className={styles.songTitle} title={songTitle}>{songTitle}</div>
+          <div className={styles.songArtist} title={songArtist}>{songArtist}</div>
           <div className={styles.publishedAt}>{format(new Date(publishedAt), 'yyyy/MM/dd')} 配信</div>
         </div>
       </div>

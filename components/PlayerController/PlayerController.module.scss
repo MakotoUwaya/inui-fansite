@@ -24,18 +24,24 @@
 }
 
 .middleControls {
-  flex: 1 0;
+  flex: 1 1 0;
   justify-content: center;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .info {
   margin-left: 1rem;
   font-size: 0.875rem;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .sonTitle {
   font-size: 1rem;
   font-weight: bold;
+  @include lineClamp(1);
+  word-break: break-all;
 }
 
 .rightControls {
