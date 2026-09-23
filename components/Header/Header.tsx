@@ -20,21 +20,7 @@ export const Header = memo(function Header() {
           <ActiveLink href="/singing-streams" className={styles.link} activeClassName={styles.activeLink}>
             楽曲一覧
           </ActiveLink>
-          <ActiveLink
-            href="/singing-streams?filter=night"
-            className={styles.link}
-            activeClassName={styles.activeLink}
-          >
-            🌙 今夜の曲
-          </ActiveLink>
-          <ActiveLink
-            href="/singing-streams?filter=collab"
-            className={styles.link}
-            activeClassName={styles.activeLink}
-          >
-            👥 コラボ
-          </ActiveLink>
-          <ActiveLink href="/about" className={`${styles.link} ${styles.aboutLink}`} activeClassName={styles.activeLink}>
+          <ActiveLink href="/about" className={styles.link} activeClassName={styles.activeLink}>
             About
           </ActiveLink>
         </nav>
