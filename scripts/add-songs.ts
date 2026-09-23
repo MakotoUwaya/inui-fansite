@@ -123,8 +123,12 @@ function parseTimetable(text: string, videoSingers: string[] = ['戌亥とこ'])
     let artist = '';
     let note = '';
 
-    // "曲名 / アーティスト名" または "曲名 - アーティスト名" を分割
-    const delimiterMatch = rest.match(/^(.*?)\s*[\/／]\s*(.*)$/) || rest.match(/^(.*?)\s+[-–—]\s+(.*)$/);
+    // "曲名 / アーティスト名" または "曲名 - アーティスト名" または "曲名 by アーティスト名" を分割
+    const delimiterMatch =
+      rest.match(/^(.*?)\s*[\/／]\s*(.*)$/) ||
+      rest.match(/^(.*?)\s+[-–—]\s+(.*)$/) ||
+      rest.match(/^(.*?)\s+by\s+(.*)$/i) ||
+      rest.match(/^(.*?)\s*[-–—]\s*(.*)$/);
     if (delimiterMatch) {
       title = delimiterMatch[1].trim();
       artist = delimiterMatch[2].trim();
@@ -197,6 +201,8 @@ function extractSingersFromTitle(title: string): string[] {
         part === '歌' ||
         part === '歌枠' ||
         part === 'コラボ歌枠' ||
+        part.includes('歌枠') ||
+        /KARAOKE/i.test(part) ||
         part.startsWith('#')
       ) {
         continue;
