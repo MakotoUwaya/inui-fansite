@@ -49,7 +49,6 @@
     "@storybook/manager-webpack5": "^6.4.19",
     "@storybook/react": "^6.4.19",
     "@testing-library/react-hooks": "^7.0.2",
-    "@types/gtag.js": "^0.0.8",
     "@types/jest": "^27.4.0",
     "@types/lodash-es": "^4.17.6",
     "@types/luxon": "2.0.9",
