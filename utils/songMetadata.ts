@@ -19,6 +19,7 @@ export const GENRE_LABELS: Record<string, { label: string; icon: string }> = {
 export type FilterPresetId =
   | 'all'
   | 'night'
+  | 'collab'
   | 'anime'
   | 'vocaloid'
   | 'cool'
@@ -31,7 +32,7 @@ export type FilterPreset = {
   label: string;
   icon: string;
   description?: string;
-  match: (metadata?: SongMetadata | null) => boolean;
+  match: (metadata?: SongMetadata | null, stream?: any) => boolean;
 };
 
 export const FILTER_PRESETS: FilterPreset[] = [
@@ -47,6 +48,13 @@ export const FILTER_PRESETS: FilterPreset[] = [
     icon: '🌙',
     description: '深夜に落ち着いて聴きたい、優しいバラードや癒やしの曲',
     match: (meta) => Boolean(meta && (meta.is_night_pick || meta.mood === 'ballad')),
+  },
+  {
+    id: 'collab',
+    label: 'コラボ曲',
+    icon: '👥',
+    description: '他のライバーと一緒に歌唱しているコラボ・デュエット曲',
+    match: (_meta, stream) => Boolean(stream?.singers && stream.singers.length > 1),
   },
   {
     id: 'anime',

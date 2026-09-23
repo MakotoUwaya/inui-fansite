@@ -12,6 +12,71 @@
   margin-bottom: 1.5rem;
 }
 
+.sectionLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: lighten($base-black, 75);
+  margin-bottom: 0.5rem;
+}
+
+.singerSection {
+  margin-bottom: 1.5rem;
+}
+
+.singerChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.singerChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  background-color: lighten($base-black, 15);
+  color: lighten($base-black, 85);
+  border: 1px solid lighten($base-black, 30);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+
+  &:hover {
+    background-color: lighten($base-black, 22);
+    border-color: #fbbf24;
+    color: #fbbf24;
+  }
+
+  @include responsive(sm) {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.55rem;
+  }
+}
+
+.singerChipActive {
+  background-color: rgba(245, 158, 11, 0.2) !important;
+  color: #fbbf24 !important;
+  border-color: #fbbf24 !important;
+  font-weight: bold;
+}
+
+.clearSingerBtn {
+  background: none;
+  border: none;
+  font-size: 0.75rem;
+  color: lighten($base-black, 60);
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0 0.25rem;
+
+  &:hover {
+    color: #e2e8f0;
+  }
+}
+
 .filtersContainer {
   margin-bottom: 2rem;
 }

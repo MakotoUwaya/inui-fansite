@@ -112,6 +112,39 @@ function parseSongFromVideoTitle(videoTitle: string): { title: string; artist: s
 }
 
 /**
+ * 動画タイトルから歌唱者リストを抽出・推測
+ */
+function extractSingersFromTitle(title: string): string[] {
+  const bracketMatches = title.match(/[【\[(（]([^【\[(（）)\]】]+)[)）\]】]/g) || [];
+  const foundSingers = new Set<string>();
+
+  for (const bracket of bracketMatches) {
+    const inner = bracket.slice(1, -1);
+    const parts = inner.split(/[\/／,、|｜]+/).map((s) => s.trim());
+    for (const part of parts) {
+      if (
+        !part ||
+        part === 'にじさんじ' ||
+        part === 'NIJISANJI' ||
+        part === 'NIJISANJI EN' ||
+        part === '歌' ||
+        part === '歌枠' ||
+        part === 'コラボ歌枠' ||
+        part.startsWith('#')
+      ) {
+        continue;
+      }
+      foundSingers.add(part);
+    }
+  }
+
+  if (foundSingers.size > 0) {
+    return Array.from(foundSingers);
+  }
+  return ['戌亥とこ'];
+}
+
+/**
  * iTunes Search API を利用して原曲の長さ（秒）を取得
  */
 async function fetchTrackDuration(title: string, artist?: string): Promise<number | null> {
@@ -361,6 +394,8 @@ async function main() {
       continue;
     }
 
+    const singers = extractSingersFromTitle(videoTitle);
+
     const { error: streamError } = await supabase.from('singing_stream').insert([
       {
         id: songId,
@@ -368,6 +403,7 @@ async function main() {
         start: s.start,
         end: s.end || finalVideoLength,
         published_at: publishedAt,
+        singers,
         created_at: now,
         updated_at: now,
       },

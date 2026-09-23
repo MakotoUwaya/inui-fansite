@@ -26,6 +26,7 @@ export type SingingStream = {
   start: number;
   end: number;
   video_id: string;
+  singers?: string[];
   created_at: string;
   updated_at: string;
   published_at: string;
@@ -41,14 +42,14 @@ export type SongMetadata = {
   prob_night_pick?: number;
 };
 
-export type SingingStreamForSearch = Pick<SingingStream, 'id' | 'start' | 'video_id' | 'published_at'> & {
+export type SingingStreamForSearch = Pick<SingingStream, 'id' | 'start' | 'video_id' | 'published_at' | 'singers'> & {
   song: Pick<Song, 'title' | 'artist' | 'title_en' | 'artist_en'> & {
     song_metadata?: SongMetadata | null;
   };
   video: Pick<Video, 'title' | 'url'>;
 };
 
-export type SingingStreamForWatch = Pick<SingingStream, 'id' | 'start' | 'end' | 'video_id' | 'published_at'> & {
+export type SingingStreamForWatch = Pick<SingingStream, 'id' | 'start' | 'end' | 'video_id' | 'published_at' | 'singers'> & {
   song: Pick<Song, 'title' | 'artist' | 'title_en' | 'artist_en'> & {
     song_metadata?: SongMetadata | null;
   };
