@@ -8,11 +8,9 @@ export const Header = memo(function Header() {
     <header className={styles.root}>
       <div className={styles.container}>
         {/* ブランドロゴ */}
-        <Link href="/">
-          <a className={styles.brand}>
-            <span className={styles.brandIcon}>🍹</span>
-            <span className={styles.brandName}>inui.fans</span>
-          </a>
+        <Link href="/" className={styles.brand}>
+          <span className={styles.brandIcon}>🍹</span>
+          <span className={styles.brandName}>inui.fans</span>
         </Link>
 
         {/* ナビゲーションメニュー */}

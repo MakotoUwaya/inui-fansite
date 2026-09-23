@@ -119,16 +119,14 @@ function IndexPage() {
           </h2>
           <div className={styles.presetGrid}>
             {FILTER_PRESETS.filter((p) => p.id !== 'all').map((preset) => (
-              <Link key={preset.id} href={`/singing-streams?filter=${preset.id}`}>
-                <a className={styles.presetCard}>
-                  <span className={styles.presetIcon}>{preset.icon}</span>
-                  <div className={styles.presetInfo}>
-                    <span className={styles.presetLabel}>{preset.label}</span>
-                    {preset.description && (
-                      <span className={styles.presetDesc}>{preset.description}</span>
-                    )}
-                  </div>
-                </a>
+              <Link key={preset.id} href={`/singing-streams?filter=${preset.id}`} className={styles.presetCard}>
+                <span className={styles.presetIcon}>{preset.icon}</span>
+                <div className={styles.presetInfo}>
+                  <span className={styles.presetLabel}>{preset.label}</span>
+                  {preset.description && (
+                    <span className={styles.presetDesc}>{preset.description}</span>
+                  )}
+                </div>
               </Link>
             ))}
           </div>

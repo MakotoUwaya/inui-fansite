@@ -39,34 +39,30 @@ export const PlaylistItem = memo(({ className, stream, isPlaying }: Props) => {
 
   return (
     <Reorder.Item className={clsx(styles.item, className)} value={stream} dragListener={false} ref={ref}>
-      <Link href={watchHref}>
-        <a className={styles.thumbnail}>
-          <Image
-            alt={stream.song.title}
-            src={`https://i.ytimg.com/vi/${stream.video_id}/default.jpg`}
-            fill
-            sizes="64px"
-            style={{ objectFit: 'cover' }}
-          />
-          {isHovering && !isPlaying ? (
-            <div className={styles.hovering}>
-              <MdPlayArrow />
-            </div>
-          ) : null}
-          {isPlaying ? (
-            <div className={styles.playing}>
-              <MdVolumeUp />
-            </div>
-          ) : null}
-        </a>
+      <Link href={watchHref} className={styles.thumbnail}>
+        <Image
+          alt={stream.song.title}
+          src={`https://i.ytimg.com/vi/${stream.video_id}/default.jpg`}
+          fill
+          sizes="64px"
+          style={{ objectFit: 'cover' }}
+        />
+        {isHovering && !isPlaying ? (
+          <div className={styles.hovering}>
+            <MdPlayArrow />
+          </div>
+        ) : null}
+        {isPlaying ? (
+          <div className={styles.playing}>
+            <MdVolumeUp />
+          </div>
+        ) : null}
       </Link>
-      <Link href={watchHref}>
-        <a className={styles.info}>
-          <h2 className={styles.songTitle}>{stream.song.title}</h2>
-          <span className={styles.songArtist}>
-            {stream.song.artist} / {format(new Date(stream.published_at), 'yyyy-MM-dd')} 配信
-          </span>
-        </a>
+      <Link href={watchHref} className={styles.info}>
+        <h2 className={styles.songTitle}>{stream.song.title}</h2>
+        <span className={styles.songArtist}>
+          {stream.song.artist} / {format(new Date(stream.published_at), 'yyyy-MM-dd')} 配信
+        </span>
       </Link>
       <KebabMenu buttonClassName={styles.menu} size="small" placement="bottom-end">
         <ExternalLink className={styles.originalLink} href={`${stream.video.url}&t=${stream.start}`}>

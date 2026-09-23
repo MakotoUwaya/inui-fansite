@@ -12,8 +12,6 @@ export const ActiveLink = memo(function ActiveLink({ className, activeClassName,
   const { asPath } = useRouter();
 
   return (
-    <Link href={href}>
-      <a {...props} className={clsx(className, { [activeClassName]: asPath === href })} href={href} />
-    </Link>
+    <Link href={href} className={clsx(className, { [activeClassName]: asPath === href })} {...props} />
   );
 });
