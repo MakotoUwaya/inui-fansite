@@ -1,13 +1,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { MdSearch, MdPlayArrow, MdNightlightRound, MdPeople, MdMusicNote, MdGraphicEq } from 'react-icons/md';
 import { Layout } from '../components/Layout/Layout';
-import { SingingStreamMediaObject } from '../components/SingingStreamMediaObject/SingingStreamMediaObject';
-import { Spinner } from '../components/Spinner/Spinner';
-import { useSingingStreamsForSearch } from '../hooks/singing-stream';
 import { FILTER_PRESETS } from '../utils/songMetadata';
 import styles from './index.module.scss';
 
@@ -18,7 +15,6 @@ type SearchForm = {
 function IndexPage() {
   const router = useRouter();
   const { register, handleSubmit } = useForm<SearchForm>();
-  const { streams } = useSingingStreamsForSearch();
 
   const onSearchSubmit = useCallback(
     (data: SearchForm) => {
@@ -33,22 +29,6 @@ function IndexPage() {
     },
     [router],
   );
-
-  // ピックアップ：今夜聴きたいしっとりソング（最大4曲）
-  const nightPickStreams = useMemo(() => {
-    if (!streams) return [];
-    return streams
-      .filter((s) => s.song.song_metadata?.is_night_pick || s.song.song_metadata?.mood === 'ballad')
-      .slice(0, 4);
-  }, [streams]);
-
-  // ピックアップ：注目のコラボ曲（最大4曲）
-  const collabStreams = useMemo(() => {
-    if (!streams) return [];
-    return streams
-      .filter((s) => s.singers && s.singers.length > 1)
-      .slice(0, 4);
-  }, [streams]);
 
   return (
     <Layout className={styles.root} title="ホーム" padding="none">
@@ -132,60 +112,6 @@ function IndexPage() {
             </div>
           </div>
         </section>
-
-        {/* ピックアップ特集①：今夜聴きたいしっとり戌亥ソング */}
-        <section className={styles.pickupSection}>
-          <div className={styles.pickupHeader}>
-            <div>
-              <h2 className={styles.pickupTitle}>今夜聴きたい、しっとり戌亥ソング</h2>
-              <p className={styles.pickupDesc}>
-                深夜の作業用やリラックスタイムに。優しく心に染み渡るバラード・アコースティックセレクション
-              </p>
-            </div>
-            <Link href="/singing-streams?filter=night">
-              <a className={styles.viewMoreLink}>すべて見る →</a>
-            </Link>
-          </div>
-
-          {!streams ? (
-            <Spinner className={styles.spinner} />
-          ) : nightPickStreams.length === 0 ? (
-            <div className={styles.empty}>準備中</div>
-          ) : (
-            <div className={styles.streamList}>
-              {nightPickStreams.map((stream) => (
-                <div className={styles.streamCard} key={stream.id}>
-                  <SingingStreamMediaObject singingStream={stream} />
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* ピックアップ特集②：注目のコラボ曲 */}
-        {collabStreams.length > 0 && (
-          <section className={styles.pickupSection}>
-            <div className={styles.pickupHeader}>
-              <div>
-                <h2 className={styles.pickupTitle}>ライバーとのコラボ歌唱</h2>
-                <p className={styles.pickupDesc}>
-                  息の合ったデュエットや大型企画での貴重な合唱テイクをピックアップ
-                </p>
-              </div>
-              <Link href="/singing-streams?filter=collab">
-                <a className={styles.viewMoreLink}>すべて見る →</a>
-              </Link>
-            </div>
-
-            <div className={styles.streamList}>
-              {collabStreams.map((stream) => (
-                <div className={styles.streamCard} key={stream.id}>
-                  <SingingStreamMediaObject singingStream={stream} />
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
 
         {/* 気分から探す（タグクラウド風ナビゲーション） */}
         <section className={styles.categoryNavSection}>
