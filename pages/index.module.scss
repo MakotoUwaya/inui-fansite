@@ -98,7 +98,7 @@
 .searchForm {
   display: flex;
   max-width: 640px;
-  margin: 0 auto 2rem;
+  margin: 0 auto;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
   border-radius: 8px;
   overflow: hidden;
@@ -150,51 +150,6 @@
   &:hover {
     opacity: 0.9;
   }
-}
-
-/* クイックアクション */
-.quickActions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.75rem;
-}
-
-.actionBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.65rem 1.25rem;
-  border-radius: 9999px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: all 0.2s;
-  cursor: pointer;
-}
-
-.actionBtnPrimary {
-  background: #ffffff;
-  color: #121212;
-
-  &:hover {
-    background: #e2e8f0;
-    transform: translateY(-1px);
-  }
-}
-
-.actionBtnSecondary {
-  background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.15);
-    transform: translateY(-1px);
-  }
-}
-
-.actionIcon {
-  font-size: 1.15rem;
 }
 
 /* メインコンテナ */
@@ -318,21 +273,6 @@
   }
 }
 
-.pickupBadge {
-  display: inline-block;
-  font-size: 0.75rem;
-  font-weight: bold;
-  color: #a5b4fc;
-  background: rgba(99, 102, 241, 0.18);
-  padding: 0.2rem 0.6rem;
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
-}
-
-.collabBadge {
-  color: #fbbf24;
-  background: rgba(245, 158, 11, 0.18);
-}
 
 .pickupTitle {
   font-size: 1.6rem;

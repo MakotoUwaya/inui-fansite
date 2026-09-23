@@ -87,28 +87,6 @@ function IndexPage() {
               探す
             </button>
           </form>
-
-          {/* クイックアクションボタン */}
-          <div className={styles.quickActions}>
-            <Link href="/singing-streams">
-              <a className={`${styles.actionBtn} ${styles.actionBtnPrimary}`}>
-                <MdPlayArrow className={styles.actionIcon} />
-                歌枠一覧を見る
-              </a>
-            </Link>
-            <Link href="/singing-streams?filter=night">
-              <a className={`${styles.actionBtn} ${styles.actionBtnSecondary}`}>
-                <MdNightlightRound className={styles.actionIcon} />
-                今夜聴きたい曲
-              </a>
-            </Link>
-            <Link href="/singing-streams?filter=collab">
-              <a className={`${styles.actionBtn} ${styles.actionBtnSecondary}`}>
-                <MdPeople className={styles.actionIcon} />
-                コラボ歌唱を探す
-              </a>
-            </Link>
-          </div>
         </div>
       </section>
 
@@ -159,7 +137,6 @@ function IndexPage() {
         <section className={styles.pickupSection}>
           <div className={styles.pickupHeader}>
             <div>
-              <div className={styles.pickupBadge}>🌙 Feature</div>
               <h2 className={styles.pickupTitle}>今夜聴きたい、しっとり戌亥ソング</h2>
               <p className={styles.pickupDesc}>
                 深夜の作業用やリラックスタイムに。優しく心に染み渡るバラード・アコースティックセレクション
@@ -190,7 +167,6 @@ function IndexPage() {
           <section className={styles.pickupSection}>
             <div className={styles.pickupHeader}>
               <div>
-                <div className={`${styles.pickupBadge} ${styles.collabBadge}`}>👥 Collaboration</div>
                 <h2 className={styles.pickupTitle}>ライバーとのコラボ歌唱</h2>
                 <p className={styles.pickupDesc}>
                   息の合ったデュエットや大型企画での貴重な合唱テイクをピックアップ
