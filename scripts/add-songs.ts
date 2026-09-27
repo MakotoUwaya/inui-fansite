@@ -86,19 +86,19 @@ function resolveSingers(
     if (singer === 'Finana Ryugu' && /💚|Finana|フィナーナ/i.test(note)) {
       matchedSingers.push(singer);
     }
-    if (singer === 'Enna Alouette' && /🐣|Enna|エナ/i.test(note)) {
+    if (singer === 'Luca Kaneshiro' && /🦁|Luca|ルカ/i.test(note)) {
       matchedSingers.push(singer);
     }
-    if (singer === 'Millie Parfait' && /🌂|Millie|ミリー/i.test(note)) {
+    if (singer === 'Maria Marionette' && /(?:❤️‍🩹|❤️🩹|Maria|マリア)/i.test(note)) {
       matchedSingers.push(singer);
     }
-    if (singer === 'Ren Zotto' && /🥽|Ren|レン/i.test(note)) {
+    if (singer === 'Doppio Dropscythe' && /🐣|Doppio|ドッピオ/i.test(note)) {
       matchedSingers.push(singer);
     }
-    if (singer === 'Reimu Endou' && /(?:❤️‍🩹|Reimu|レイム)/i.test(note)) {
+    if (singer === 'Meloco Kyoran' && /🌂|Meloco|狂蘭|メロコ/i.test(note)) {
       matchedSingers.push(singer);
     }
-    if (singer === 'Aster Arcadia' && /🦁|Aster|アスター/i.test(note)) {
+    if (singer === 'Yu Q. Wilson' && /🥽|Yu|ウィルソン/i.test(note)) {
       matchedSingers.push(singer);
     }
   }
@@ -230,9 +230,11 @@ function extractSingersFromTitle(title: string): string[] {
   }
   if (/EliraGotCake2025/i.test(title)) {
     foundSingers.add('Elira Pendora');
-    foundSingers.add('Millie Parfait');
-    foundSingers.add('Ren Zotto');
-    foundSingers.add('Aster Arcadia');
+    foundSingers.add('Luca Kaneshiro');
+    foundSingers.add('Maria Marionette');
+    foundSingers.add('Doppio Dropscythe');
+    foundSingers.add('Meloco Kyoran');
+    foundSingers.add('Yu Q. Wilson');
   }
 
   const bracketMatches = title.match(/[【\[(（]([^【\[(（）)\]】]+)[)）\]】]/g) || [];

@@ -17,11 +17,11 @@ export const SINGER_ICONS: Record<string, string> = {
   '早乙女ベリー': '🍓',
   '蝸堂みかる': '🐌',
   'Finana Ryugu': '🐠',
-  'Enna Alouette': '🕊️',
-  'Millie Parfait': '🧹',
-  'Reimu Endou': '👻',
-  'Aster Arcadia': '🌠',
-  'Ren Zotto': '👾',
+  'Luca Kaneshiro': '🦁',
+  'Maria Marionette': '❤️‍🩹',
+  'Doppio Dropscythe': '🐣',
+  'Meloco Kyoran': '🌂',
+  'Yu Q. Wilson': '🥽',
 };
 
 export function getSingerIcon(singer: string): string {
