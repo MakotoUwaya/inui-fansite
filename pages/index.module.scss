@@ -222,31 +222,33 @@
 
 .singersGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 0.75rem;
+
+  @include responsive(sm) {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.5rem;
+  }
 }
 
 .singerCard {
   position: relative;
   display: flex;
-  flex-direction: column;
-  padding: 1.25rem;
-  border-radius: 12px;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 10px;
   background: lighten($base-black, 8);
   border: 1px solid rgba(255, 255, 255, 0.08);
   text-decoration: none;
   color: inherit;
   transition: all 0.2s ease;
+  min-width: 0;
 
   &:hover {
-    transform: translateY(-3px);
+    transform: translateY(-2px);
     border-color: rgba(255, 255, 255, 0.25);
     background: lighten($base-black, 12);
-
-    .arrowIcon {
-      transform: translateX(4px);
-      color: #ffffff;
-    }
   }
 }
 
@@ -268,20 +270,20 @@
   }
 }
 
-.singerCardHeader {
+.singerCardVisual {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.75rem;
+  justify-content: center;
 }
 
 .avatarWrapper {
-  width: 56px;
-  height: 56px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   overflow: hidden;
   border: 2px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -300,52 +302,59 @@
 }
 
 .singerCardIcon {
-  font-size: 2rem;
+  font-size: 1.75rem;
   line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+}
+
+.singerCardInfo {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.singerCardNameRow {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.singerCardName {
+  font-size: 0.925rem;
+  font-weight: 700;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
 }
 
 .featuredBadge {
   background: rgba(239, 68, 68, 0.2);
   border: 1px solid rgba(239, 68, 68, 0.4);
   color: #f87171;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 700;
-  padding: 0.15rem 0.5rem;
+  padding: 0.1rem 0.35rem;
   border-radius: 9999px;
   letter-spacing: 0.05em;
-}
-
-.singerCardBody {
-  margin-bottom: 1rem;
-}
-
-.singerCardName {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #f8fafc;
-  margin-bottom: 0.35rem;
+  flex-shrink: 0;
 }
 
 .singerCardCount {
-  font-size: 0.85rem;
+  font-size: 0.775rem;
   color: #94a3b8;
-}
-
-.singerCardFooter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: auto;
-  padding-top: 0.75rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  font-size: 0.8rem;
-  color: #94a3b8;
-  font-weight: 500;
-}
-
-.arrowIcon {
-  font-size: 1.1rem;
-  transition: transform 0.2s ease, color 0.2s ease;
+  margin-top: 0.15rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* サイトの特徴 (Features) */

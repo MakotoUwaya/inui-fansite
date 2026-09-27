@@ -9,7 +9,6 @@ import {
   MdPeople,
   MdMusicNote,
   MdGraphicEq,
-  MdArrowForward,
 } from 'react-icons/md';
 import { Layout } from '../components/Layout/Layout';
 import { useSingingStreamsForSearch } from '../hooks/singing-stream';
@@ -143,29 +142,29 @@ function IndexPage() {
                   href={`/singing-streams?singer=${encodeURIComponent(singer.name)}`}
                   className={`${styles.singerCard} ${isDefault ? styles.singerCardFeatured : ''}`}
                 >
-                  <div className={styles.singerCardHeader}>
+                  <div className={styles.singerCardVisual}>
                     {avatarUrl ? (
                       <div className={styles.avatarWrapper}>
                         <Image
                           src={avatarUrl}
                           alt={singer.name}
-                          width={56}
-                          height={56}
+                          width={44}
+                          height={44}
                           className={styles.singerCardAvatar}
                         />
                       </div>
                     ) : (
                       <span className={styles.singerCardIcon}>{singer.icon}</span>
                     )}
-                    {isDefault && <span className={styles.featuredBadge}>MAIN</span>}
                   </div>
-                  <div className={styles.singerCardBody}>
-                    <h3 className={styles.singerCardName}>{singer.name}</h3>
+                  <div className={styles.singerCardInfo}>
+                    <div className={styles.singerCardNameRow}>
+                      <h3 className={styles.singerCardName} title={singer.name}>
+                        {singer.name}
+                      </h3>
+                      {isDefault && <span className={styles.featuredBadge}>MAIN</span>}
+                    </div>
                     <span className={styles.singerCardCount}>{singer.count} 曲</span>
-                  </div>
-                  <div className={styles.singerCardFooter}>
-                    <span>一覧を見る</span>
-                    <MdArrowForward className={styles.arrowIcon} />
                   </div>
                 </Link>
               );
@@ -176,16 +175,12 @@ function IndexPage() {
               href={`/singing-streams?singer=${ALL_SINGERS_KEY}`}
               className={`${styles.singerCard} ${styles.singerCardAll}`}
             >
-              <div className={styles.singerCardHeader}>
+              <div className={styles.singerCardVisual}>
                 <span className={styles.singerCardIcon}>🌐</span>
               </div>
-              <div className={styles.singerCardBody}>
+              <div className={styles.singerCardInfo}>
                 <h3 className={styles.singerCardName}>すべての歌い手</h3>
                 <span className={styles.singerCardCount}>全 {totalSongCount} 曲（全曲モード）</span>
-              </div>
-              <div className={styles.singerCardFooter}>
-                <span>全曲一覧へ</span>
-                <MdArrowForward className={styles.arrowIcon} />
               </div>
             </Link>
           </div>
