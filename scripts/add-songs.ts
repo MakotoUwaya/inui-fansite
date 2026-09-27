@@ -101,6 +101,45 @@ function resolveSingers(
     if (singer === 'Yu Q. Wilson' && /🥽|Yu|ウィルソン/i.test(note)) {
       matchedSingers.push(singer);
     }
+    if (singer === '伊波ライ' && /💡|いなみ|伊波|ライ/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '城瀬いすみ' && /🏰|🍬|いすみ|城瀬/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '蝸堂みかる' && /🐌|みかる|蝸堂/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === 'ルンルン' && /🥨|🍚|🕊|るんるん|ルンルン/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '倉持めると' && /🧸|🌙|めると|倉持/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '宇佐美リト' && /🌩|🦒|⚡|うさみ|宇佐美|リト/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '三枝明那' && /🌶|さえぐさ|三枝|明那/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '風楽奏斗' && /🍝|🍷|ふうら|風楽|奏斗/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '夢追翔' && /🎤|ゆめおい|夢追|ゆめお/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '緋八マナ' && /🐝|💛|ひばち|緋八|マナ/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '榊ネス' && /🫖|🌿|🪺|さかき|榊|ネス/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '東堂コハク' && /🍯|\(コ\)|とうどう|東堂|コハク/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '弦月藤士郎' && /🎻|❤|げんづき|弦月/.test(note)) {
+      matchedSingers.push(singer);
+    }
   }
 
   const unique = Array.from(new Set(matchedSingers));
