@@ -22,29 +22,29 @@ function timeToSec(t: string): number {
 
 const RULES: SongUpdateRule[] = [
   // ==========================================
-  // [2] _rFAIBVdWYI (戌亥とこ, 伊波ライ, 蝸堂みかる, 白瀬すず)
+  // [2] _rFAIBVdWYI (戌亥とこ, 伊波ライ, 蝸堂みかる, 城瀬いすみ)
   // ==========================================
-  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'シャルル' }, singers: ['戌亥とこ', '伊波ライ', '蝸堂みかる', '白瀬すず'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'シャルル' }, singers: ['戌亥とこ', '伊波ライ', '蝸堂みかる', '城瀬いすみ'] },
   { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'ロキ' }, singers: ['戌亥とこ', '伊波ライ'] },
-  { videoId: '_rFAIBVdWYI', match: { titleSnippet: '右に曲ガール' }, singers: ['蝸堂みかる', '白瀬すず'] },
-  { videoId: '_rFAIBVdWYI', match: { titleSnippet: '夏の半券' }, singers: ['白瀬すず'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: '右に曲ガール' }, singers: ['蝸堂みかる', '城瀬いすみ'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: '夏の半券' }, singers: ['城瀬いすみ'] },
   { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'エンヴィーキャットウォーク' }, singers: ['戌亥とこ'] },
   { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'ビースト・ダンス' }, singers: ['蝸堂みかる'] },
   { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'トオトロジイダウトフル' }, singers: ['伊波ライ'] },
   { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'サンドリヨン' }, singers: ['伊波ライ', '蝸堂みかる'] },
-  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'シリョクケンサ' }, singers: ['戌亥とこ', '白瀬すず'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'シリョクケンサ' }, singers: ['戌亥とこ', '城瀬いすみ'] },
   { videoId: '_rFAIBVdWYI', match: { titleSnippet: '夜咄ディセイブ' }, singers: ['伊波ライ'] },
   { videoId: '_rFAIBVdWYI', match: { titleSnippet: '乙女解剖' }, singers: ['蝸堂みかる'] },
   { videoId: '_rFAIBVdWYI', match: { titleSnippet: '心臓デモクラシー' }, singers: ['戌亥とこ'] },
-  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'モザイクロール' }, singers: ['白瀬すず'] },
-  { videoId: '_rFAIBVdWYI', match: { titleSnippet: '脱獄' }, singers: ['伊波ライ', '白瀬すず'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'モザイクロール' }, singers: ['城瀬いすみ'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: '脱獄' }, singers: ['伊波ライ', '城瀬いすみ'] },
   { videoId: '_rFAIBVdWYI', match: { titleSnippet: '酔いどれ知らず' }, singers: ['戌亥とこ', '蝸堂みかる'] },
   { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'シャンティ' }, singers: ['伊波ライ'] },
-  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'メリーバッドエンド' }, singers: ['白瀬すず'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'メリーバッドエンド' }, singers: ['城瀬いすみ'] },
   { videoId: '_rFAIBVdWYI', match: { titleSnippet: '小夜子' }, singers: ['蝸堂みかる'] },
-  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'チュルリラ・チュルリラ・ダッダッダ' }, singers: ['蝸堂みかる', '白瀬すず'] },
-  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'スロウダウナー' }, singers: ['伊波ライ', '白瀬すず'] },
-  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'Mr.Music' }, singers: ['戌亥とこ', '伊波ライ', '蝸堂みかる', '白瀬すず'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'チュルリラ・チュルリラ・ダッダッダ' }, singers: ['蝸堂みかる', '城瀬いすみ'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'スロウダウナー' }, singers: ['伊波ライ', '城瀬いすみ'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'Mr.Music' }, singers: ['戌亥とこ', '伊波ライ', '蝸堂みかる', '城瀬いすみ'] },
 
   // ==========================================
   // [4] uRKNhEOx0Hs (戌亥とこ, 早乙女ベリー)
