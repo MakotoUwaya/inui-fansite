@@ -1,77 +1,329 @@
 import { createClient } from '@supabase/supabase-js';
-import * as dotenv from 'dotenv';
-
-dotenv.config({ path: '.env' });
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-const updates: Record<string, string[]> = {
-  // sz3SGilaOAA (戌亥とこ×長尾景)
-  'bdd5b5d4-c8d6-424e-a9c1-d399b666eb4b': ['戌亥とこ'], // 未来予想図II
-  '1007f642-67a3-46f3-8fed-72be07fe17da': ['長尾景'],   // どんなときも。
-  '7955def4-a7e2-4882-a987-8ec361e7b597': ['戌亥とこ'], // 空も飛べるはず
-  '35381ab8-7bf4-4af5-ab69-ced9b327cbd5': ['長尾景'],   // バンザイ
-  '1409cd06-fde3-4de1-b01f-cbb844542b72': ['戌亥とこ', '長尾景'], // タイミング
-  '6d2f829a-e710-4fa3-baaa-21df56110b2f': ['戌亥とこ'], // ギブス
-  '3b790fa9-bccd-4d90-9172-a5624c5c0797': ['長尾景'],   // 天体観測
-  '3ddc0c76-dd28-47e8-8cdb-7586f5433691': ['戌亥とこ'], // 奏
-  '87d7c2cf-08bb-41a0-adaa-5dde03069388': ['長尾景'],   // 純恋歌
-  '4b4c349d-64f8-41f2-abd7-c29816bbbc6b': ['戌亥とこ', '長尾景'], // 蕾
-  'a4fe4c1b-13bd-4bc3-b484-3e2f6c7d16d6': ['戌亥とこ'], // 深海少女
-  '38bb88b4-09d3-4e24-86c3-25fa94cfae86': ['長尾景'],   // 千本桜
-  '7036140d-bf68-4946-b6b8-649da02639d8': ['戌亥とこ', '長尾景'], // 神のまにまに
-  'c6f8d387-2b3a-49c7-a390-84c229fedf3a': ['長尾景'],   // サイレントマジョリティー
-  '491b092c-860a-48f1-b0c3-8ed61e733064': ['戌亥とこ', '長尾景'], // 打上花火
-  '4fe768ec-1ec4-4970-907d-a38d46cbd9a6': ['戌亥とこ', '長尾景'], // Lemon
-
-  // IYYiJwcO2B0 (戌亥とこ×珠乃井ナナ - ジブリ)
-  'cfa31924-2222-4f69-825d-0a30c4f9c2ac': ['戌亥とこ', '珠乃井ナナ'], // テルーの唄
-  'c3b34502-85a5-4791-a787-903828d3af99': ['戌亥とこ', '珠乃井ナナ'], // 君をのせて
-  '86748be4-25e9-4269-8cc5-374a147600da': ['戌亥とこ'],               // ひこうき雲
-  '1751f89a-af0a-4741-8aa3-57ff4a50fa7d': ['珠乃井ナナ'],             // 地球儀
-  '851e1b33-b4d3-4b04-8e0a-0fcc0e0179dd': ['戌亥とこ', '珠乃井ナナ'], // やさしさに包まれたなら
-  'd2bb8518-afbb-446c-9319-2b3d56654ab9': ['戌亥とこ', '珠乃井ナナ'], // 崖の上のポニョ
-  'd23eb7f5-f4c8-4ea4-99cb-aa3fdfcf8e25': ['珠乃井ナナ'],             // いのちの名前
-  'afe17999-9833-490d-8f36-1d244f7e95be': ['戌亥とこ'],               // ルージュの伝言
-  'a01fa3d8-408c-4047-b84d-2f2592c2137e': ['珠乃井ナナ'],             // 時の歌
-  '2f2f224e-8f3e-412c-9d10-7d5883928dd8': ['戌亥とこ'],               // 世界の約束
-  '58a784e8-f734-48c2-85c8-896a2cbb733b': ['戌亥とこ', '珠乃井ナナ'], // 風になる
-
-  // jj4bKFqicXM (5人コラボ)
-  'd4d4aac8-d9a2-4f12-8132-0965441466ff': ['立伝都々', '北見遊征', '珠乃井ナナ', '早乙女ベリー', '渚トラウト'], // カーテンコール
-  '747a6d8e-72d5-4482-b73d-aefc82c3ebcb': ['立伝都々', '北見遊征'],                               // HANDS UP!
-  '93689f29-b312-446c-a6d3-c14d983c0714': ['珠乃井ナナ', '早乙女ベリー'],                         // ラブソングに襲われる
-  '615e05a4-047b-465e-ae72-b4cc6331c992': ['立伝都々', '渚トラウト'],                             // 太陽系デスコ
-  'c1af86ec-fd61-4c28-8c2c-29bbb4ab12f7': ['北見遊征', '早乙女ベリー'],                           // カメレオン
-  '5b133a6e-ee9d-406d-81d7-d40e1645e6a0': ['立伝都々', '珠乃井ナナ', '渚トラウト'],               // ノーダウト
-  '92f36afc-ef30-4eea-b2c8-a2459c84a949': ['立伝都々', '北見遊征', '珠乃井ナナ', '早乙女ベリー', '渚トラウト'], // メリッサ
-  '7eed651c-b476-4333-842c-5f2ac8f85dcc': ['立伝都々', '珠乃井ナナ', '早乙女ベリー'],             // 瞬間センチメンタル
-  'bebf56e4-b442-448b-af9f-9dba00a12c76': ['北見遊征', '渚トラウト'],                             // フラジール
-  '24397d57-bae5-4502-b2e0-391f29db005c': ['珠乃井ナナ', '渚トラウト'],                           // unravel
-  'b6a3e195-cc56-4a57-9d6d-d0615e56f459': ['早乙女ベリー', '渚トラウト'],                         // 容姿端麗な嘘
-  '104856c9-64ab-48b7-810f-78658ba3be7c': ['北見遊征', '珠乃井ナナ'],                             // 勿忘
-  'e919f2d6-e7e3-4310-9d2f-e62cbdca290c': ['立伝都々', '北見遊征', '早乙女ベリー'],               // とくべチュ、して
-  '38191197-9028-485b-a4ac-9354994e129c': ['立伝都々', '北見遊征', '珠乃井ナナ', '早乙女ベリー', '渚トラウト'], // イイじゃん
-};
-
-async function main() {
-  console.log('歌唱者情報の訂正アップデートを開始します...');
-  let count = 0;
-  for (const [id, singers] of Object.entries(updates)) {
-    const { error } = await supabase
-      .from('singing_stream')
-      .update({ singers })
-      .eq('id', id);
-
-    if (error) {
-      console.error(`ID: ${id} の更新に失敗:`, error);
-    } else {
-      count++;
-    }
-  }
-  console.log(`完了: 全 ${Object.keys(updates).length} 件中 ${count} 件の歌唱者情報を更新しました。`);
+interface SongUpdateRule {
+  videoId: string;
+  match: {
+    titleSnippet?: string;
+    startRange?: [number, number]; // [minSec, maxSec]
+  };
+  singers: string[];
 }
 
-main().catch(console.error);
+function timeToSec(t: string): number {
+  const parts = t.split(':').map(Number);
+  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  return 0;
+}
+
+const RULES: SongUpdateRule[] = [
+  // ==========================================
+  // [2] _rFAIBVdWYI (戌亥とこ, 伊波ライ, 蝸堂みかる, 白瀬すず)
+  // ==========================================
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'シャルル' }, singers: ['戌亥とこ', '伊波ライ', '蝸堂みかる', '白瀬すず'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'ロキ' }, singers: ['戌亥とこ', '伊波ライ'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: '右に曲ガール' }, singers: ['蝸堂みかる', '白瀬すず'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: '夏の半券' }, singers: ['白瀬すず'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'エンヴィーキャットウォーク' }, singers: ['戌亥とこ'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'ビースト・ダンス' }, singers: ['蝸堂みかる'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'トオトロジイダウトフル' }, singers: ['伊波ライ'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'サンドリヨン' }, singers: ['伊波ライ', '蝸堂みかる'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'シリョクケンサ' }, singers: ['戌亥とこ', '白瀬すず'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: '夜咄ディセイブ' }, singers: ['伊波ライ'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: '乙女解剖' }, singers: ['蝸堂みかる'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: '心臓デモクラシー' }, singers: ['戌亥とこ'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'モザイクロール' }, singers: ['白瀬すず'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: '脱獄' }, singers: ['伊波ライ', '白瀬すず'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: '酔いどれ知らず' }, singers: ['戌亥とこ', '蝸堂みかる'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'シャンティ' }, singers: ['伊波ライ'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'メリーバッドエンド' }, singers: ['白瀬すず'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: '小夜子' }, singers: ['蝸堂みかる'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'チュルリラ・チュルリラ・ダッダッダ' }, singers: ['蝸堂みかる', '白瀬すず'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'スロウダウナー' }, singers: ['伊波ライ', '白瀬すず'] },
+  { videoId: '_rFAIBVdWYI', match: { titleSnippet: 'Mr.Music' }, singers: ['戌亥とこ', '伊波ライ', '蝸堂みかる', '白瀬すず'] },
+
+  // ==========================================
+  // [4] uRKNhEOx0Hs (戌亥とこ, 早乙女ベリー)
+  // ==========================================
+  { videoId: 'uRKNhEOx0Hs', match: { titleSnippet: 'トウキョウ・シャンディ・ランデヴ' }, singers: ['戌亥とこ', '早乙女ベリー'] },
+  { videoId: 'uRKNhEOx0Hs', match: { titleSnippet: '雨とカプチーノ' }, singers: ['戌亥とこ', '早乙女ベリー'] },
+  { videoId: 'uRKNhEOx0Hs', match: { titleSnippet: '絶頂讃歌' }, singers: ['戌亥とこ'] },
+  { videoId: 'uRKNhEOx0Hs', match: { titleSnippet: 'あなたのことをおしえて' }, singers: ['早乙女ベリー'] },
+  { videoId: 'uRKNhEOx0Hs', match: { titleSnippet: '炎' }, singers: ['戌亥とこ', '早乙女ベリー'] },
+  { videoId: 'uRKNhEOx0Hs', match: { titleSnippet: 'シンデレラボーイ' }, singers: ['戌亥とこ', '早乙女ベリー'] },
+  { videoId: 'uRKNhEOx0Hs', match: { titleSnippet: 'アポリア' }, singers: ['戌亥とこ'] },
+  { videoId: 'uRKNhEOx0Hs', match: { titleSnippet: '月並みに輝け' }, singers: ['早乙女ベリー'] },
+  { videoId: 'uRKNhEOx0Hs', match: { titleSnippet: 'Pretender' }, singers: ['戌亥とこ', '早乙女ベリー'] },
+  { videoId: 'uRKNhEOx0Hs', match: { titleSnippet: '知らんけど' }, singers: ['戌亥とこ', '早乙女ベリー'] },
+  { videoId: 'uRKNhEOx0Hs', match: { titleSnippet: '恋するフォーチュン・クッキー' }, singers: ['戌亥とこ', '早乙女ベリー'] },
+
+  // ==========================================
+  // [5] 02bG3td4yNM (戌亥とこ, Meloco Kyoran)
+  // ==========================================
+  { videoId: '02bG3td4yNM', match: { titleSnippet: 'Hot Limit' }, singers: ['戌亥とこ', 'Meloco Kyoran'] },
+  { videoId: '02bG3td4yNM', match: { titleSnippet: '天体観測' }, singers: ['戌亥とこ'] },
+  { videoId: '02bG3td4yNM', match: { titleSnippet: '偽顔' }, singers: ['Meloco Kyoran'] },
+  { videoId: '02bG3td4yNM', match: { titleSnippet: '二時間だけのバカンス' }, singers: ['戌亥とこ', 'Meloco Kyoran'] },
+  { videoId: '02bG3td4yNM', match: { titleSnippet: 'あの夏に咲け' }, singers: ['戌亥とこ'] },
+  { videoId: '02bG3td4yNM', match: { titleSnippet: 'CH4NGE' }, singers: ['Meloco Kyoran'] },
+  { videoId: '02bG3td4yNM', match: { titleSnippet: '夜明けと蛍' }, singers: ['戌亥とこ', 'Meloco Kyoran'] },
+  { videoId: '02bG3td4yNM', match: { titleSnippet: 'I wanna see you' }, singers: ['戌亥とこ'] },
+  { videoId: '02bG3td4yNM', match: { titleSnippet: '不可思議カルテ' }, singers: ['Meloco Kyoran'] },
+  { videoId: '02bG3td4yNM', match: { titleSnippet: '君の知らない物語' }, singers: ['戌亥とこ', 'Meloco Kyoran'] },
+
+  // ==========================================
+  // [6] syEi2bLaJFA (戌亥とこ, 伊波ライ)
+  // ==========================================
+  { videoId: 'syEi2bLaJFA', match: { titleSnippet: 'おとなの掟' }, singers: ['戌亥とこ', '伊波ライ'] },
+  { videoId: 'syEi2bLaJFA', match: { titleSnippet: 'ゴーゴー幽霊船' }, singers: ['伊波ライ'] },
+  { videoId: 'syEi2bLaJFA', match: { titleSnippet: 'orion' }, singers: ['戌亥とこ'] },
+  { videoId: 'syEi2bLaJFA', match: { titleSnippet: 'グッバイ・マイマリー' }, singers: ['伊波ライ'] },
+  { videoId: 'syEi2bLaJFA', match: { titleSnippet: '歌うたいのバラッド' }, singers: ['戌亥とこ'] },
+  { videoId: 'syEi2bLaJFA', match: { titleSnippet: 'オートファジー' }, singers: ['伊波ライ'] },
+  { videoId: 'syEi2bLaJFA', match: { titleSnippet: '明日はきっといい日になる' }, singers: ['戌亥とこ'] },
+  { videoId: 'syEi2bLaJFA', match: { titleSnippet: '東京' }, singers: ['戌亥とこ', '伊波ライ'] },
+
+  // ==========================================
+  // [7] MNZCS4b-JeY (戌亥とこ, 倉持めると, ルンルン)
+  // ==========================================
+  { videoId: 'MNZCS4b-JeY', match: { titleSnippet: 'おもかげ' }, singers: ['戌亥とこ', '倉持めると', 'ルンルン'] },
+  { videoId: 'MNZCS4b-JeY', match: { titleSnippet: 'スノーマジックファンタジー' }, singers: ['ルンルン'] },
+  { videoId: 'MNZCS4b-JeY', match: { titleSnippet: '特にない' }, singers: ['戌亥とこ'] },
+  { videoId: 'MNZCS4b-JeY', match: { titleSnippet: '三時のキス' }, singers: ['倉持めると'] },
+  { videoId: 'MNZCS4b-JeY', match: { titleSnippet: '話がしたいよ' }, singers: ['ルンルン'] },
+  { videoId: 'MNZCS4b-JeY', match: { titleSnippet: '花が咲く道' }, singers: ['戌亥とこ'] },
+  { videoId: 'MNZCS4b-JeY', match: { titleSnippet: '禁煙' }, singers: ['倉持めると'] },
+  { videoId: 'MNZCS4b-JeY', match: { titleSnippet: '地球をあげる' }, singers: ['ルンルン'] },
+  { videoId: 'MNZCS4b-JeY', match: { titleSnippet: 'Umbrella' }, singers: ['戌亥とこ'] },
+  { videoId: 'MNZCS4b-JeY', match: { titleSnippet: '瞳' }, singers: ['倉持めると'] },
+  { videoId: 'MNZCS4b-JeY', match: { titleSnippet: '3月9日' }, singers: ['戌亥とこ', '倉持めると', 'ルンルン'] },
+
+  // ==========================================
+  // [9] cjDVksvpq5A (戌亥とこ, 宇佐美リト)
+  // ==========================================
+  { videoId: 'cjDVksvpq5A', match: { titleSnippet: 'Virtual to LIVE' }, singers: ['戌亥とこ', '宇佐美リト'] },
+  { videoId: 'cjDVksvpq5A', match: { titleSnippet: 'ジングル・ベル' }, singers: ['戌亥とこ', '宇佐美リト'] },
+  { videoId: 'cjDVksvpq5A', match: { titleSnippet: 'クリスマス・イブ' }, singers: ['戌亥とこ', '宇佐美リト'] },
+  { videoId: 'cjDVksvpq5A', match: { titleSnippet: 'マツケンサンバ' }, singers: ['戌亥とこ', '宇佐美リト'] },
+  { videoId: 'cjDVksvpq5A', match: { titleSnippet: '白い恋人達' }, singers: ['宇佐美リト'] },
+  { videoId: 'cjDVksvpq5A', match: { titleSnippet: 'メリクリ' }, singers: ['戌亥とこ'] },
+  { videoId: 'cjDVksvpq5A', match: { titleSnippet: 'お願いマッスル' }, singers: ['戌亥とこ', '宇佐美リト'] },
+
+  // ==========================================
+  // [10] CD0u8ycS2Vs (戌亥とこ, 倉持めると, ルンルン)
+  // ==========================================
+  { videoId: 'CD0u8ycS2Vs', match: { titleSnippet: 'ないものねだり' }, singers: ['戌亥とこ', 'ルンルン', '倉持めると'] },
+  { videoId: 'CD0u8ycS2Vs', match: { titleSnippet: 'GLAMOROUS SKY' }, singers: ['戌亥とこ', 'ルンルン', '倉持めると'] },
+  { videoId: 'CD0u8ycS2Vs', match: { titleSnippet: 'たばこ' }, singers: ['ルンルン'] },
+  { videoId: 'CD0u8ycS2Vs', match: { titleSnippet: '秘密' }, singers: ['戌亥とこ'] },
+  { videoId: 'CD0u8ycS2Vs', match: { titleSnippet: '歌舞伎町の女王' }, singers: ['倉持めると'] },
+  { videoId: 'CD0u8ycS2Vs', match: { titleSnippet: '拝啓、少年よ' }, singers: ['ルンルン'] },
+  { videoId: 'CD0u8ycS2Vs', match: { titleSnippet: '君を想った唄' }, singers: ['戌亥とこ'] },
+  { videoId: 'CD0u8ycS2Vs', match: { titleSnippet: '恋風邪にのせて' }, singers: ['倉持めると'] },
+  { videoId: 'CD0u8ycS2Vs', match: { titleSnippet: '東京フラッシュ' }, singers: ['ルンルン', '倉持めると'] },
+  { videoId: 'CD0u8ycS2Vs', match: { titleSnippet: '琥珀色の街、上海蟹の朝' }, singers: ['戌亥とこ', 'ルンルン'] },
+  { videoId: 'CD0u8ycS2Vs', match: { titleSnippet: 'オドループ' }, singers: ['戌亥とこ', '倉持めると'] },
+  { videoId: 'CD0u8ycS2Vs', match: { titleSnippet: 'おやすみ泣き声、さよなら歌姫' }, singers: ['戌亥とこ', 'ルンルン', '倉持めると'] },
+  { videoId: 'CD0u8ycS2Vs', match: { titleSnippet: 'センチメンタルピリオド' }, singers: ['ルンルン'] },
+  { videoId: 'CD0u8ycS2Vs', match: { titleSnippet: 'パブリック' }, singers: ['戌亥とこ'] },
+  { videoId: 'CD0u8ycS2Vs', match: { titleSnippet: '恋人ができたんだ' }, singers: ['倉持めると'] },
+  { videoId: 'CD0u8ycS2Vs', match: { titleSnippet: '栞' }, singers: ['戌亥とこ', 'ルンルン', '倉持めると'] },
+
+  // ==========================================
+  // [11] tHAVJ0gBJWE (早乙女ベリー, 夢追翔, 北見遊征, 戌亥とこ)
+  // ==========================================
+  { videoId: 'tHAVJ0gBJWE', match: { titleSnippet: 'ピースサイン' }, singers: ['夢追翔', '北見遊征'] },
+  { videoId: 'tHAVJ0gBJWE', match: { titleSnippet: '唱' }, singers: ['早乙女ベリー', '戌亥とこ'] },
+  { videoId: 'tHAVJ0gBJWE', match: { titleSnippet: 'ドライフラワー' }, singers: ['戌亥とこ', '北見遊征'] },
+  { videoId: 'tHAVJ0gBJWE', match: { titleSnippet: 'スターマーカー' }, singers: ['夢追翔', '早乙女ベリー'] },
+  { videoId: 'tHAVJ0gBJWE', match: { titleSnippet: 'さよならエレジー' }, singers: ['早乙女ベリー', '戌亥とこ', '北見遊征', '夢追翔'] },
+  { videoId: 'tHAVJ0gBJWE', match: { titleSnippet: '愛を伝えたいだとか' }, singers: ['戌亥とこ', '早乙女ベリー', '北見遊征', '夢追翔'] },
+  { videoId: 'tHAVJ0gBJWE', match: { titleSnippet: 'バニー' }, singers: ['早乙女ベリー', '北見遊征'] },
+  { videoId: 'tHAVJ0gBJWE', match: { titleSnippet: 'シンデレラボーイ' }, singers: ['夢追翔', '早乙女ベリー'] },
+
+  // ==========================================
+  // [12] eZzj4IQHkZE (戌亥とこ, 珠乃井ナナ)
+  // ==========================================
+  { videoId: 'eZzj4IQHkZE', match: { titleSnippet: '貴方の恋人になりたいのです' }, singers: ['戌亥とこ'] },
+  { videoId: 'eZzj4IQHkZE', match: { titleSnippet: 'again' }, singers: ['珠乃井ナナ'] },
+  // それ以外は両名
+
+  // ==========================================
+  // [13] l741qU3JwKA (三枝明那, 風楽奏斗, 戌亥とこ, Meloco Kyoran)
+  // ==========================================
+  { videoId: 'l741qU3JwKA', match: { titleSnippet: 'flos' }, singers: ['三枝明那', '風楽奏斗'] },
+  { videoId: 'l741qU3JwKA', match: { titleSnippet: '星屑ビーナス' }, singers: ['戌亥とこ', 'Meloco Kyoran'] },
+  { videoId: 'l741qU3JwKA', match: { titleSnippet: '織姫とBABY' }, singers: ['戌亥とこ', '風楽奏斗'] },
+  { videoId: 'l741qU3JwKA', match: { titleSnippet: '世田谷ナイトサファリ' }, singers: ['戌亥とこ', '三枝明那'] },
+  { videoId: 'l741qU3JwKA', match: { titleSnippet: 'エイリアンズ' }, singers: ['風楽奏斗'] },
+  { videoId: 'l741qU3JwKA', match: { titleSnippet: 'カタオモイ' }, singers: ['戌亥とこ', 'Meloco Kyoran'] },
+  { videoId: 'l741qU3JwKA', match: { titleSnippet: 'メトロノーム' }, singers: ['三枝明那'] },
+  { videoId: 'l741qU3JwKA', match: { titleSnippet: '琥珀色の街、上海蟹の朝' }, singers: ['戌亥とこ', '風楽奏斗', '三枝明那', 'Meloco Kyoran'] },
+  { videoId: 'l741qU3JwKA', match: { titleSnippet: '奏' }, singers: ['戌亥とこ', '三枝明那', '風楽奏斗', 'Meloco Kyoran'] },
+  { videoId: 'l741qU3JwKA', match: { titleSnippet: '愛を伝えたいだとか' }, singers: ['戌亥とこ', '三枝明那', '風楽奏斗', 'Meloco Kyoran'] },
+
+  // ==========================================
+  // [14] Hqb5WwFvefc (戌亥とこ, ルンルン, 倉持めると)
+  // ==========================================
+  { videoId: 'Hqb5WwFvefc', match: { titleSnippet: 'ハム太郎' }, singers: ['戌亥とこ', 'ルンルン', '倉持めると'] },
+  { videoId: 'Hqb5WwFvefc', match: { titleSnippet: 'アイネクライネ' }, singers: ['ルンルン', '倉持めると'] },
+  { videoId: 'Hqb5WwFvefc', match: { titleSnippet: 'Good-bye Days' }, singers: ['戌亥とこ', 'ルンルン'] },
+  { videoId: 'Hqb5WwFvefc', match: { titleSnippet: 'ハレンチ' }, singers: ['戌亥とこ', '倉持めると'] },
+  { videoId: 'Hqb5WwFvefc', match: { titleSnippet: '睡蓮花' }, singers: ['戌亥とこ', 'ルンルン', '倉持めると'] },
+  { videoId: 'Hqb5WwFvefc', match: { titleSnippet: 'プラネテス' }, singers: ['ルンルン'] },
+  { videoId: 'Hqb5WwFvefc', match: { titleSnippet: '絶頂讃歌' }, singers: ['戌亥とこ'] },
+  { videoId: 'Hqb5WwFvefc', match: { titleSnippet: 'フィナーレ' }, singers: ['倉持めると'] },
+  { videoId: 'Hqb5WwFvefc', match: { titleSnippet: 'ひまわりの約束' }, singers: ['戌亥とこ', 'ルンルン', '倉持めると'] },
+
+  // ==========================================
+  // [15] xSOUhSkR_5I (戌亥とこ, 珠乃井ナナ)
+  // ==========================================
+  { videoId: 'xSOUhSkR_5I', match: { titleSnippet: '瞳' }, singers: ['戌亥とこ'] },
+  { videoId: 'xSOUhSkR_5I', match: { titleSnippet: 'いのちの名前' }, singers: ['珠乃井ナナ'] },
+  // 他はデュエット
+
+  // ==========================================
+  // [16] 0xF8oQBSU8s (戌亥とこ, 榊ネス)
+  // ==========================================
+  { videoId: '0xF8oQBSU8s', match: { titleSnippet: 'LA・LA・LA LOVE SONG' }, singers: ['戌亥とこ', '榊ネス'] },
+  { videoId: '0xF8oQBSU8s', match: { titleSnippet: '夜行' }, singers: ['戌亥とこ'] },
+  { videoId: '0xF8oQBSU8s', match: { titleSnippet: '右肩の蝶' }, singers: ['榊ネス'] },
+  { videoId: '0xF8oQBSU8s', match: { titleSnippet: 'Pretender' }, singers: ['戌亥とこ', '榊ネス'] },
+  { videoId: '0xF8oQBSU8s', match: { titleSnippet: '庶幾の唄' }, singers: ['戌亥とこ'] },
+  { videoId: '0xF8oQBSU8s', match: { titleSnippet: '未来予想図' }, singers: ['榊ネス'] },
+  { videoId: '0xF8oQBSU8s', match: { titleSnippet: '気まぐれロマンティック' }, singers: ['戌亥とこ', '榊ネス'] },
+
+  // ==========================================
+  // [18] P6z9noWh3AY (戌亥とこ, 東堂コハク)
+  // ==========================================
+  { videoId: 'P6z9noWh3AY', match: { titleSnippet: '少女レイ' }, singers: ['戌亥とこ', '東堂コハク'] },
+  { videoId: 'P6z9noWh3AY', match: { titleSnippet: 'Missing' }, singers: ['戌亥とこ'] },
+  { videoId: 'P6z9noWh3AY', match: { titleSnippet: 'M' }, singers: ['東堂コハク'] },
+  { videoId: 'P6z9noWh3AY', match: { titleSnippet: '木綿のハンカチーフ' }, singers: ['戌亥とこ', '東堂コハク'] },
+  { videoId: 'P6z9noWh3AY', match: { titleSnippet: 'Umbrella' }, singers: ['戌亥とこ'] },
+  { videoId: 'P6z9noWh3AY', match: { titleSnippet: 'ライラック' }, singers: ['東堂コハク'] },
+  { videoId: 'P6z9noWh3AY', match: { titleSnippet: '奏' }, singers: ['戌亥とこ', '東堂コハク'] },
+  { videoId: 'P6z9noWh3AY', match: { titleSnippet: '相思相愛' }, singers: ['東堂コハク'] },
+  { videoId: 'P6z9noWh3AY', match: { titleSnippet: 'Never Grow Up' }, singers: ['戌亥とこ'] },
+  { videoId: 'P6z9noWh3AY', match: { titleSnippet: 'だから僕は音楽を辞めた' }, singers: ['戌亥とこ', '東堂コハク'] },
+
+  // ==========================================
+  // [19] mCITW9_7uOw (戌亥とこ, 伊波ライ)
+  // ==========================================
+  { videoId: 'mCITW9_7uOw', match: { titleSnippet: '雨とカプチーノ' }, singers: ['伊波ライ'] },
+  { videoId: 'mCITW9_7uOw', match: { titleSnippet: 'Rain' }, singers: ['戌亥とこ'] },
+  { videoId: 'mCITW9_7uOw', match: { titleSnippet: '琥珀色の街、上海蟹の朝' }, singers: ['伊波ライ'] },
+  { videoId: 'mCITW9_7uOw', match: { titleSnippet: '長く短い祭' }, singers: ['戌亥とこ', '伊波ライ'] },
+  { videoId: 'mCITW9_7uOw', match: { titleSnippet: 'ハレンチ' }, singers: ['戌亥とこ'] },
+  { videoId: 'mCITW9_7uOw', match: { titleSnippet: '夜撫でるメノウ' }, singers: ['伊波ライ'] },
+  { videoId: 'mCITW9_7uOw', match: { titleSnippet: '恋愛裁判' }, singers: ['戌亥とこ', '伊波ライ'] },
+  { videoId: 'mCITW9_7uOw', match: { titleSnippet: 'W●RK' }, singers: ['戌亥とこ', '伊波ライ'] },
+  { videoId: 'mCITW9_7uOw', match: { titleSnippet: 'アカツキの詩' }, singers: ['戌亥とこ'] },
+  { videoId: 'mCITW9_7uOw', match: { titleSnippet: '朝を呑む' }, singers: ['伊波ライ'] },
+  { videoId: 'mCITW9_7uOw', match: { titleSnippet: 'ドレミファロンド' }, singers: ['戌亥とこ', '伊波ライ'] },
+
+  // ==========================================
+  // [20] k7Yg7rxSfso (戌亥とこ, 早乙女ベリー)
+  // ==========================================
+  { videoId: 'k7Yg7rxSfso', match: { titleSnippet: '桜色舞うころ' }, singers: ['戌亥とこ'] },
+  { videoId: 'k7Yg7rxSfso', match: { titleSnippet: 'プロトディスコ' }, singers: ['早乙女ベリー'] },
+  { videoId: 'k7Yg7rxSfso', match: { titleSnippet: '三日月' }, singers: ['戌亥とこ'] },
+  { videoId: 'k7Yg7rxSfso', match: { titleSnippet: '夏夢ノイジー' }, singers: ['早乙女ベリー'] },
+  { videoId: 'k7Yg7rxSfso', match: { titleSnippet: 'Jewelry day' }, singers: ['戌亥とこ'] },
+  { videoId: 'k7Yg7rxSfso', match: { titleSnippet: 'スーサイドパレヱド' }, singers: ['早乙女ベリー'] },
+
+  // ==========================================
+  // [21] OEq1o-uScok (戌亥とこ, 伊波ライ)
+  // ==========================================
+  { videoId: 'OEq1o-uScok', match: { titleSnippet: '鱗' }, singers: ['戌亥とこ'] },
+  { videoId: 'OEq1o-uScok', match: { titleSnippet: '欲望に満ちた青年団' }, singers: ['伊波ライ'] },
+  { videoId: 'OEq1o-uScok', match: { titleSnippet: 'Wherever you are' }, singers: ['戌亥とこ'] },
+  { videoId: 'OEq1o-uScok', match: { titleSnippet: 'ノーダウト' }, singers: ['戌亥とこ', '伊波ライ'] },
+  { videoId: 'OEq1o-uScok', match: { titleSnippet: 'アンノウン・マザーグース' }, singers: ['伊波ライ'] },
+  { videoId: 'OEq1o-uScok', match: { titleSnippet: '酔いどれ知らず' }, singers: ['戌亥とこ'] },
+  { videoId: 'OEq1o-uScok', match: { titleSnippet: '夜明けと蛍' }, singers: ['戌亥とこ', '伊波ライ'] },
+  { videoId: 'OEq1o-uScok', match: { titleSnippet: '独りんぼエンヴィー' }, singers: ['戌亥とこ', '伊波ライ'] },
+
+  // ==========================================
+  // [22] UbKuRsVmP38 (戌亥とこ, 弦月藤士郎, 緋八マナ, 珠乃井ナナ)
+  // ==========================================
+  { videoId: 'UbKuRsVmP38', match: { titleSnippet: 'DADDY!DADDY!DO!' }, singers: ['緋八マナ', '戌亥とこ', '弦月藤士郎', '珠乃井ナナ'] },
+  { videoId: 'UbKuRsVmP38', match: { titleSnippet: 'スターライトパレード' }, singers: ['緋八マナ'] },
+  { videoId: 'UbKuRsVmP38', match: { titleSnippet: 'ロマンチシズム' }, singers: ['珠乃井ナナ'] },
+  { videoId: 'UbKuRsVmP38', match: { titleSnippet: 'from Y to Y' }, singers: ['弦月藤士郎'] },
+  { videoId: 'UbKuRsVmP38', match: { titleSnippet: 'ギラギラ' }, singers: ['緋八マナ'] },
+  { videoId: 'UbKuRsVmP38', match: { titleSnippet: '風になる' }, singers: ['戌亥とこ', '珠乃井ナナ'] },
+  { videoId: 'UbKuRsVmP38', match: { titleSnippet: 'リンネ' }, singers: ['弦月藤士郎', '緋八マナ'] },
+  { videoId: 'UbKuRsVmP38', match: { titleSnippet: 'ヴィーナスとジーザス' }, singers: ['戌亥とこ', '珠乃井ナナ'] },
+  { videoId: 'UbKuRsVmP38', match: { titleSnippet: 'たばこ' }, singers: ['戌亥とこ', '弦月藤士郎', '緋八マナ'] },
+  { videoId: 'UbKuRsVmP38', match: { titleSnippet: 'トウキョウ・シャンディ・ランデヴ' }, singers: ['戌亥とこ', '弦月藤士郎', '緋八マナ', '珠乃井ナナ'] },
+  { videoId: 'UbKuRsVmP38', match: { titleSnippet: '打上花火' }, singers: ['戌亥とこ', '弦月藤士郎'] },
+  { videoId: 'UbKuRsVmP38', match: { titleSnippet: 'それがあなたの幸せとしても' }, singers: ['戌亥とこ', '弦月藤士郎', '珠乃井ナナ'] },
+  { videoId: 'UbKuRsVmP38', match: { titleSnippet: 'Lemon' }, singers: ['戌亥とこ', '弦月藤士郎', '緋八マナ', '珠乃井ナナ'] },
+  { videoId: 'UbKuRsVmP38', match: { titleSnippet: '感電' }, singers: ['弦月藤士郎'] },
+  { videoId: 'UbKuRsVmP38', match: { titleSnippet: 'Rapport' }, singers: ['緋八マナ'] },
+  { videoId: 'UbKuRsVmP38', match: { titleSnippet: '明日はきっといい日になる' }, singers: ['珠乃井ナナ'] },
+  { videoId: 'UbKuRsVmP38', match: { titleSnippet: 'どこかで日は昇る' }, singers: ['戌亥とこ'] },
+  { videoId: 'UbKuRsVmP38', match: { titleSnippet: 'Preserved Roses' }, singers: ['緋八マナ', '珠乃井ナナ'] },
+  { videoId: 'UbKuRsVmP38', match: { titleSnippet: '晩餐歌' }, singers: ['戌亥とこ', '弦月藤士郎', '緋八マナ', '珠乃井ナナ'] },
+];
+
+async function updateSingers() {
+  console.log('歌唱者データの個別更新を開始します...');
+
+  // 対象の動画ID一覧を取得
+  const targetVideoIds = Array.from(new Set(RULES.map(r => r.videoId)));
+
+  let updatedCount = 0;
+
+  for (const videoId of targetVideoIds) {
+    // DBからこの動画の singing_stream と song を取得
+    const { data: streams, error } = await supabase
+      .from('singing_stream')
+      .select('id, video_id, start, song ( id, title )')
+      .eq('video_id', videoId);
+
+    if (error) {
+      console.error(`Error fetching streams for ${videoId}:`, error);
+      continue;
+    }
+
+    const videoRules = RULES.filter(r => r.videoId === videoId);
+
+    for (const s of streams || []) {
+      const songTitle = (s.song as any)?.title || '';
+
+      // 一致するルールを検索
+      const matchedRule = videoRules.find(r => {
+        if (r.match.titleSnippet && songTitle.toLowerCase().includes(r.match.titleSnippet.toLowerCase())) {
+          return true;
+        }
+        return false;
+      });
+
+      if (matchedRule) {
+        const { error: updateError } = await supabase
+          .from('singing_stream')
+          .update({ singers: matchedRule.singers })
+          .eq('id', s.id);
+
+        if (updateError) {
+          console.error(`  ✗ 更新失敗 [${s.id}] ${songTitle}:`, updateError);
+        } else {
+          console.log(`  ✓ 更新成功 [${videoId}] ${songTitle} -> [${matchedRule.singers.join(', ')}]`);
+          updatedCount++;
+        }
+      }
+    }
+  }
+
+  console.log(`\n========================================`);
+  console.log(`🎉 歌唱者更新完了: ${updatedCount} 曲`);
+  console.log(`========================================\n`);
+}
+
+updateSingers().catch(console.error);

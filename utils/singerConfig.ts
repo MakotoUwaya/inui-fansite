@@ -63,6 +63,11 @@ export const SINGER_ICONS: Record<string, string> = {
   '弦月藤士郎': '🎻',
   '葉加瀬冬雪': '🧪',
   '東堂コハク': '🍯',
+  '白瀬すず': '🍬',
+  '三枝明那': '🌶',
+  '風楽奏斗': '🍝',
+  '夢追翔': '🎤',
+  '緋八マナ': '🐝',
 };
 
 /**
@@ -108,6 +113,11 @@ export const SINGER_AVATARS: Record<string, string> = {
   'HACHI': 'https://yt3.googleusercontent.com/H-4LjUOXUNlV4iWjKwpRpT99NZZFjTVkd0ssRdvB6biU28ioa-9ryrru8I0LqyM8eITPCFujmA=s900-c-k-c0x00ffffff-no-rj',
   '田中ヒメ': 'https://yt3.googleusercontent.com/nPHRhyl-fq_XwruRR5btA8_lafZKoc86TZBBDx6XjiclwI1qU51ejBG_wwj69CdWKyDyDmLM=s900-c-k-c0x00ffffff-no-rj',
   '鈴木ヒナ': 'https://yt3.googleusercontent.com/nPHRhyl-fq_XwruRR5btA8_lafZKoc86TZBBDx6XjiclwI1qU51ejBG_wwj69CdWKyDyDmLM=s900-c-k-c0x00ffffff-no-rj',
+  '白瀬すず': 'https://yt3.googleusercontent.com/TwRjFmv84E_RDnz9qqkez3TkFmjqDd5JXKghTAC34RPHIvHEwMXQDZz5da6ska7zwrpNHP0Rcw=s900-c-k-c0x00ffffff-no-rj',
+  '三枝明那': 'https://yt3.googleusercontent.com/1gWkGOLFKaJmO5TnkdQGTSaelBY-lRtgPoo8ZS_bk_4vJt7wZ1ZT-k6MH60Ia-Oq9bgQVvlTyw=s900-c-k-c0x00ffffff-no-rj',
+  '風楽奏斗': 'https://yt3.googleusercontent.com/oZ33Q5iMwNyfcqODF2zw65lDve4sZOK6L0Co0rPUb96qZbyVqPF5a8scUNC7-FIvChDSO1EdUNY=s900-c-k-c0x00ffffff-no-rj',
+  '夢追翔': 'https://yt3.googleusercontent.com/ytc/AIdro_nC1vZQji-GXgqRtVNm5JtAvoHeVROcemv0BfmNDvECiA=s900-c-k-c0x00ffffff-no-rj',
+  '緋八マナ': 'https://yt3.googleusercontent.com/k1aBj2y8MU03gU5RXhHDN_J7ou1otAfxWhqAUTfad04RYYirsErlS5OufFrhgnbRAY7H8aw8fw=s900-c-k-c0x00ffffff-no-rj',
 };
 
 export function getSingerAvatar(singer: string): string | undefined {
