@@ -118,6 +118,23 @@ export const SINGER_AVATARS: Record<string, string> = {
   '風楽奏斗': 'https://yt3.googleusercontent.com/oZ33Q5iMwNyfcqODF2zw65lDve4sZOK6L0Co0rPUb96qZbyVqPF5a8scUNC7-FIvChDSO1EdUNY=s900-c-k-c0x00ffffff-no-rj',
   '夢追翔': 'https://yt3.googleusercontent.com/ytc/AIdro_nC1vZQji-GXgqRtVNm5JtAvoHeVROcemv0BfmNDvECiA=s900-c-k-c0x00ffffff-no-rj',
   '緋八マナ': 'https://yt3.googleusercontent.com/k1aBj2y8MU03gU5RXhHDN_J7ou1otAfxWhqAUTfad04RYYirsErlS5OufFrhgnbRAY7H8aw8fw=s900-c-k-c0x00ffffff-no-rj',
+  '蝸堂みかる': 'https://yt3.googleusercontent.com/6p0ViHZGOpjB_Ywf_hKGFFD3nuJUCig7_H4-Q05_WcRpw6knTFdBDcnvQPSAfOX78pUH7lAepQ=s900-c-k-c0x00ffffff-no-rj',
+  '北見遊征': 'https://yt3.googleusercontent.com/RGOFsNbuxwueJwCb8q9h6tji7XwRadNvxgfqV9AuprLp_y2yDIQXybA_bGBRBdqXA6_esKFLDJY=s900-c-k-c0x00ffffff-no-rj',
+  '立伝都々': 'https://yt3.googleusercontent.com/9n6jmy-hWa5TEsBAoWK2Sr_ksuFCb1P6gW_b0aE1NBbayX5m4NySFPAlHsBlRnZJo22br1fXzw=s900-c-k-c0x00ffffff-no-rj',
+  '渚トラウト': 'https://yt3.googleusercontent.com/ZEQZZ0I8GBiRdc8R1mu_TuLPSleVvIJoNZE_3ZdYZpvZwUbRRug1MU2i-puzaor8dPUSD4Njng=s900-c-k-c0x00ffffff-no-rj',
+  '鈴原るる': 'https://yt3.googleusercontent.com/mJfEKZUVmbG7TsYQsIrqOZTn0ZegECn4D8YMrD_4I6R82iysiBkAj_A68_3Ymqa_pRihcqvfM4E=s900-c-k-c0x00ffffff-no-rj',
+  '朝ノ瑠璃': 'https://yt3.googleusercontent.com/Y2D0FcAyWjdJimvrJwkefntu0uLaanSw6FY_8bE1ZSpc8EB89_yyqqPlbRyhc4QLyJOjcnQajMY=s900-c-k-c0x00ffffff-no-rj',
+  '奏みみ': 'https://yt3.googleusercontent.com/qNpYEox_ZiOwXw6gJqHkIXMX1cSJ2in8RQCTquolmeNiLsIuSiSce-93Fwex-glZ9bmD_9wn=s900-c-k-c0x00ffffff-no-rj',
+  '富士葵': 'https://yt3.googleusercontent.com/Q-CUXLJCa9cBU0Woo5uXHcb6STyHBJwDfeyVV5_lcKlCoOEq__Rd41B94YgvJpZFt_JeMFPbI10=s900-c-k-c0x00ffffff-no-rj',
+  'エルセ': 'https://yt3.googleusercontent.com/J2lSdPsMGgkfSt0Z--_LYxT_z-IvDnUiPYRpe9hROVb-Nw_QHqVLrrmwHjy-hA9My81yhSddmw=s900-c-k-c0x00ffffff-no-rj',
+  '音ノ乃のの': 'https://yt3.googleusercontent.com/qwfCQ_X03woVDrE7JKVW42zy0tbPfs1vN8r1tANjt3JpIQOLgwNdB9Ob5jx6bM5cqxROxXAkUAA=s900-c-k-c0x00ffffff-no-rj',
+  'MaiR': 'https://yt3.googleusercontent.com/CHi_adUGiXZtmNf2wkrBlIVOM-zTgqR90q5Ulwce2MZVfLkGoQ_OVAnVvaA8G5qeea8rlYltug0=s900-c-k-c0x00ffffff-no-rj',
+  'AZKi': 'https://yt3.googleusercontent.com/tRZGMhn8vSvYE0_15SjaE_3dTH5JTZzjdnb5gs1StecT1tKn1gQ2tVkRfi_n42Q5fYz13ewdayo=s900-c-k-c0x00ffffff-no-rj',
+  'かしこまり': 'https://yt3.googleusercontent.com/ytc/AIdro_n1RrzMOp0nFbSG1pBN5sp0Pqh-yjvIyxqh0Lek9Jja77M=s900-c-k-c0x00ffffff-no-rj',
+  '奏天まひろ': 'https://yt3.googleusercontent.com/IYvOdbhEdnIZe2HFWCewhtkv3rYIbxYjR34gdVKWZ7EaLEDfZNAKCkDv_TuB8nVIBjSz_dmLTQ=s900-c-k-c0x00ffffff-no-rj',
+  '宗谷いちか': 'https://yt3.googleusercontent.com/SYYjMkHJKNjLPn72_m1OHBDwZzGVFBJfKJvIb-HzxaK8QmYvjnUNyBHthwLr787n3ig1ArsJGLk=s900-c-k-c0x00ffffff-no-rj',
+  '花鋏キョウ': 'https://yt3.googleusercontent.com/_-tQvYt8OfZEOvhfYEHIQh85R9RJNdETuNh3m3hM4zXWQJYSYOfnu-nRg4BlBWDhlB56oUl8Dw=s900-c-k-c0x00ffffff-no-rj',
+  '綺沙良': 'https://yt3.googleusercontent.com/DXCLFSbW-3uxLEgs53jn66fbsmrbCmWC1QrvRStDJ7gFaKxAkHco04yALKzhUSSNqwBEjaDKuw=s900-c-k-c0x00ffffff-no-rj',
 };
 
 export function getSingerAvatar(singer: string): string | undefined {
