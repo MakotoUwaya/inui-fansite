@@ -146,11 +146,20 @@
   align-items: center;
   justify-content: center;
   gap: 1rem;
+  max-width: 640px;
+  margin: 0 auto;
+
+  @include responsive(sm) {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.75rem;
+  }
 }
 
 .primaryActionButton {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   padding: 0.65rem 1.25rem;
   border-radius: 8px;
@@ -161,6 +170,12 @@
   text-decoration: none;
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
   transition: all 0.2s ease;
+
+  @include responsive(sm) {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 0.925rem;
+  }
 
   &:hover {
     transform: translateY(-2px);
@@ -178,6 +193,7 @@
 .secondaryActionButton {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   padding: 0.65rem 1.25rem;
   border-radius: 8px;
@@ -188,6 +204,12 @@
   font-size: 0.95rem;
   text-decoration: none;
   transition: all 0.2s ease;
+
+  @include responsive(sm) {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 0.925rem;
+  }
 
   &:hover {
     background: rgba(255, 255, 255, 0.15);
