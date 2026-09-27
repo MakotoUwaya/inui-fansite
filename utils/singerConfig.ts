@@ -59,6 +59,10 @@ export const SINGER_ICONS: Record<string, string> = {
   '花鋏キョウ': '✂️',
   '奏みみ': '🐱',
   '富士葵': '🗻',
+  'ルンルン': '🕊️',
+  '弦月藤士郎': '🎻',
+  '葉加瀬冬雪': '🧪',
+  '東堂コハク': '🍯',
 };
 
 export function getSingerIcon(singer: string): string {
