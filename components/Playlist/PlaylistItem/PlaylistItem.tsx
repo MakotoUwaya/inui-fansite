@@ -38,7 +38,13 @@ export const PlaylistItem = memo(({ className, stream, isPlaying }: Props) => {
   }, [stream.id, router.query]);
 
   return (
-    <Reorder.Item className={clsx(styles.item, className)} value={stream} dragListener={false} ref={ref}>
+    <Reorder.Item
+      className={clsx(styles.item, className, isPlaying && styles.itemPlaying)}
+      value={stream}
+      dragListener={false}
+      ref={ref}
+      data-playing={isPlaying ? 'true' : 'false'}
+    >
       <Link href={watchHref} className={styles.thumbnail}>
         <Image
           alt={stream.song.title}

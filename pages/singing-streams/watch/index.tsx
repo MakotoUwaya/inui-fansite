@@ -470,7 +470,11 @@ function SingingStreamsWatchPage() {
               </button>
             )}
           </div>
-          <Playlist className={styles.mobilePlaylist} streams={streams} />
+          <Playlist
+            className={styles.mobilePlaylist}
+            streams={streams}
+            isVisible={isMobilePlaylistVisible}
+          />
         </motion.div>
       ) : null}
     </Layout>
