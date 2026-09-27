@@ -2,83 +2,98 @@
 
 .root {
   display: flex;
-  align-items: stretch;
+  align-items: center;
   justify-content: flex-start;
-  line-height: 1.2;
+  line-height: 1.3;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.02);
+  }
 }
 
 .thumbnail {
   position: relative;
   display: block;
-  width: 256px;
-  height: 144px;
+  width: 140px;
+  height: 79px;
   flex-shrink: 0;
+  border-radius: 6px;
+  overflow: hidden;
 
   @include responsive(sm) {
-    width: 128px;
-    height: 72px;
+    width: 96px;
+    height: 54px;
+    border-radius: 4px;
   }
 }
 
 .info {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: space-between;
   flex: 1 1 0;
   min-width: 0;
   overflow: hidden;
-  margin-left: 1em;
+  margin-left: 1rem;
 
   @include responsive(sm) {
-    margin-left: 0.75em;
+    margin-left: 0.75rem;
   }
 }
 
 .infoLink {
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  gap: 0.35rem;
   min-width: 0;
+  flex: 1 1 0;
   overflow: hidden;
   text-decoration: none;
   color: inherit;
+
+  &:hover .songTitle {
+    color: #fca5a5;
+  }
 }
 
 .song {
   display: flex;
-  align-items: flex-end;
-  margin-bottom: 1rem;
+  align-items: baseline;
+  gap: 0.5rem;
   min-width: 0;
 
   @include responsive(sm) {
     flex-direction: column;
     align-items: flex-start;
-    margin-bottom: 0;
-    width: 100%;
+    gap: 0.1rem;
   }
 }
 
 .songTitle {
-  font-size: 1.5em;
-  font-weight: bold;
-  word-break: break-all;
-
-  @include responsive(lg) {
-    font-size: 1.25em;
-  }
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f8fafc;
+  word-break: break-word;
+  transition: color 0.15s ease;
 
   @include responsive(sm) {
     @include lineClamp(1);
-    font-size: 1em;
-    width: 100%;
+    font-size: 0.95rem;
   }
 }
 
 .songArtist {
+  font-size: 0.85rem;
+  color: #94a3b8;
   word-break: break-all;
 
   &::before {
     content: '/';
-    margin: 0 0.5em;
+    margin-right: 0.5rem;
+    color: #64748b;
   }
 
   @include responsive(sm) {
@@ -87,105 +102,52 @@
       margin: 0;
     }
     @include lineClamp(1);
-    font-size: 0.7em;
-    width: 100%;
+    font-size: 0.75rem;
   }
 }
 
-.videoTitle {
-  @include lineClamp(3);
-  margin: 0.25rem 0;
-  word-break: break-all;
+.metaRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  font-size: 0.75rem;
+  color: #64748b;
 
   @include responsive(sm) {
-    @include lineClamp(1);
-    font-size: 0.5em;
-    width: 100%;
+    gap: 0.4rem;
+    font-size: 0.65rem;
+  }
+}
+
+.singerTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  font-size: 0.75rem;
+  font-weight: 500;
+
+  @include responsive(sm) {
+    font-size: 0.65rem;
+    padding: 0.05rem 0.35rem;
   }
 }
 
 .publishedAt {
-  margin-top: auto;
-  @include responsive(sm) {
-    font-size: 0.5em;
-  }
+  color: #64748b;
 }
 
 .menu {
-  align-self: flex-start;
+  align-self: center;
   flex-shrink: 0;
+  margin-left: 0.5rem;
 }
 
 .originalLink {
   @include responsive(sm) {
-    font-size: 0.7em;
+    font-size: 0.75rem;
   }
-}
-
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin: 0.35rem 0;
-  max-width: 100%;
-
-  @include responsive(sm) {
-    gap: 0.25rem;
-    margin: 0.2rem 0;
-  }
-}
-
-.tag {
-  display: inline-flex;
-  align-items: center;
-  max-width: 100%;
-  font-size: 0.75rem;
-  padding: 0.15rem 0.5rem;
-  border-radius: 9999px;
-  background-color: rgba(255, 255, 255, 0.08);
-  color: #e2e8f0;
-  white-space: nowrap;
-
-  @include responsive(sm) {
-    font-size: 0.6rem;
-    padding: 0.1rem 0.35rem;
-  }
-}
-
-.tagNight {
-  background-color: rgba(99, 102, 241, 0.2);
-  color: #a5b4fc;
-  border: 1px solid rgba(165, 180, 252, 0.3);
-}
-
-.tagGenre {
-  background-color: rgba(236, 72, 153, 0.15);
-  color: #f472b6;
-  border: 1px solid rgba(244, 114, 182, 0.25);
-}
-
-.tagMood {
-  background-color: rgba(20, 184, 166, 0.15);
-  color: #5eead4;
-  border: 1px solid rgba(94, 234, 212, 0.25);
-}
-
-.tagSinger {
-  background-color: rgba(245, 158, 11, 0.18);
-  color: #fbbf24;
-  border: 1px solid rgba(251, 191, 36, 0.3);
-  font-weight: 500;
-  min-width: 0;
-}
-
-.tagIcon {
-  flex-shrink: 0;
-  margin-right: 0.25rem;
-}
-
-.singerText {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
 }

@@ -1,11 +1,18 @@
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
-import { MdClear, MdSearch } from 'react-icons/md';
+import { MdClear, MdSearch, MdClose } from 'react-icons/md';
 import { Layout } from '../../components/Layout/Layout';
 import { SingingStreamMediaObject } from '../../components/SingingStreamMediaObject/SingingStreamMediaObject';
 import { Spinner } from '../../components/Spinner/Spinner';
 import { useSingingStreamsForSearch } from '../../hooks/singing-stream';
+import {
+  DEFAULT_SINGER,
+  ALL_SINGERS_KEY,
+  getSingersWithCount,
+  resolveCurrentSinger,
+  getSingerIcon,
+} from '../../utils/singerConfig';
 import { FILTER_PRESETS, FilterPresetId } from '../../utils/songMetadata';
 import { filterStreams } from '../../utils/songFilter';
 import styles from './index.module.scss';
@@ -19,34 +26,26 @@ function SingingStreamsPage() {
   const { register, handleSubmit, resetField, watch, setValue } = useForm<SearchForm>();
   const { streams } = useSingingStreamsForSearch();
 
-  const activeFilterId = ((router.query.filter as FilterPresetId) || 'all');
-  const activeSinger = (router.query.singer as string) || '';
+  // URLクエリから歌い手を判定（未指定ならデフォルト: 戌亥とこ）
+  const activeSinger = resolveCurrentSinger(router.query.singer as string | undefined);
+  const activeFilterId = (router.query.filter as FilterPresetId) || 'all';
   const searchKeyword = (router.query.keyword as string) || '';
 
+  // 歌い手ごとの楽曲数サマリー
+  const singerSummaries = useMemo(() => getSingersWithCount(streams), [streams]);
+
+  // 全曲モードかどうか
+  const isAllSingers = activeSinger === ALL_SINGERS_KEY;
+
+  // 現在の歌い手の表示名とアイコン
+  const currentSingerName = isAllSingers ? 'すべての歌い手（全曲モード）' : activeSinger;
+  const currentSingerIcon = isAllSingers ? '🌐' : getSingerIcon(activeSinger);
+
+  // プリセットフィルター情報（URLパラメータで指定されている場合のみ表示）
   const activePreset = useMemo(
-    () => FILTER_PRESETS.find((p) => p.id === activeFilterId) || FILTER_PRESETS[0],
+    () => FILTER_PRESETS.find((p) => p.id === activeFilterId),
     [activeFilterId],
   );
-
-  // 登録されている全歌唱者（singers）のリストを動的に抽出
-  const allSingers = useMemo(() => {
-    if (!streams) return [];
-    const set = new Set<string>();
-    for (const stream of streams) {
-      if (stream.singers) {
-        for (const singer of stream.singers) {
-          if (singer) set.add(singer);
-        }
-      }
-    }
-    // 戌亥とこを先頭に、他は五十音順
-    const list = Array.from(set);
-    return list.sort((a, b) => {
-      if (a === '戌亥とこ') return -1;
-      if (b === '戌亥とこ') return 1;
-      return a.localeCompare(b, 'ja');
-    });
-  }, [streams]);
 
   const updateQueryParams = useCallback(
     (params: { keyword?: string; filter?: string; singer?: string }) => {
@@ -57,9 +56,9 @@ function SingingStreamsPage() {
 
       if (kw) nextQuery.keyword = kw;
       if (fl && fl !== 'all') nextQuery.filter = fl;
-      if (sg) nextQuery.singer = sg;
+      if (sg && sg !== DEFAULT_SINGER) nextQuery.singer = sg;
 
-      router.push({ query: nextQuery });
+      router.push({ pathname: '/singing-streams', query: nextQuery }, undefined, { shallow: true });
     },
     [router, searchKeyword, activeFilterId, activeSinger],
   );
@@ -76,21 +75,17 @@ function SingingStreamsPage() {
     updateQueryParams({ keyword: '' });
   }, [resetField, updateQueryParams]);
 
-  const onSelectFilter = useCallback(
-    (presetId: FilterPresetId) => {
-      updateQueryParams({ filter: presetId });
+  const onSingerChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const selected = e.target.value;
+      updateQueryParams({ singer: selected });
     },
     [updateQueryParams],
   );
 
-  const onSelectSinger = useCallback(
-    (singer: string) => {
-      // 既に選択中なら解除（トグル動作）
-      const nextSinger = activeSinger === singer ? '' : singer;
-      updateQueryParams({ singer: nextSinger });
-    },
-    [activeSinger, updateQueryParams],
-  );
+  const onClearFilter = useCallback(() => {
+    updateQueryParams({ filter: 'all' });
+  }, [updateQueryParams]);
 
   useEffect(() => {
     if (router.query.keyword && typeof router.query.keyword === 'string') {
@@ -100,97 +95,92 @@ function SingingStreamsPage() {
     }
   }, [router.query.keyword, setValue]);
 
-  // 取得したストリーム一覧を現在のフィルター、歌唱者、キーワードで絞り込み
+  // 絞り込み実行
   const displayedStreams = useMemo(() => {
     if (!streams) return null;
     return filterStreams(streams, {
       filter: activeFilterId,
-      singer: activeSinger,
+      singer: isAllSingers ? ALL_SINGERS_KEY : activeSinger,
       keyword: searchKeyword,
     });
-  }, [streams, activeFilterId, activeSinger, searchKeyword]);
+  }, [streams, activeFilterId, isAllSingers, activeSinger, searchKeyword]);
+
+  const totalCount = streams ? streams.length : 0;
 
   return (
     <Layout
-      title="歌枠検索"
-      description="戌亥とこさんの歌枠楽曲を検索・フィルターできます"
+      title={`${currentSingerName} の楽曲一覧`}
+      description={`${currentSingerName} の歌枠楽曲を再生・検索できます`}
       className={styles.root}
     >
-      <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
-        <div className={styles.searchForm}>
-          <input className={styles.input} placeholder="曲名・原曲アーティスト・歌唱者で検索" {...register('keyword')} />
-          {watch().keyword ? (
-            <button className={styles.reset} type="reset" aria-label="フォームリセット" onClick={onReset}>
-              <MdClear color="#ffffff" />
-            </button>
-          ) : null}
-        </div>
-        <button className={styles.submit} type="submit" aria-label="検索">
-          <MdSearch />
-        </button>
-      </form>
+      {/* 上部コントロールバー: 歌い手セレクター ＆ 検索バー */}
+      <div className={styles.headerBar}>
+        <div className={styles.singerControl}>
+          <div className={styles.currentSingerBadge}>
+            <span className={styles.singerIcon}>{currentSingerIcon}</span>
+            <span className={styles.singerTitle}>{currentSingerName}</span>
+          </div>
 
-      {/* 歌唱者（singers）クイック絞り込み */}
-      {allSingers.length > 0 && (
-        <div className={styles.singerSection}>
-          <div className={styles.sectionLabel}>
-            <span>🎤 歌唱者で絞り込む:</span>
-            {activeSinger && (
-              <button
-                type="button"
-                className={styles.clearSingerBtn}
-                onClick={() => onSelectSinger(activeSinger)}
-              >
-                解除
+          <div className={styles.selectWrapper}>
+            <label htmlFor="singer-select" className={styles.selectLabel}>
+              歌い手を変更:
+            </label>
+            <select
+              id="singer-select"
+              className={styles.singerSelect}
+              value={activeSinger}
+              onChange={onSingerChange}
+            >
+              {singerSummaries.map((s) => (
+                <option key={s.name} value={s.name}>
+                  {s.icon} {s.name} ({s.count}曲)
+                </option>
+              ))}
+              <option value={ALL_SINGERS_KEY}>
+                🌐 全曲モード（全{totalCount}曲）
+              </option>
+            </select>
+          </div>
+        </div>
+
+        {/* 検索バー */}
+        <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
+          <div className={styles.searchForm}>
+            <input
+              className={styles.input}
+              placeholder={isAllSingers ? '曲名・原曲アーティスト・歌唱者で検索' : `${activeSinger}の楽曲・原曲アーティストで検索`}
+              {...register('keyword')}
+            />
+            {watch().keyword ? (
+              <button className={styles.reset} type="reset" aria-label="フォームリセット" onClick={onReset}>
+                <MdClear color="#ffffff" />
               </button>
-            )}
+            ) : null}
           </div>
-          <div className={styles.singerChips}>
-            {allSingers.map((singer) => {
-              const isActive = activeSinger === singer;
-              return (
-                <button
-                  key={singer}
-                  type="button"
-                  className={`${styles.singerChip} ${isActive ? styles.singerChipActive : ''}`}
-                  onClick={() => onSelectSinger(singer)}
-                >
-                  {singer}
-                </button>
-              );
-            })}
-          </div>
+          <button className={styles.submit} type="submit" aria-label="検索">
+            <MdSearch />
+          </button>
+        </form>
+      </div>
+
+      {/* トップページなどから気分タグが引き継がれている場合のみ、小さく表示 */}
+      {activePreset && activePreset.id !== 'all' && (
+        <div className={styles.activeFilterNotice}>
+          <span className={styles.filterNoticeLabel}>
+            {activePreset.icon} {activePreset.label} で絞り込み中
+          </span>
+          <button
+            type="button"
+            className={styles.clearFilterButton}
+            onClick={onClearFilter}
+            aria-label="フィルター解除"
+          >
+            <MdClose /> 解除
+          </button>
         </div>
       )}
 
-      {/* Jev 自動タグ付けによるクイックフィルター */}
-      <div className={styles.filtersContainer}>
-        <div className={styles.sectionLabel}>
-          <span>🏷️ ムード・ジャンル:</span>
-        </div>
-        <div className={styles.filterChips}>
-          {FILTER_PRESETS.map((preset) => {
-            const isActive = preset.id === activeFilterId;
-            return (
-              <button
-                key={preset.id}
-                type="button"
-                className={`${styles.filterChip} ${isActive ? styles.filterChipActive : ''}`}
-                onClick={() => onSelectFilter(preset.id)}
-              >
-                <span className={styles.filterIcon}>{preset.icon}</span>
-                <span>{preset.label}</span>
-              </button>
-            );
-          })}
-        </div>
-        {activePreset.description && (
-          <p className={styles.filterDescription}>
-            💡 {activePreset.description}
-          </p>
-        )}
-      </div>
-
+      {/* 楽曲一覧リスト */}
       <div className={styles.result}>
         {!displayedStreams ? (
           <Spinner className={styles.spinner} />
@@ -200,7 +190,7 @@ function SingingStreamsPage() {
           <>
             <div className={styles.resultCount}>
               <span>{displayedStreams.length} 曲を表示中</span>
-              {activeSinger && <span> （歌唱者: {activeSinger}）</span>}
+              {searchKeyword && <span className={styles.keywordHighlight}> (キーワード: &quot;{searchKeyword}&quot;)</span>}
             </div>
             <ul className={styles.list}>
               {displayedStreams.map((stream) => (
@@ -217,5 +207,3 @@ function SingingStreamsPage() {
 }
 
 export default SingingStreamsPage;
-
-

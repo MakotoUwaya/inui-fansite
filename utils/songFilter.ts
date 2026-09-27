@@ -1,4 +1,5 @@
 import type { SingingStreamForSearch } from '../types';
+import { ALL_SINGERS_KEY } from './singerConfig';
 import { FILTER_PRESETS, FilterPresetId } from './songMetadata';
 
 export interface SongFilterOptions {
@@ -25,8 +26,8 @@ export function filterStreams(
       return false;
     }
 
-    // 2. 歌唱者フィルター
-    if (singer) {
+    // 2. 歌唱者フィルター ('all' または未指定の場合は全歌い手対象)
+    if (singer && singer !== ALL_SINGERS_KEY) {
       if (!stream.singers || !stream.singers.includes(singer)) {
         return false;
       }

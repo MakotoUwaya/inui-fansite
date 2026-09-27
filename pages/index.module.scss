@@ -69,28 +69,15 @@
   }
 }
 
-.spBr {
-  display: none;
-  @include responsive(sm) {
-    display: inline;
-  }
-}
-
-.heroTitleHighlight {
-  background: linear-gradient(135deg, #f87171 0%, #fbbf24 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
 .heroLead {
   font-size: 1.15rem;
   line-height: 1.7;
   color: lighten($base-black, 75);
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
 
   @include responsive(sm) {
     font-size: 0.95rem;
-    margin-bottom: 1.75rem;
+    margin-bottom: 1.5rem;
   }
 }
 
@@ -98,7 +85,7 @@
 .searchForm {
   display: flex;
   max-width: 640px;
-  margin: 0 auto;
+  margin: 0 auto 1.5rem;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
   border-radius: 8px;
   overflow: hidden;
@@ -152,6 +139,71 @@
   }
 }
 
+/* ヒーローアクションボタン */
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.primaryActionButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.45);
+  }
+}
+
+.actionBadge {
+  background: rgba(0, 0, 0, 0.25);
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+}
+
+.secondaryActionButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f1f5f9;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+  }
+}
+
+.actionBadgeSubtle {
+  background: rgba(255, 255, 255, 0.12);
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  color: #cbd5e1;
+}
+
 /* メインコンテナ */
 .mainContainer {
   max-width: 1200px;
@@ -161,6 +213,115 @@
   @include responsive(sm) {
     padding: 2.5rem 1rem;
   }
+}
+
+/* 歌い手セクション (Singers Section) */
+.singersSection {
+  margin-bottom: 5rem;
+}
+
+.singersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+
+.singerCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem;
+  border-radius: 12px;
+  background: lighten($base-black, 8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    border-color: rgba(255, 255, 255, 0.25);
+    background: lighten($base-black, 12);
+
+    .arrowIcon {
+      transform: translateX(4px);
+      color: #ffffff;
+    }
+  }
+}
+
+.singerCardFeatured {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: linear-gradient(145deg, lighten($base-black, 10) 0%, rgba(220, 38, 38, 0.08) 100%);
+
+  &:hover {
+    border-color: rgba(239, 68, 68, 0.7);
+  }
+}
+
+.singerCardAll {
+  border-color: rgba(59, 130, 246, 0.3);
+  background: linear-gradient(145deg, lighten($base-black, 8) 0%, rgba(59, 130, 246, 0.08) 100%);
+
+  &:hover {
+    border-color: rgba(59, 130, 246, 0.6);
+  }
+}
+
+.singerCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.singerCardIcon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.featuredBadge {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #f87171;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  letter-spacing: 0.05em;
+}
+
+.singerCardBody {
+  margin-bottom: 1rem;
+}
+
+.singerCardName {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin-bottom: 0.35rem;
+}
+
+.singerCardCount {
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.singerCardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.8rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.arrowIcon {
+  font-size: 1.1rem;
+  transition: transform 0.2s ease, color 0.2s ease;
 }
 
 /* サイトの特徴 (Features) */
@@ -174,13 +335,17 @@
 }
 
 .sectionTitle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   font-size: 1.85rem;
   font-weight: bold;
   margin-bottom: 0.5rem;
   color: #ffffff;
 
   @include responsive(sm) {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
   }
 }
 
@@ -195,8 +360,11 @@
   gap: 1.5rem;
 
   @include responsive(md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include responsive(sm) {
     grid-template-columns: 1fr;
-    gap: 1.25rem;
   }
 }
 
@@ -253,10 +421,9 @@
   margin: 0;
 }
 
-
 /* 気分・ジャンルから選ぶ */
 .categoryNavSection {
-  margin-bottom: 4rem;
+  margin-bottom: 5rem;
   padding: 2.5rem;
   background: linear-gradient(135deg, lighten($base-black, 5) 0%, lighten($base-black, 10) 100%);
   border-radius: 16px;
@@ -265,16 +432,6 @@
   @include responsive(sm) {
     padding: 1.5rem;
   }
-}
-
-.categoryNavTitle {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1.4rem;
-  font-weight: bold;
-  color: #ffffff;
-  margin-bottom: 1.5rem;
 }
 
 .presetGrid {
@@ -291,6 +448,7 @@
   border-radius: 10px;
   background: lighten($base-black, 12);
   border: 1px solid rgba(255, 255, 255, 0.06);
+  text-decoration: none;
   transition: all 0.2s;
 
   &:hover {

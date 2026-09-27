@@ -10,6 +10,7 @@ const customJestConfig = {
     '^lodash-es$': 'lodash',
   },
   testEnvironment: 'jest-environment-jsdom',
+  testPathIgnorePatterns: ['<rootDir>/node_modules/'],
 };
 
 module.exports = createJestConfig(customJestConfig);
