@@ -65,6 +65,55 @@ export const SINGER_ICONS: Record<string, string> = {
   '東堂コハク': '🍯',
 };
 
+/**
+ * 歌い手のYouTube公式アバター画像URLマッピング
+ */
+export const SINGER_AVATARS: Record<string, string> = {
+  '戌亥とこ': 'https://yt3.googleusercontent.com/mAVvYycYugOwsRena2BMCbGTYN7Saf3gv5Q9t38eqv_abA7djd-0WEPfRlqrzl8T4QWduoWtgA=s900-c-k-c0x00ffffff-no-rj',
+  'Elira Pendora': 'https://yt3.googleusercontent.com/JCyRLd80Znc5g28VztowNaT537HODqR_MbIVvwp_QfFials0GWjNXTrEI7HqqtJdmLe2s7iPKg=s900-c-k-c0x00ffffff-no-rj',
+  '早乙女ベリー': 'https://yt3.googleusercontent.com/pDQM3ASuO8uz1B8DGb5J56q2w833A9fse9MZoNJB2jVHIalKR7CCAjQ3Y60iVpZlCF0veC8NaA=s900-c-k-c0x00ffffff-no-rj',
+  '珠乃井ナナ': 'https://yt3.googleusercontent.com/w-zj-LtVLKlWMy1zPPUh1e0alK24yF1cnM8SmuvohQkDYpXNk6aQDiqPMB9Z9OZ3ss3Kx1BuFj8=s900-c-k-c0x00ffffff-no-rj',
+  '倉持めると': 'https://yt3.googleusercontent.com/TsnQIzAes9ibl0R2ZgRxxlwvtEe8w748U3JKXQDt8fjLIFJQpWiYCW10euMJp9tYNwl3kRhFiXE=s900-c-k-c0x00ffffff-no-rj',
+  '町田ちま': 'https://yt3.googleusercontent.com/aMXcrlHw-v17QYLPwCpz7dlFYWEQTOrHEgF3yn8LRYYtiJdY7uaXcEFWlQ3MfDeMlMCD6Tkh8G0=s900-c-k-c0x00ffffff-no-rj',
+  'ルンルン': 'https://yt3.googleusercontent.com/L9FU9DSo-1kAkkDrVU2IvftjWPRrED8H35Yl63NcMaDCo5TVBG_ngeaV1_3-O4swEim3GisoPl8=s900-c-k-c0x00ffffff-no-rj',
+  '長尾景': 'https://yt3.googleusercontent.com/0lwMTVyM03cDQvQmIe1JQXUE_YSnhsTMG2Q07Hksq9FCuvefNBj-y3yxGUXe_36GDSj2LiFOia8=s900-c-k-c0x00ffffff-no-rj',
+  '伊波ライ': 'https://yt3.googleusercontent.com/eu_JpkZlswVvvT-d_mkQEP-SIv4Z31zM04ZOxT2scQFneMUjGGbQ6h9snLC39G8F2CcfVL9bndQ=s900-c-k-c0x00ffffff-no-rj',
+  'Meloco Kyoran': 'https://yt3.googleusercontent.com/uG2BEQsDqq-aTIbff80d7THTDR2et9iQcyAu0FdLRM5rAK6p3QWmSu0zX9u17_q9W3xfgnZn=s900-c-k-c0x00ffffff-no-rj',
+  '弦月藤士郎': 'https://yt3.googleusercontent.com/h2j_eoHZYMsRr6LetuyZMDXJVnXRKMCCM4gxApJF0g0TjZbjLSCz5pnh-1DCZVRpAiKfyREa=s900-c-k-c0x00ffffff-no-rj',
+  '朝日南アカネ': 'https://yt3.googleusercontent.com/ReUJrzDGF7YcEMDYT8bgQa1C45Pn4Ad5HTbPYyFG1N8kbEPOYeG3lWYOJgUaqi5LkfxS6bfb=s900-c-k-c0x00ffffff-no-rj',
+  'リゼ・ヘルエスタ': 'https://yt3.googleusercontent.com/4l4itq_UUNzlOrU1ZYvi9HtvgGooUD4ez9G_HV9dVo-igpzXjv0RqZIFEIRbFY8s9uq4CAIY=s900-c-k-c0x00ffffff-no-rj',
+  'アンジュ・カトリーナ': 'https://yt3.googleusercontent.com/ytc/AIdro_liDbr1ofzknDCW8S3ChEFTci-PGATj8zCJ1pRWlomUCWo=s900-c-k-c0x00ffffff-no-rj',
+  '星街すいせい': 'https://yt3.googleusercontent.com/ytc/AIdro_kLDBK5ksSvk5-XJ6S8e0kWfjy7mVl3jyUkgDeMQ7rlCpU=s900-c-k-c0x00ffffff-no-rj',
+  '宇佐美リト': 'https://yt3.googleusercontent.com/jkGfABx8MsuaknGO2_22QTUW-Pr8KDY0Mh2H178BQfxaJakeeHsYW8_7-pv1_SUkYwXK4kywr9Q=s900-c-k-c0x00ffffff-no-rj',
+  '榊ネス': 'https://yt3.googleusercontent.com/DdXSgvqpRZij5FeUtkUKgTjj6hpN-sbraFaLcbWxRAinCBEdS3LJ9j9wEc3NaC9xTenLdptXVg=s900-c-k-c0x00ffffff-no-rj',
+  '東堂コハク': 'https://yt3.googleusercontent.com/7DPG8oZVOcH0Z6Jv7t0bOjT7uLtM1FNcKbTHPwWBPfqfSqqJLU7whTvPp5T7PRtSwVKbO29B=s900-c-k-c0x00ffffff-no-rj',
+  '葉加瀬冬雪': 'https://yt3.googleusercontent.com/ytc/AIdro_mBtaZj_2mhvSw3m8It2vul3zxBDhTNe31PkSPU8UNWWA=s900-c-k-c0x00ffffff-no-rj',
+  '緑仙': 'https://yt3.googleusercontent.com/gqKMT95qDCACrpgG3iGrTOfELcpwIkIao4PFK-3vnmQusaS_1RW7yxjBXOVpXs3B_iNOegIT=s900-c-k-c0x00ffffff-no-rj',
+  '甲斐田晴': 'https://yt3.googleusercontent.com/XSW6DhbQaMcBBO8oU5p5FH55Yqp3M_wrjGTbJYVT68jlf4MjoZaISXqdeyXtEFheWiyfxPVTQw=s900-c-k-c0x00ffffff-no-rj',
+  '小清水透': 'https://yt3.googleusercontent.com/_NbxY0LXXt_9V71OMoUPaAOSWa9vrdXhxGlLewxfHh8sHTVN84me6ZKDql1CewrQR-vM1-WngEo=s900-c-k-c0x00ffffff-no-rj',
+  '渡会雲雀': 'https://yt3.googleusercontent.com/aWEFJyI7Z6HdwGNwm1GRfWv-srsmeAsROYq-hDeXa_yQlGPJ-3bhCQRWb-DtXziW65li0E4-=s900-c-k-c0x00ffffff-no-rj',
+  'フレン・E・ルスタリオ': 'https://yt3.googleusercontent.com/ytc/AIdro_kY5Q-Wbbkj21heUheTG1mBKz7h0lqbXa2zxFau7dkFwA=s900-c-k-c0x00ffffff-no-rj',
+  'Luca Kaneshiro': 'https://yt3.googleusercontent.com/103XpMqHLYhBZRaJCR05-ioI8c70ZeTFTebb-22u9s88UYbki4WJIFOes6VY7X62Y8-St0_CGUU=s900-c-k-c0x00ffffff-no-rj',
+  'Maria Marionette': 'https://yt3.googleusercontent.com/Q2fKA6MbNRvVzMKcM4BoJvoOBH73hIbt1FrK8BBHsrzraMel514sP_9IcW3MBOsfZOO6qNd_EA=s900-c-k-c0x00ffffff-no-rj',
+  'Doppio Dropscythe': 'https://yt3.googleusercontent.com/7Q-lvhi8QREBJTX7L1G_gFBXPfTWQz6mL5A6WVTBoNBsxyoY-SzufetowA7FM3z3GN6zURoAxQ=s900-c-k-c0x00ffffff-no-rj',
+  'Yu Q. Wilson': 'https://yt3.googleusercontent.com/D8Xufy6RXbbZBNldDOwteRoQPkJfWRuo-TrtN1-ao5SeVfw-ErmOTKunE779Fj33bboPkEdv=s900-c-k-c0x00ffffff-no-rj',
+  'Finana Ryugu': 'https://yt3.googleusercontent.com/xXO6UqEUCfXxrY16021Fjy6SQxv8GnPTOR_JilIwHE21yunBzMbmp4MEJEps4GOEMKZ6TvBI=s900-c-k-c0x00ffffff-no-rj',
+  '天宮こころ': 'https://yt3.googleusercontent.com/TBUgaVyLPLbues92Hj5HoxOVfKoFM8R_2Izmc6QsybDLJm8j9FjBvucA3xVF1Agq-oDLzsPGtA=s900-c-k-c0x00ffffff-no-rj',
+  '白上フブキ': 'https://yt3.googleusercontent.com/ytc/AIdro_mGXEeXXCCPh-sl2jKYbYpLBuCsjEGDgJaL5RQziYhyugQ=s900-c-k-c0x00ffffff-no-rj',
+  '宝鐘マリン': 'https://yt3.googleusercontent.com/RnFYoR_VkEZZ4OGRJz2cPXem1iRqMNzcGVp5LIxTRqhDu4vqckc83DBrVi2uwxiCPWEmmH6vSJk=s900-c-k-c0x00ffffff-no-rj',
+  '樋口楓': 'https://yt3.googleusercontent.com/8IvNB1yT48uO5JrmJ5aKP5DO3oAydtZ2PSyFq7Z-HLpgkAUvsf9O552DbSfkgD_q0CbHvMjeSA=s900-c-k-c0x00ffffff-no-rj',
+  '竜胆尊': 'https://yt3.googleusercontent.com/ytc/AIdro_kuGhulz5uvw-LfQF-9hxZ0EgG0hq06IHT1LMryVD5_HA=s900-c-k-c0x00ffffff-no-rj',
+  'ドーラ': 'https://yt3.googleusercontent.com/ytc/AIdro_lhYG4sK8nzyhknFqTpq23-g2GWZ3cOaCC-TJ-3NpJgubM=s900-c-k-c0x00ffffff-no-rj',
+  'ベルモンド・バンデラス': 'https://yt3.googleusercontent.com/ytc/AIdro_kPzhWinVi4J6aBUsxJKTKL5qa4gDcDjkpAgTeh5SDbiQ=s900-c-k-c0x00ffffff-no-rj',
+  'HACHI': 'https://yt3.googleusercontent.com/H-4LjUOXUNlV4iWjKwpRpT99NZZFjTVkd0ssRdvB6biU28ioa-9ryrru8I0LqyM8eITPCFujmA=s900-c-k-c0x00ffffff-no-rj',
+  '田中ヒメ': 'https://yt3.googleusercontent.com/nPHRhyl-fq_XwruRR5btA8_lafZKoc86TZBBDx6XjiclwI1qU51ejBG_wwj69CdWKyDyDmLM=s900-c-k-c0x00ffffff-no-rj',
+  '鈴木ヒナ': 'https://yt3.googleusercontent.com/nPHRhyl-fq_XwruRR5btA8_lafZKoc86TZBBDx6XjiclwI1qU51ejBG_wwj69CdWKyDyDmLM=s900-c-k-c0x00ffffff-no-rj',
+};
+
+export function getSingerAvatar(singer: string): string | undefined {
+  return SINGER_AVATARS[singer];
+}
+
 export function getSingerIcon(singer: string): string {
   return SINGER_ICONS[singer] || '🎤';
 }

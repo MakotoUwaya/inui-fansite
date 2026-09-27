@@ -5,11 +5,22 @@ const path = require('path');
  */
 module.exports = {
   images: {
-    domains: ['i.ytimg.com'],
+    minimumCacheTTL: 31536000, // 1年間キャッシュ
+    domains: ['i.ytimg.com', 'yt3.googleusercontent.com', 'yt3.ggpht.com'],
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'i.ytimg.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'yt3.googleusercontent.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'yt3.ggpht.com',
         pathname: '/**',
       },
     ],

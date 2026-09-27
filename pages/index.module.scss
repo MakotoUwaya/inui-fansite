@@ -275,6 +275,30 @@
   margin-bottom: 0.75rem;
 }
 
+.avatarWrapper {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: lighten($base-black, 15);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+
+  .singerCard:hover & {
+    transform: scale(1.05);
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+}
+
+.singerCardAvatar {
+  object-fit: cover;
+  border-radius: 50%;
+}
+
 .singerCardIcon {
   font-size: 2rem;
   line-height: 1;

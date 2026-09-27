@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
@@ -12,6 +13,7 @@ import {
   getSingersWithCount,
   resolveCurrentSinger,
   getSingerIcon,
+  getSingerAvatar,
 } from '../../utils/singerConfig';
 import { FILTER_PRESETS, FilterPresetId } from '../../utils/songMetadata';
 import { filterStreams } from '../../utils/songFilter';
@@ -117,7 +119,19 @@ function SingingStreamsPage() {
       <div className={styles.headerBar}>
         <div className={styles.singerControl}>
           <div className={styles.currentSingerBadge}>
-            <span className={styles.singerIcon}>{currentSingerIcon}</span>
+            {getSingerAvatar(activeSinger) ? (
+              <div className={styles.singerAvatarWrapper}>
+                <Image
+                  src={getSingerAvatar(activeSinger)!}
+                  alt={currentSingerName}
+                  width={36}
+                  height={36}
+                  className={styles.singerHeaderAvatar}
+                />
+              </div>
+            ) : (
+              <span className={styles.singerIcon}>{currentSingerIcon}</span>
+            )}
             <span className={styles.singerTitle}>{currentSingerName}</span>
           </div>
 

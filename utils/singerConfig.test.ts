@@ -2,6 +2,7 @@ import {
   DEFAULT_SINGER,
   ALL_SINGERS_KEY,
   getSingerIcon,
+  getSingerAvatar,
   resolveCurrentSinger,
   getSingersWithCount,
 } from './singerConfig';
@@ -28,6 +29,17 @@ describe('singerConfig', () => {
 
     it('returns fallback emoji for unknown singer', () => {
       expect(getSingerIcon('未知のライバー')).toBe('🎤');
+    });
+  });
+
+  describe('getSingerAvatar', () => {
+    it('returns avatar URL for registered singers', () => {
+      expect(getSingerAvatar('戌亥とこ')).toContain('googleusercontent.com');
+      expect(getSingerAvatar('Elira Pendora')).toContain('googleusercontent.com');
+    });
+
+    it('returns undefined for unknown singer', () => {
+      expect(getSingerAvatar('未知のライバー')).toBeUndefined();
     });
   });
 

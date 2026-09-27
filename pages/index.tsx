@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useCallback, useMemo } from 'react';
@@ -16,6 +17,7 @@ import {
   DEFAULT_SINGER,
   ALL_SINGERS_KEY,
   getSingersWithCount,
+  getSingerAvatar,
 } from '../utils/singerConfig';
 import { FILTER_PRESETS } from '../utils/songMetadata';
 import styles from './index.module.scss';
@@ -134,6 +136,7 @@ function IndexPage() {
           <div className={styles.singersGrid}>
             {singerSummaries.map((singer) => {
               const isDefault = singer.name === DEFAULT_SINGER;
+              const avatarUrl = getSingerAvatar(singer.name);
               return (
                 <Link
                   key={singer.name}
@@ -141,7 +144,19 @@ function IndexPage() {
                   className={`${styles.singerCard} ${isDefault ? styles.singerCardFeatured : ''}`}
                 >
                   <div className={styles.singerCardHeader}>
-                    <span className={styles.singerCardIcon}>{singer.icon}</span>
+                    {avatarUrl ? (
+                      <div className={styles.avatarWrapper}>
+                        <Image
+                          src={avatarUrl}
+                          alt={singer.name}
+                          width={56}
+                          height={56}
+                          className={styles.singerCardAvatar}
+                        />
+                      </div>
+                    ) : (
+                      <span className={styles.singerCardIcon}>{singer.icon}</span>
+                    )}
                     {isDefault && <span className={styles.featuredBadge}>MAIN</span>}
                   </div>
                   <div className={styles.singerCardBody}>
