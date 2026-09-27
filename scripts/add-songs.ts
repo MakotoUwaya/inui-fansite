@@ -230,10 +230,8 @@ function extractSingersFromTitle(title: string): string[] {
   }
   if (/EliraGotCake2025/i.test(title)) {
     foundSingers.add('Elira Pendora');
-    foundSingers.add('Enna Alouette');
     foundSingers.add('Millie Parfait');
     foundSingers.add('Ren Zotto');
-    foundSingers.add('Reimu Endou');
     foundSingers.add('Aster Arcadia');
   }
 
