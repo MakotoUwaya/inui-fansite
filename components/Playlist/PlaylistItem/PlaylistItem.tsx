@@ -19,7 +19,7 @@ type Props = {
 };
 
 export const PlaylistItem = memo(({ className, stream, isPlaying }: Props) => {
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLLIElement>(null);
   const isHovering = useHovering(ref);
   const router = useRouter();
 
