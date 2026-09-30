@@ -1,6 +1,5 @@
 import { DateTime } from 'luxon';
 import useSWRImmutable from 'swr/immutable';
-import { uuid } from 'uuidv4';
 import { supabase } from '../utils/supabaseClient';
 import type {
   SingingStreamForSearch,
@@ -90,7 +89,7 @@ async function createSingingStream(): Promise<void> {
 
   const singingStreams: SingingStream[] = [
     {
-      id: uuid(),
+      id: crypto.randomUUID(),
       song_title: 'Lemon',
       song_artist: '米津玄師',
       start: 145,
