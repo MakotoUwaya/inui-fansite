@@ -1,10 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
-import { useCallback, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { useMemo } from 'react';
 import {
-  MdSearch,
   MdPlayArrow,
   MdPeople,
   MdMusicNote,
@@ -21,42 +18,12 @@ import {
 import { FILTER_PRESETS } from '../utils/songMetadata';
 import styles from './index.module.scss';
 
-type SearchForm = {
-  keyword: string;
-};
-
 function IndexPage() {
-  const router = useRouter();
-  const { register, handleSubmit } = useForm<SearchForm>();
   const { streams } = useSingingStreamsForSearch();
 
   // 歌い手ごとの楽曲数サマリー
   const singerSummaries = useMemo(() => getSingersWithCount(streams), [streams]);
-  const defaultSingerInfo = useMemo(
-    () => singerSummaries.find((s) => s.name === DEFAULT_SINGER),
-    [singerSummaries],
-  );
   const totalSongCount = streams ? streams.length : 0;
-
-  const onSearchSubmit = useCallback(
-    (data: SearchForm) => {
-      if (data.keyword) {
-        router.push({
-          pathname: '/singing-streams',
-          query: {
-            singer: DEFAULT_SINGER,
-            keyword: data.keyword,
-          },
-        });
-      } else {
-        router.push({
-          pathname: '/singing-streams',
-          query: { singer: DEFAULT_SINGER },
-        });
-      }
-    },
-    [router],
-  );
 
   return (
     <Layout className={styles.root} title="ホーム" padding="none">
@@ -80,43 +47,6 @@ function IndexPage() {
             <br />
             歌い手を選んで、今すぐお気に入りの歌枠を楽しもう。
           </p>
-
-          {/* クイック検索バー */}
-          <form className={styles.searchForm} onSubmit={handleSubmit(onSearchSubmit)}>
-            <div className={styles.searchInputWrapper}>
-              <MdSearch className={styles.searchIcon} />
-              <input
-                className={styles.searchInput}
-                placeholder="曲名、原曲アーティストで検索..."
-                {...register('keyword')}
-              />
-            </div>
-            <button className={styles.searchButton} type="submit">
-              探す
-            </button>
-          </form>
-
-          {/* クイックアクションボタン */}
-          <div className={styles.heroActions}>
-            <Link
-              href={`/singing-streams?singer=${encodeURIComponent(DEFAULT_SINGER)}`}
-              className={styles.primaryActionButton}
-            >
-              <span>🍹 {DEFAULT_SINGER} の曲を聴く</span>
-              {defaultSingerInfo && (
-                <span className={styles.actionBadge}>{defaultSingerInfo.count}曲</span>
-              )}
-            </Link>
-            <Link
-              href={`/singing-streams?singer=${ALL_SINGERS_KEY}`}
-              className={styles.secondaryActionButton}
-            >
-              <span>🌐 すべての曲（全曲モード）</span>
-              {totalSongCount > 0 && (
-                <span className={styles.actionBadgeSubtle}>{totalSongCount}曲</span>
-              )}
-            </Link>
-          </div>
         </div>
       </section>
 
