@@ -115,7 +115,7 @@ function SingingStreamsWatchPage() {
 
   const { player, ...ytPlayerProps } = useYTPlayer({
     mountId: 'singing-stream-player',
-    controls: false,
+    controls: true,
     autoplay: false,
     width: '100%',
     height: '100%',
