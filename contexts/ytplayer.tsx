@@ -1,5 +1,5 @@
 import Script from 'next/script';
-import { createContext, ReactNode, useCallback, useEffect, useState } from 'react';
+import { createContext, ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 
 type YTPlayerContext = {
   player: YT.Player | null;
@@ -17,6 +17,8 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
   const [playerReady, setPlayerReady] = useState(false);
   const [player, setPlayer] = useState<YTPlayerContext['player']>(null);
 
+  const playerRef = useRef<YT.Player | null>(null);
+
   const onScriptLoad = useCallback(() => {
     setScriptLoaded(true);
   }, []);
@@ -27,14 +29,22 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
 
   const setYTPlayer = useCallback(
     (mountId: string, options?: ConstructorParameters<typeof YT.Player>[1]) => {
-      setPlayer(
-        new YT.Player(mountId, {
-          ...options,
-          events: {
-            onReady: onPlayerReady,
-          },
-        }),
-      );
+      if (playerRef.current) {
+        try {
+          playerRef.current.destroy();
+        } catch {
+          // ignore
+        }
+      }
+      const newPlayer = new YT.Player(mountId, {
+        ...options,
+        events: {
+          ...options?.events,
+          onReady: onPlayerReady,
+        },
+      });
+      playerRef.current = newPlayer;
+      setPlayer(newPlayer);
     },
     [onPlayerReady],
   );
@@ -49,6 +59,14 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
 
   const unmountYTPlayer = useCallback(() => {
     setPlayerReady(false);
+    if (playerRef.current) {
+      try {
+        playerRef.current.destroy();
+      } catch {
+        // ignore
+      }
+      playerRef.current = null;
+    }
     setPlayer(null);
   }, []);
 

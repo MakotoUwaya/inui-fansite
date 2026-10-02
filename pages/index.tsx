@@ -151,6 +151,7 @@ function IndexPage() {
                           width={44}
                           height={44}
                           className={styles.singerCardAvatar}
+                          style={{ width: '100%', height: '100%' }}
                         />
                       </div>
                     ) : (

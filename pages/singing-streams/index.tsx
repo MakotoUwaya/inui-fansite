@@ -127,6 +127,7 @@ function SingingStreamsPage() {
                   width={36}
                   height={36}
                   className={styles.singerHeaderAvatar}
+                  style={{ width: '100%', height: '100%' }}
                 />
               </div>
             ) : (

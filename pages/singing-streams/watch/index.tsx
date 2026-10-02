@@ -115,7 +115,7 @@ function SingingStreamsWatchPage() {
 
   const { player, ...ytPlayerProps } = useYTPlayer({
     mountId: 'singing-stream-player',
-    controls: false,
+    controls: true,
     autoplay: false,
     width: '100%',
     height: '100%',
@@ -289,7 +289,11 @@ function SingingStreamsWatchPage() {
     if (!player) return;
     player.addEventListener('onStateChange', onStateChange);
     return () => {
-      player.removeEventListener('onStateChange', onStateChange);
+      try {
+        player.removeEventListener('onStateChange', onStateChange);
+      } catch {
+        // ignore detached player errors
+      }
     };
   }, [onStateChange, player]);
 
