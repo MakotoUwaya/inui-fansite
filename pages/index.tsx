@@ -31,46 +31,27 @@ function IndexPage() {
       <section className={styles.heroSection}>
         <div className={styles.heroOverlay} />
         <div className={styles.heroContent}>
-          <div className={styles.badgeContainer}>
-            <span className={styles.heroBadge}>
-              <span className={styles.pulseDot} />
-              戌亥とこ 非公式ファンサイト
-            </span>
-          </div>
-
           <h1 className={styles.heroTitle}>
             聴きたい歌を、いつでもその瞬間に。
           </h1>
 
           <p className={styles.heroLead}>
             YouTubeの歌枠アーカイブから、聴きたい楽曲をワンクリックでシーク再生。
-            <br />
-            歌い手を選んで、今すぐお気に入りの歌枠を楽しもう。
           </p>
         </div>
       </section>
 
       <div className={styles.mainContainer}>
-        {/* メイン導線: 歌い手から探す (Singers Grid) */}
+        {/* メイン導線: 歌い手グリッド */}
         <section className={styles.singersSection}>
-          <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>
-              <MdPeople /> 歌い手から探す
-            </h2>
-            <p className={styles.sectionSubtitle}>
-              歌い手を選択すると、そのライバーの楽曲一覧に直接アクセスできます
-            </p>
-          </div>
-
           <div className={styles.singersGrid}>
             {singerSummaries.map((singer) => {
-              const isDefault = singer.name === DEFAULT_SINGER;
               const avatarUrl = getSingerAvatar(singer.name);
               return (
                 <Link
                   key={singer.name}
                   href={`/singing-streams?singer=${encodeURIComponent(singer.name)}`}
-                  className={`${styles.singerCard} ${isDefault ? styles.singerCardFeatured : ''}`}
+                  className={styles.singerCard}
                 >
                   <div className={styles.singerCardVisual}>
                     {avatarUrl ? (
@@ -89,12 +70,9 @@ function IndexPage() {
                     )}
                   </div>
                   <div className={styles.singerCardInfo}>
-                    <div className={styles.singerCardNameRow}>
-                      <h3 className={styles.singerCardName} title={singer.name}>
-                        {singer.name}
-                      </h3>
-                      {isDefault && <span className={styles.featuredBadge}>MAIN</span>}
-                    </div>
+                    <h3 className={styles.singerCardName} title={singer.name}>
+                      {singer.name}
+                    </h3>
                     <span className={styles.singerCardCount}>{singer.count} 曲</span>
                   </div>
                 </Link>

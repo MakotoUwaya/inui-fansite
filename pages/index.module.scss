@@ -8,15 +8,26 @@
 /* ヒーローセクション */
 .heroSection {
   position: relative;
-  padding: 5rem 1.5rem 4.5rem;
-  background: radial-gradient(circle at 50% 20%, rgba(220, 38, 38, 0.15) 0%, rgba(18, 18, 18, 1) 70%);
+  padding: 5.5rem 1.5rem 5rem;
+  background: url('/images/hero-bg.jpg') no-repeat center center;
+  background-size: cover;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   text-align: center;
   overflow: hidden;
 
   @include responsive(sm) {
-    padding: 3rem 1rem 3rem;
+    padding: 3.5rem 1rem 3rem;
   }
+}
+
+.heroOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(15, 15, 15, 0.65) 0%, rgba(10, 10, 10, 0.88) 100%);
+  pointer-events: none;
 }
 
 .heroContent {
@@ -24,30 +35,6 @@
   max-width: 860px;
   margin: 0 auto;
   z-index: 1;
-}
-
-.badgeContainer {
-  margin-bottom: 1.5rem;
-}
-
-.heroBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  padding: 0.35rem 1rem;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: lighten($base-black, 85);
-}
-
-.pulseDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: #ef4444;
-  box-shadow: 0 0 8px #ef4444;
 }
 
 .heroTitle {
@@ -58,6 +45,7 @@
   margin-bottom: 1.25rem;
   color: #ffffff;
   white-space: nowrap;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.85);
 
   @include responsive(md) {
     font-size: 2.1rem;
@@ -72,8 +60,9 @@
 .heroLead {
   font-size: 1.15rem;
   line-height: 1.7;
-  color: lighten($base-black, 75);
+  color: lighten($base-black, 85);
   margin-bottom: 0;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.9);
 
   @include responsive(sm) {
     font-size: 0.95rem;
@@ -85,10 +74,10 @@
 .mainContainer {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 4rem 1.5rem;
+  padding: 3rem 1.5rem 4rem;
 
   @include responsive(sm) {
-    padding: 2.5rem 1rem;
+    padding: 2rem 1rem 3rem;
   }
 }
 
@@ -132,15 +121,6 @@
     transform: translateY(-2px);
     border-color: rgba(255, 255, 255, 0.25);
     background: lighten($base-black, 12);
-  }
-}
-
-.singerCardFeatured {
-  border-color: rgba(239, 68, 68, 0.4);
-  background: linear-gradient(145deg, lighten($base-black, 10) 0%, rgba(220, 38, 38, 0.08) 100%);
-
-  &:hover {
-    border-color: rgba(239, 68, 68, 0.7);
   }
 }
 
@@ -217,13 +197,6 @@
   justify-content: center;
 }
 
-.singerCardNameRow {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  min-width: 0;
-}
-
 .singerCardName {
   font-size: 0.925rem;
   font-weight: 700;
@@ -238,17 +211,6 @@
   }
 }
 
-.featuredBadge {
-  background: rgba(239, 68, 68, 0.2);
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  color: #f87171;
-  font-size: 0.65rem;
-  font-weight: 700;
-  padding: 0.1rem 0.35rem;
-  border-radius: 9999px;
-  letter-spacing: 0.05em;
-  flex-shrink: 0;
-}
 
 .singerCardCount {
   font-size: 0.775rem;
