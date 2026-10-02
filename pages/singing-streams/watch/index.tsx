@@ -68,8 +68,8 @@ function SingingStreamsWatchPage() {
   const [currentTime, setCurrentTime] = useState(0);
   const [isMobilePlaylistVisible, setMobilePlaylistVisible] = useState(false);
   const [streams, setStreams] = useState<SingingStreamForSearch[]>([]);
-  const [isAutoPlay, setIsAutoPlay] = useState(false);
-  const isAutoPlayRef = useRef(false);
+  const [isAutoPlay, setIsAutoPlay] = useState(true);
+  const isAutoPlayRef = useRef(true);
 
   const enableAutoPlay = useCallback(() => {
     isAutoPlayRef.current = true;
@@ -301,11 +301,9 @@ function SingingStreamsWatchPage() {
         startSeconds: currentStream.start,
         endSeconds: currentStream.end,
       };
-      isAutoPlayRef.current || isPlayedVideo(currentStream.video_id)
-        ? player.loadVideoById(param)
-        : player.cueVideoById(param);
+      player.loadVideoById(param);
     }
-  }, [player, currentStream, isPlayedVideo, isPlayedOnce]);
+  }, [player, currentStream, isPlayedOnce]);
 
   useEffect(() => {
     const handleRouteChange = () => {
@@ -328,8 +326,8 @@ function SingingStreamsWatchPage() {
     const nextStreamId =
       playingStreamIndex === streams.length - 1
         ? repeatType === 'repeat'
-          ? streams[0].id
-          : null
+        ? streams[0].id
+        : null
         : streams[playingStreamIndex + 1]?.id;
     if (nextStreamId) {
       navigateToStream(nextStreamId);
@@ -344,7 +342,7 @@ function SingingStreamsWatchPage() {
     }
   }, [currentStream, isPlayedOnce, isPlayedVideo, addPlayedVideo]);
 
-  const needNativePlayPush = !isAutoPlay && !isPlayedVideo(currentStream?.video_id ?? '');
+  const needNativePlayPush = false;
 
   return (
     <Layout className={styles.root} title={currentStream?.song.title || ''} padding={isMobile ? 'all' : 'horizontal'}>
