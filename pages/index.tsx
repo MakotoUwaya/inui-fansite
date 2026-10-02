@@ -1,12 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useMemo } from 'react';
-import {
-  MdPlayArrow,
-  MdPeople,
-  MdMusicNote,
-  MdGraphicEq,
-} from 'react-icons/md';
+import { MdMusicNote } from 'react-icons/md';
 import { Layout } from '../components/Layout/Layout';
 import { useSingingStreamsForSearch } from '../hooks/singing-stream';
 import {
@@ -121,48 +116,6 @@ function IndexPage() {
                 </div>
               </Link>
             ))}
-          </div>
-        </section>
-
-        {/* 特徴・できること */}
-        <section className={styles.featuresSection}>
-          <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>サイトでできること</h2>
-            <p className={styles.sectionSubtitle}>
-              膨大な歌枠アーカイブの中から、あなたの「今聴きたい」をスマートにサポート
-            </p>
-          </div>
-
-          <div className={styles.featureGrid}>
-            <div className={styles.featureCard}>
-              <div className={`${styles.featureIconBox} ${styles.iconDirect}`}>
-                <MdPlayArrow />
-              </div>
-              <h3 className={styles.featureCardTitle}>ワンクリック即再生</h3>
-              <p className={styles.featureCardDesc}>
-                歌枠動画の開始位置へピンポイントでジャンプ。見たい曲の歌唱シーンを待たずにすぐに楽しめます。
-              </p>
-            </div>
-
-            <div className={styles.featureCard}>
-              <div className={`${styles.featureIconBox} ${styles.iconSingers}`}>
-                <MdPeople />
-              </div>
-              <h3 className={styles.featureCardTitle}>歌い手ごとの専用一覧</h3>
-              <p className={styles.featureCardDesc}>
-                戌亥とこをはじめ、各ライバーごとに整理されたスッキリ見やすい楽曲リストから探せます。
-              </p>
-            </div>
-
-            <div className={styles.featureCard}>
-              <div className={`${styles.featureIconBox} ${styles.iconAi}`}>
-                <MdGraphicEq />
-              </div>
-              <h3 className={styles.featureCardTitle}>気分・ムードから探せる</h3>
-              <p className={styles.featureCardDesc}>
-                「しっとりバラード」「クール・ロック」「深夜の作業用」など、雰囲気やジャンルで直感的に曲を探せます。
-              </p>
-            </div>
           </div>
         </section>
 
