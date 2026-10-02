@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { memo } from 'react';
+import { MdMusicNote, MdInfoOutline } from 'react-icons/md';
 import { ActiveLink } from '../ActiveLink/ActiveLink';
 import styles from './Header.module.scss';
 
@@ -15,11 +16,23 @@ export const Header = memo(function Header() {
 
         {/* ナビゲーションメニュー */}
         <nav className={styles.nav}>
-          <ActiveLink href="/singing-streams" className={styles.link} activeClassName={styles.activeLink}>
-            楽曲一覧
+          <ActiveLink
+            href="/singing-streams"
+            className={styles.iconLink}
+            activeClassName={styles.activeIconLink}
+            aria-label="楽曲一覧"
+            title="楽曲一覧"
+          >
+            <MdMusicNote className={styles.navIcon} />
           </ActiveLink>
-          <ActiveLink href="/about" className={styles.link} activeClassName={styles.activeLink}>
-            About
+          <ActiveLink
+            href="/about"
+            className={styles.iconLink}
+            activeClassName={styles.activeIconLink}
+            aria-label="About"
+            title="About"
+          >
+            <MdInfoOutline className={styles.navIcon} />
           </ActiveLink>
         </nav>
       </div>
