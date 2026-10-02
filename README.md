@@ -32,7 +32,7 @@ YouTube 公式の IFrame Player API を利用し、アーカイブの歌唱開�
 
 ## 🛠 技術スタック
 
-- **Framework**: Next.js 14 (Pages Router), TypeScript
+- **Framework**: Next.js (Pages Router), TypeScript
 - **Styling**: SCSS Modules
 - **Database / Backend**: Supabase
 - **Player API**: YouTube IFrame Player API
