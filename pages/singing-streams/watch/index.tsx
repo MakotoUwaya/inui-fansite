@@ -289,7 +289,11 @@ function SingingStreamsWatchPage() {
     if (!player) return;
     player.addEventListener('onStateChange', onStateChange);
     return () => {
-      player.removeEventListener('onStateChange', onStateChange);
+      try {
+        player.removeEventListener('onStateChange', onStateChange);
+      } catch {
+        // ignore detached player errors
+      }
     };
   }, [onStateChange, player]);
 
