@@ -1,4 +1,5 @@
-import { MdPlayArrow, MdPeople, MdGraphicEq, MdSmartDisplay } from 'react-icons/md';
+import { MdPlayArrow, MdPeople, MdGraphicEq, MdSmartDisplay, MdFavorite } from 'react-icons/md';
+import { SiGithub, SiZenn } from 'react-icons/si';
 import { ExternalLink } from '../../components/ExternalLink/ExternalLink';
 import { Layout } from '../../components/Layout/Layout';
 import styles from './index.module.scss';
@@ -81,6 +82,64 @@ function AboutPage() {
                 href="https://developers.google.com/youtube/iframe_api_reference"
               >
                 YouTube IFrame Player API Reference
+              </ExternalLink>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ベースプロジェクト・クレジット */}
+      <section className={styles.creditsSection}>
+        <div className={styles.creditsCard}>
+          <div className={styles.creditsCardHeader}>
+            <div className={styles.creditsIconBox}>
+              <MdFavorite />
+            </div>
+            <div className={styles.creditsCardTitleGroup}>
+              <h2 className={styles.creditsCardTitle}>ベースプロジェクト・謝辞 (Credits)</h2>
+              <span className={styles.creditsBadge}>Unofficial Fork</span>
+            </div>
+          </div>
+
+          <div className={styles.creditsCardBody}>
+            <p className={styles.creditsCardText}>
+              当サイトは、qisarazu 氏によって開発・公開された風真いろは非公式ファンサイト（
+              <ExternalLink className={styles.textLink} href="https://github.com/qisarazu/iroha-fansite">
+                iroha-fansite
+              </ExternalLink>
+              ）の素晴らしい設計と実装をベースに、戌亥とこおよび仲間たちの歌枠向けにカスタマイズした非公式フォーク（Unofficial Fork）です。
+            </p>
+
+            <div className={styles.quoteBox}>
+              <div className={styles.quoteHeader}>開発者 qisarazu 氏の解説記事より引用：</div>
+              <blockquote className={styles.quoteText}>
+                “歌部分だけを編集で切り抜いて聴くという手もありますが
+                <br />
+                それだと元動画へ再生数がいかないので推しに対して申し訳ない。。
+                <br />
+                <br />
+                これは元動画を再生しつついい感じに曲を聴けたらいいなという自分の願望を叶えたものです”
+              </blockquote>
+            </div>
+
+            <p className={styles.creditsCardText}>
+              「推しの元動画にしっかり再生数を還元しながら、ストレスなく聴きたい瞬間にアクセスできる環境をつくりたい」というこの熱い想いとコンセプトに深く共感し、本サイトの構築・運営を行っています。素晴らしい仕組みを生み出してくださった元作者様に心より感謝申し上げます。
+            </p>
+
+            <div className={styles.creditsActions}>
+              <ExternalLink
+                className={styles.creditLinkButton}
+                href="https://github.com/qisarazu/iroha-fansite"
+              >
+                <SiGithub className={styles.buttonBrandIcon} />
+                <span>qisarazu / iroha-fansite</span>
+              </ExternalLink>
+              <ExternalLink
+                className={styles.creditLinkButton}
+                href="https://zenn.dev/qisarazu/articles/e8617817b4b365"
+              >
+                <SiZenn className={styles.buttonBrandIcon} />
+                <span>開発解説記事（Zenn）</span>
               </ExternalLink>
             </div>
           </div>
