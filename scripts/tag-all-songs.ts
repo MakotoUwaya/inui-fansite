@@ -21,25 +21,44 @@ async function main() {
   if (isForce) console.log('⚡ --force モード: 既存のメタデータも再判定して上書きします。');
   if (limitCount) console.log(`⚡ --limit モード: 最大 ${limitCount} 曲まで処理します。`);
 
-  // 1. 全曲取得
-  const { data: songs, error: songError } = await supabase
-    .from('song')
-    .select('id, title, artist')
-    .order('created_at', { ascending: true });
+  // 1. 全曲取得（ページネーション対応）
+  let songs: { id: string; title: string; artist: string }[] = [];
+  const pageSize = 1000;
+  let from = 0;
+  while (true) {
+    const { data, error: songError } = await supabase
+      .from('song')
+      .select('id, title, artist')
+      .order('created_at', { ascending: true })
+      .range(from, from + pageSize - 1);
 
-  if (songError || !songs) {
-    console.error('❌ 楽曲の取得に失敗しました:', songError);
-    process.exit(1);
+    if (songError || !data) {
+      console.error('❌ 楽曲の取得に失敗しました:', songError);
+      process.exit(1);
+    }
+    songs = songs.concat(data);
+    if (data.length < pageSize) break;
+    from += pageSize;
   }
 
   console.log(`📋 対象楽曲数: ${songs.length} 曲\n`);
 
-  // 2. 既存のメタデータ取得（スキップ判定用）
-  const { data: existingMetadata } = await supabase
-    .from('song_metadata')
-    .select('song_id');
+  // 2. 既存のメタデータ取得（スキップ判定用、ページネーション対応）
+  let existingMetadata: { song_id: string }[] = [];
+  from = 0;
+  while (true) {
+    const { data, error: metaError } = await supabase
+      .from('song_metadata')
+      .select('song_id')
+      .range(from, from + pageSize - 1);
 
-  const existingSongIds = new Set((existingMetadata || []).map((m: any) => m.song_id));
+    if (metaError || !data) break;
+    existingMetadata = existingMetadata.concat(data);
+    if (data.length < pageSize) break;
+    from += pageSize;
+  }
+
+  const existingSongIds = new Set(existingMetadata.map((m) => m.song_id));
 
   let processedCount = 0;
   let skippedCount = 0;
