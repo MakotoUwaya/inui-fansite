@@ -4,9 +4,9 @@ const path = require('path');
  * @type {import('next').NextConfig}
  */
 module.exports = {
+  outputFileTracingRoot: path.join(__dirname),
   images: {
     minimumCacheTTL: 31536000, // 1年間キャッシュ
-    domains: ['i.ytimg.com', 'yt3.googleusercontent.com', 'yt3.ggpht.com'],
     remotePatterns: [
       {
         protocol: 'https',
