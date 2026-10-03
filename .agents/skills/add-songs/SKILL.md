@@ -36,6 +36,25 @@ pnpm exec tsx --env-file=.env.local scripts/add-songs.ts "<YouTube動画URL>"
 
 ---
 
+## 🏷️ 登録後の自動ポスト処理（タグ付け & 曲長チェック・雑談カット）
+
+楽曲登録時、`scripts/add-songs.ts` 内部で以下の処理が**完全自動**で実行されます：
+
+1. **Jev による自動タグ付け (`add-tags` スキル連携)**:
+   - TypeSafe AI (Jev) により、楽曲のムード（`ballad`, `emotional`, `cool`, `bright`, `jazz_rnb`）、ジャンル（`vocaloid`, `anime`, `jpop`, `nostalgic`, `vtuber`）、夜曲適性（`is_night_pick`）が即座に判定・保存されます。
+   - ※万一スキップや失敗があった場合は、事後に `pnpm exec tsx scripts/tag-all-songs.ts` を実行して未タグ曲を補完します。
+
+2. **曲長チェック・雑談自動トリミング (`check-song-length` スキル連携)**:
+   - 登録完了時に `autoCheckVideo(videoId)` が自動起動し、iTunes Search API の公式音源データと照合します。
+   - 歌唱終了後の長時間の雑談が含まれて 5 分以上になっている曲は、**公式演奏時間 + 余韻 15 秒（アウトロ・拍手等）** に自動トリミング補正され、`is_length_checked = true` が記録されます。
+   - ※個別に再確認・手動調整したい場合は以下を実行します：
+     ```bash
+     pnpm exec tsx scripts/check-song-length.ts --video-id <VIDEO_ID> --list
+     pnpm exec tsx scripts/check-song-length.ts --update <ID> --end <MM:SS>
+     ```
+
+---
+
 ## 新規ライバー登場時のアバター・アイコン設定（必須チェック）
 
 登録された楽曲の歌唱者（`singers`）に、まだサイト未設定の新規ライバーが含まれている場合、**自動的に設定を追加**します。

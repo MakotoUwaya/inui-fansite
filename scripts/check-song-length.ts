@@ -457,12 +457,19 @@ async function fetchTrackDuration(title: string, artist: string): Promise<number
   return null;
 }
 
-async function autoCheckAll(args: string[]) {
+export async function autoCheckVideo(videoId: string) {
+  return autoCheckAll(['--video-id', videoId]);
+}
+
+export async function autoCheckAll(args: string[] = []) {
   const threshold = 300; // 5分
   const limitIdx = args.indexOf('--limit');
   const limitCount = limitIdx !== -1 ? parseInt(args[limitIdx + 1], 10) : undefined;
+  const videoIdIdx = args.indexOf('--video-id');
+  const videoIdFilter = videoIdIdx !== -1 ? args[videoIdIdx + 1] : undefined;
 
   console.log(`🤖 5分以上の未チェック曲に対するインテリジェント自動チェックを開始します...`);
+  if (videoIdFilter) console.log(`🎬 対象動画: ${videoIdFilter}`);
   if (limitCount) console.log(`⚡ --limit モード: 最大 ${limitCount} 件を処理します。`);
 
   // 1. 全対象曲を取得
@@ -471,7 +478,7 @@ async function autoCheckAll(args: string[]) {
   let from = 0;
 
   while (true) {
-    const { data, error } = await supabase
+    let query = supabase
       .from('singing_stream')
       .select(`
         id,
@@ -486,6 +493,12 @@ async function autoCheckAll(args: string[]) {
       `)
       .eq('is_length_checked', false)
       .range(from, from + pageSize - 1);
+
+    if (videoIdFilter) {
+      query = query.eq('video_id', videoIdFilter);
+    }
+
+    const { data, error } = await query;
 
     if (error || !data) {
       console.error('❌ データ取得に失敗しました:', error);
