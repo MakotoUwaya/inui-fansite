@@ -14,7 +14,10 @@ const KEYS = {
 } as const;
 
 export function useSingingStreamsForSearch(keyword: string = '') {
-  const { data, error } = useSWRImmutable(`${KEYS.search}-${keyword}`, getForList);
+  const { data, error } = useSWRImmutable(`${KEYS.search}-${keyword}`, getForList, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+  });
   return {
     streams: data,
     error,
@@ -23,7 +26,10 @@ export function useSingingStreamsForSearch(keyword: string = '') {
 
 export function useSingingStreamForWatch(id: string | undefined) {
   // idがfalsyの場合はフェッチしない
-  const { data, error } = useSWRImmutable(id ? `${KEYS.watch}-${id}` : null, getForWatch);
+  const { data, error } = useSWRImmutable(id ? `${KEYS.watch}-${id}` : null, getForWatch, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+  });
   return {
     stream: data,
     error,

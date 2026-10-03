@@ -99,9 +99,9 @@ function SingingStreamsWatchPage() {
     // 現在再生中の曲と同一であれば再ロードしない
     if (currentStreamId === streamId) return;
 
-    // watch用の詳細データがあれば優先、なければ baseStreams / rawStreams からフォールバック
+    // watch用の詳細データがあれば優先（IDが一致する場合のみ）、なければ baseStreams / rawStreams からフォールバック
     const targetStream =
-      fetchedStream ||
+      (fetchedStream && fetchedStream.id === streamId ? fetchedStream : null) ||
       baseStreams.find((s) => s.id === streamId) ||
       rawStreams?.find((s) => s.id === streamId);
 

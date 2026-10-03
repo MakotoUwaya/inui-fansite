@@ -170,8 +170,17 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
           endSeconds: target.end,
         });
       }
+
+      // watch ページにいる場合は URL のクエリ v を現在の曲IDに追従同期（shallow）
+      if (router.pathname === '/singing-streams/watch') {
+        const query = { ...router.query, v: target.id };
+        router.replace({ pathname: '/singing-streams/watch', query }, undefined, {
+          shallow: true,
+          scroll: false,
+        });
+      }
     },
-    [],
+    [router],
   );
 
   // IDから対象曲を見つけて再生する
@@ -180,14 +189,10 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
       const list = customStreams || streams;
       const target = list.find((s) => s.id === targetId);
       if (target) {
-        if (isWatchPage) {
-          navigateToStream(target.id);
-        } else {
-          loadAndPlayStream(target);
-        }
+        loadAndPlayStream(target);
       }
     },
-    [isWatchPage, loadAndPlayStream, navigateToStream, streams],
+    [loadAndPlayStream, streams],
   );
 
   // 曲再生開始（プレイリストやフィルターも必要に応じてセット）
@@ -391,20 +396,14 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
         : streams[playingIndex + 1];
 
     if (nextStream) {
-      if (isWatchPage) {
-        navigateToStream(nextStream.id);
-      } else {
-        loadAndPlayStream(nextStream);
-      }
+      loadAndPlayStream(nextStream);
     }
   }, [
     currentStream,
     enableAutoPlay,
     isEnded,
     isPlayedOnce,
-    isWatchPage,
     loadAndPlayStream,
-    navigateToStream,
     repeatType,
     streams,
   ]);

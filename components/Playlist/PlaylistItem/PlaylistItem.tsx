@@ -4,8 +4,9 @@ import { Reorder } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { memo, useMemo, useRef } from 'react';
+import { memo, useCallback, useContext, useMemo, useRef } from 'react';
 import { MdPlayArrow, MdVolumeUp } from 'react-icons/md';
+import { YTPlayerContext } from '../../../contexts/ytplayer';
 import { useHovering } from '../../../hooks/useHovering';
 import type { SingingStreamForSearch } from '../../../types';
 import { ExternalLink } from '../../ExternalLink/ExternalLink';
@@ -22,6 +23,7 @@ export const PlaylistItem = memo(({ className, stream, isPlaying }: Props) => {
   const ref = useRef<HTMLLIElement>(null);
   const isHovering = useHovering(ref);
   const router = useRouter();
+  const { playSong, streams: globalStreams, filterOptions } = useContext(YTPlayerContext);
 
   const watchHref = useMemo(() => {
     const query: Record<string, string> = { v: stream.id };
@@ -37,6 +39,16 @@ export const PlaylistItem = memo(({ className, stream, isPlaying }: Props) => {
     return { pathname: '/singing-streams/watch', query };
   }, [stream.id, router.query]);
 
+  const handlePlay = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      if (isPlaying) return;
+      playSong(stream, globalStreams.length > 0 ? globalStreams : undefined, filterOptions);
+      router.push(watchHref, undefined, { shallow: true, scroll: false });
+    },
+    [isPlaying, playSong, stream, globalStreams, filterOptions, router, watchHref],
+  );
+
   return (
     <Reorder.Item
       className={clsx(styles.item, className, isPlaying && styles.itemPlaying)}
@@ -45,7 +57,7 @@ export const PlaylistItem = memo(({ className, stream, isPlaying }: Props) => {
       ref={ref}
       data-playing={isPlaying ? 'true' : 'false'}
     >
-      <Link href={watchHref} className={styles.thumbnail}>
+      <Link href={watchHref} className={styles.thumbnail} onClick={handlePlay} scroll={false}>
         <Image
           alt={stream.song.title}
           src={`https://i.ytimg.com/vi/${stream.video_id}/default.jpg`}
@@ -64,7 +76,7 @@ export const PlaylistItem = memo(({ className, stream, isPlaying }: Props) => {
           </div>
         ) : null}
       </Link>
-      <Link href={watchHref} className={styles.info}>
+      <Link href={watchHref} className={styles.info} onClick={handlePlay} scroll={false}>
         <h2 className={styles.songTitle} title={stream.song.title}>
           {stream.song.title}
         </h2>
