@@ -110,12 +110,29 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
     endSecondsVariable = currentStream?.end ?? 0;
   }, [currentStream?.start, currentStream?.end]);
 
+  const currentStreamRef = useRef<(SingingStreamForSearch | SingingStreamForWatch) | null>(null);
+
+  // currentStream を ref と同期
+  useEffect(() => {
+    currentStreamRef.current = currentStream;
+  }, [currentStream]);
+
   const onScriptLoad = useCallback(() => {
     setScriptLoaded(true);
   }, []);
 
   const onPlayerReady = useCallback(() => {
     setPlayerReady(true);
+    if (playerRef.current && typeof playerRef.current.loadVideoById === 'function') {
+      const stream = currentStreamRef.current;
+      if (stream) {
+        playerRef.current.loadVideoById({
+          videoId: stream.video_id,
+          startSeconds: stream.start,
+          endSeconds: stream.end,
+        });
+      }
+    }
   }, []);
 
   const enableAutoPlay = useCallback(() => {
@@ -130,13 +147,16 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
   }, [currentStream]);
 
   const isFirstStream = useMemo(() => {
-    if (!streams.length || !currentStreamId) return false;
-    return streams.findIndex((s) => s.id === currentStreamId) === 0;
+    if (!streams.length || !currentStreamId) return true;
+    const index = streams.findIndex((s) => s.id === currentStreamId);
+    return index <= 0;
   }, [streams, currentStreamId]);
 
   const isLastStream = useMemo(() => {
-    if (!streams.length || !currentStreamId) return false;
-    return streams.findIndex((s) => s.id === currentStreamId) === streams.length - 1;
+    if (!streams.length || !currentStreamId) return true;
+    const index = streams.findIndex((s) => s.id === currentStreamId);
+    if (index === -1) return true;
+    return index >= streams.length - 1;
   }, [streams, currentStreamId]);
 
   // watch ページかどうか判定
@@ -157,13 +177,14 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
   // 指定した stream をロードして再生
   const loadAndPlayStream = useCallback(
     (target: SingingStreamForSearch | SingingStreamForWatch) => {
+      currentStreamRef.current = target;
       setCurrentStream(target);
       setCurrentStreamId(target.id);
       setCurrentTime(0);
       setEnded(false);
       setPlayedOnce(false);
 
-      if (playerRef.current) {
+      if (playerRef.current && typeof playerRef.current.loadVideoById === 'function') {
         playerRef.current.loadVideoById({
           videoId: target.video_id,
           startSeconds: target.start,
@@ -172,9 +193,16 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
       }
 
       // watch ページにいる場合は URL のクエリ v を現在の曲IDに追従同期（shallow）
-      if (router.pathname === '/singing-streams/watch') {
-        const query = { ...router.query, v: target.id };
-        router.replace({ pathname: '/singing-streams/watch', query }, undefined, {
+      if (router.pathname === '/singing-streams/watch' && router.isReady) {
+        const queryParams = new URLSearchParams();
+        const currentQuery = router.query;
+        for (const [k, v] of Object.entries(currentQuery)) {
+          if (k !== 'v' && typeof v === 'string') {
+            queryParams.set(k, v);
+          }
+        }
+        queryParams.set('v', target.id);
+        router.replace(`/singing-streams/watch?${queryParams.toString()}`, undefined, {
           shallow: true,
           scroll: false,
         });
@@ -203,10 +231,24 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
       filterOpts?: FilterOptions,
     ) => {
       if (filterOpts) {
-        setFilterOptions(filterOpts);
+        setFilterOptions((prev) => {
+          if (
+            prev.filter === filterOpts.filter &&
+            prev.singer === filterOpts.singer &&
+            prev.keyword === filterOpts.keyword
+          ) {
+            return prev;
+          }
+          return filterOpts;
+        });
       }
       if (playlist && playlist.length > 0) {
-        setStreams(playlist);
+        setStreams((prev) => {
+          if (prev.length === playlist.length && prev[0]?.id === playlist[0]?.id) {
+            return prev;
+          }
+          return playlist;
+        });
         setOriginalStreams(playlist);
         setShuffled(false);
       }
@@ -219,10 +261,36 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
   // プレイリストの同期（watch ページ初期化時など）
   const syncPlaylist = useCallback(
     (playlist: SingingStreamForSearch[], filterOpts: FilterOptions, targetStreamId?: string) => {
-      setFilterOptions(filterOpts);
-      setStreams(playlist);
-      setOriginalStreams(playlist);
-      setShuffled(false);
+      setFilterOptions((prev) => {
+        if (
+          prev.filter === filterOpts.filter &&
+          prev.singer === filterOpts.singer &&
+          prev.keyword === filterOpts.keyword
+        ) {
+          return prev;
+        }
+        return filterOpts;
+      });
+
+      setStreams((prev) => {
+        if (
+          prev.length === playlist.length &&
+          prev.every((s, idx) => s.id === playlist[idx]?.id)
+        ) {
+          return prev;
+        }
+        return playlist;
+      });
+
+      setOriginalStreams((prev) => {
+        if (
+          prev.length === playlist.length &&
+          prev.every((s, idx) => s.id === playlist[idx]?.id)
+        ) {
+          return prev;
+        }
+        return playlist;
+      });
 
       if (targetStreamId) {
         const stream = playlist.find((s) => s.id === targetStreamId);
@@ -238,34 +306,42 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
   );
 
   const play = useCallback(() => {
-    if (!playerRef.current) return;
+    if (!playerRef.current || typeof playerRef.current.playVideo !== 'function') return;
     enableAutoPlay();
     playerRef.current.playVideo();
   }, [enableAutoPlay]);
 
   const pause = useCallback(() => {
-    if (!playerRef.current) return;
+    if (!playerRef.current || typeof playerRef.current.pauseVideo !== 'function') return;
     playerRef.current.pauseVideo();
   }, []);
 
   const seekTo = useCallback(
     (time: number) => {
-      if (!playerRef.current || !currentStream) return;
+      if (!playerRef.current || !currentStream || typeof playerRef.current.seekTo !== 'function') return;
       playerRef.current.seekTo(currentStream.start + time);
     },
     [currentStream],
   );
 
   const skipPrev = useCallback(() => {
-    if (!streams.length || !currentStream || !playerRef.current) return;
+    if (!currentStream || !playerRef.current) return;
     enableAutoPlay();
-    if (currentTime >= 5) {
+    if (currentTime >= 5 && typeof playerRef.current.seekTo === 'function') {
       playerRef.current.seekTo(currentStream.start);
       setCurrentTime(0);
       return;
     }
+    if (!streams.length) return;
     const playingIndex = streams.findIndex((s) => s.id === currentStream.id);
-    if (playingIndex <= 0) return;
+    if (playingIndex <= 0) {
+      // 先頭曲の場合は先頭に巻き戻す
+      if (typeof playerRef.current.seekTo === 'function') {
+        playerRef.current.seekTo(currentStream.start);
+      }
+      setCurrentTime(0);
+      return;
+    }
     const prev = streams[playingIndex - 1];
     if (prev) {
       playStreamById(prev.id);
