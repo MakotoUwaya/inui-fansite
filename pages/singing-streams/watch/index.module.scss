@@ -27,6 +27,7 @@ $mobile-playlist-draggable-height: 48px;
     padding-top: 56.25%;
   }
 
+  .playerPlaceholder,
   iframe {
     position: absolute;
     top: 0;
@@ -96,26 +97,6 @@ $mobile-playlist-draggable-height: 48px;
   font-size: 0.8rem;
   color: lighten($base-black, 65);
   white-space: nowrap;
-}
-
-.clearFilterButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.75rem;
-  padding: 0.25rem 0.6rem;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  color: lighten($base-black, 80);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.2);
-    color: #ffffff;
-  }
 }
 
 .autoPlay {

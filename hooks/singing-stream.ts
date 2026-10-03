@@ -59,11 +59,11 @@ async function getForList(key: string): Promise<SingingStreamForSearch[] | null>
   const keyword = match[1];
   const query = supabase
     .from('singing_stream')
-    .select('id, start, video_id, published_at, singers, video!video_id(title, url), song(title, artist, song_metadata(mood, genre, is_night_pick))');
+    .select('id, start, end, video_id, published_at, singers, video!video_id(title, url), song(title, artist, song_metadata(mood, genre, is_night_pick))');
 
   if (keyword) {
     query
-      .select('id, start, video_id, published_at, singers, video!video_id(title, url), song!inner(title, artist, song_metadata(mood, genre, is_night_pick))')
+      .select('id, start, end, video_id, published_at, singers, video!video_id(title, url), song!inner(title, artist, song_metadata(mood, genre, is_night_pick))')
       .ilike('song.title', `%${keyword}%`);
   }
   query

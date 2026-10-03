@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import { format } from 'date-fns';
 import Image from 'next/image';
+import Link, { type LinkProps } from 'next/link';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { MdShuffle, MdSkipNext, MdSkipPrevious, MdVolumeOff, MdVolumeUp } from 'react-icons/md';
 import { useHoverDirty } from 'react-use';
@@ -26,6 +27,8 @@ type Props = {
   songTitle: string;
   songArtist: string;
   publishedAt: string;
+  streamId?: string;
+  watchHref?: LinkProps['href'];
   onPlay: () => void;
   onPause: () => void;
   onSeek: (time: number) => void;
@@ -52,6 +55,8 @@ export const PlayerController = memo(function PlayerController({
   songTitle,
   songArtist,
   publishedAt,
+  streamId,
+  watchHref,
   onPlay,
   onPause,
   onSeek,
@@ -66,6 +71,8 @@ export const PlayerController = memo(function PlayerController({
   const isVolumeHovered = useHoverDirty(volumeRef);
   const [isControllerHovering, setControllerHovering] = useState(false);
   const [visibleVolumeControl, setVisibleVolumeControl] = useState(false);
+
+  const targetHref = watchHref || (streamId ? `/singing-streams/watch?v=${streamId}` : null);
 
   useEffect(() => {
     setVisibleVolumeControl(true);
@@ -87,6 +94,26 @@ export const PlayerController = memo(function PlayerController({
     onMute(!isMute);
   }, [isMute, onMute]);
 
+  const middleContent = (
+    <>
+      <Image
+        alt={songTitle}
+        width={64}
+        height={36}
+        src={`https://i.ytimg.com/vi/${videoId}/default.jpg`}
+        style={{ objectFit: 'cover' }}
+      />
+      <div className={styles.info}>
+        <div className={styles.sonTitle}>{songTitle}</div>
+        <div>
+          <span>{songArtist}</span>
+          <span> / </span>
+          <span>{format(new Date(publishedAt), 'yyyy-MM-dd')} 配信</span>
+        </div>
+      </div>
+    </>
+  );
+
   return (
     <div className={styles.root} onMouseEnter={onControllerMouseEnter} onMouseLeave={onControllerMouseLeave}>
       <Slider
@@ -107,23 +134,13 @@ export const PlayerController = memo(function PlayerController({
         </IconButton>
         <span className={styles.time}>{`${formatVideoLength(currentTime)} / ${formatVideoLength(length)}`}</span>
       </div>
-      <div className={styles.middleControls}>
-        <Image
-          alt={songTitle}
-          width={64}
-          height={36}
-          src={`https://i.ytimg.com/vi/${videoId}/default.jpg`}
-          style={{ objectFit: 'cover' }}
-        />
-        <div className={styles.info}>
-          <div className={styles.sonTitle}>{songTitle}</div>
-          <div>
-            <span>{songArtist}</span>
-            <span> / </span>
-            <span>{format(new Date(publishedAt), 'yyyy-MM-dd')} 配信</span>
-          </div>
-        </div>
-      </div>
+      {targetHref ? (
+        <Link href={targetHref} className={styles.middleControls}>
+          {middleContent}
+        </Link>
+      ) : (
+        <div className={styles.middleControls}>{middleContent}</div>
+      )}
       <div className={styles.rightControls}>
         <div className={styles.volume} ref={volumeRef}>
           {visibleVolumeControl ? (

@@ -42,7 +42,7 @@ export type SongMetadata = {
   prob_night_pick?: number;
 };
 
-export type SingingStreamForSearch = Pick<SingingStream, 'id' | 'start' | 'video_id' | 'published_at' | 'singers'> & {
+export type SingingStreamForSearch = Pick<SingingStream, 'id' | 'start' | 'end' | 'video_id' | 'published_at' | 'singers'> & {
   song: Pick<Song, 'title' | 'artist' | 'title_en' | 'artist_en'> & {
     song_metadata?: SongMetadata | null;
   };

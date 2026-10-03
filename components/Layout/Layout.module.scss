@@ -1,9 +1,18 @@
+@import 'variable.scss';
 @import 'mixin.scss';
 
 $x-padding: 56px;
 $y-padding: 32px;
 $x-mobile-padding: 16px;
 $y-mobile-padding: 16px;
+
+.withPersistentPlayer {
+  padding-bottom: calc(#{$pc-player-controller-height} + 1.5rem) !important;
+
+  @include responsive(sm) {
+    padding-bottom: calc(#{$mobile-player-controller-height} + 1.5rem) !important;
+  }
+}
 
 .all {
   padding: $y-padding $x-padding;
