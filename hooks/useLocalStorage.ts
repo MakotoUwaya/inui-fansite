@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useCallback, useState, useRef, useEffect } from 'react';
+import { Dispatch, SetStateAction, useCallback, useState, useEffect } from 'react';
 
 // based on https://github.com/streamich/react-use/blob/3685b7502a/src/useLocalStorage.ts
 export const useLocalStorage = <T>(key: string, initialValue: T): [T, Dispatch<SetStateAction<T>>, () => void] => {
@@ -6,21 +6,40 @@ export const useLocalStorage = <T>(key: string, initialValue: T): [T, Dispatch<S
     throw new Error('useLocalStorage key may not be falsy');
   }
 
-  const initializer = useRef((key: string) => {
-    const localStorageValue = localStorage.getItem(key);
-    if (localStorageValue !== null) {
-      return JSON.parse(localStorageValue);
-    } else {
-      initialValue && localStorage.setItem(key, JSON.stringify(initialValue));
+  const [state, setState] = useState<T>(() => {
+    if (typeof window === 'undefined') return initialValue;
+    try {
+      const localStorageValue = localStorage.getItem(key);
+      if (localStorageValue !== null) {
+        return JSON.parse(localStorageValue);
+      } else {
+        if (initialValue) {
+          localStorage.setItem(key, JSON.stringify(initialValue));
+        }
+        return initialValue;
+      }
+    } catch {
       return initialValue;
     }
   });
 
-  const [state, setState] = useState<T>(() =>
-    typeof window === 'undefined' ? initialValue : initializer.current(key),
-  );
-
-  useEffect(() => setState(initializer.current(key)), [key]);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const localStorageValue = localStorage.getItem(key);
+      if (localStorageValue !== null) {
+        setState(JSON.parse(localStorageValue));
+      } else {
+        if (initialValue) {
+          localStorage.setItem(key, JSON.stringify(initialValue));
+        }
+        setState(initialValue);
+      }
+    } catch {
+      setState(initialValue);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
 
   const set: Dispatch<SetStateAction<T>> = useCallback(
     (state) => {
