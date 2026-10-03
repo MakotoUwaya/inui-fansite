@@ -3,6 +3,11 @@ import nextCoreWebVitals from 'eslint-config-next/core-web-vitals';
 const eslintConfig = [
   ...nextCoreWebVitals,
   {
+    settings: {
+      react: {
+        version: '19.3',
+      },
+    },
     rules: {
       'react/display-name': 'off',
       '@next/next/link-passhref': 'off',
