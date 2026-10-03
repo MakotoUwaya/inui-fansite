@@ -15,7 +15,7 @@ export type Props = {
 };
 
 export const useSlider = (
-  ref: RefObject<HTMLElement>,
+  ref: RefObject<HTMLElement | null>,
   { value: valueProp, min = 0, max = 100, onScrub }: Props = {},
 ): State => {
   const isMounted = useMountedState();
@@ -92,7 +92,7 @@ export const useSlider = (
 
       frame.current = requestAnimationFrame(() => {
         if (isMounted() && refCurrent) {
-          const rect = ref.current.getBoundingClientRect();
+          const rect = refCurrent.getBoundingClientRect();
           const posX = rect.left;
           const length = rect.width;
 

@@ -1,11 +1,11 @@
-@import 'variable.scss';
-@import 'mixin.scss';
+@use 'variable.scss';
+@use 'mixin.scss';
 
 .root {
-  background-color: $gray-900;
+  background-color: variable.$gray-900;
   padding: 16px 32px 40px;
   line-height: 1.2;
-  height: $mobile-player-controller-height;
+  height: variable.$mobile-player-controller-height;
 }
 
 .streamInfo {
@@ -42,13 +42,13 @@
 }
 
 .songTitle {
-  @include lineClamp(1);
+  @include mixin.lineClamp(1);
   font-weight: bold;
   word-break: break-all;
 }
 
 .songArtist {
-  @include lineClamp(1);
+  @include mixin.lineClamp(1);
   font-size: 0.75rem;
   word-break: break-all;
 }
@@ -76,9 +76,9 @@
 }
 
 .shuffle {
-  color: $gray-700;
+  color: variable.$gray-700;
   &.shuffled {
-    color: $base-white;
+    color: variable.$base-white;
   }
 }
 
@@ -98,8 +98,8 @@
 }
 
 .repeat {
-  color: $gray-700;
+  color: variable.$gray-700;
   &.repeating {
-    color: $base-white;
+    color: variable.$base-white;
   }
 }

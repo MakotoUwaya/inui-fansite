@@ -1,4 +1,4 @@
-@import 'variable.scss';
+@use 'variable.scss';
 
 *,
 *::before,
@@ -19,13 +19,13 @@ body {
   font-family: 'M PLUS Rounded 1c', 'Nunito', sans-serif;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  background-color: $base-black;
-  color: $base-white;
+  background-color: variable.$base-black;
+  color: variable.$base-white;
   overflow-y: scroll;
 }
 
 a {
-  color: $base-white;
+  color: variable.$base-white;
   text-decoration: none;
 }
 

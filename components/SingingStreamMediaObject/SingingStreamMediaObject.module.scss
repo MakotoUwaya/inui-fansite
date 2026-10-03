@@ -1,4 +1,4 @@
-@import 'mixin.scss';
+@use 'mixin.scss';
 
 .root {
   display: flex;
@@ -22,7 +22,7 @@
   border-radius: 6px;
   overflow: hidden;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     width: 96px;
     height: 54px;
     border-radius: 4px;
@@ -38,7 +38,7 @@
   overflow: hidden;
   margin-left: 1rem;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     margin-left: 0.75rem;
   }
 }
@@ -65,7 +65,7 @@
   gap: 0.5rem;
   min-width: 0;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.1rem;
@@ -79,8 +79,8 @@
   word-break: break-word;
   transition: color 0.15s ease;
 
-  @include responsive(sm) {
-    @include lineClamp(1);
+  @include mixin.responsive(sm) {
+    @include mixin.lineClamp(1);
     font-size: 0.95rem;
   }
 }
@@ -96,12 +96,12 @@
     color: #64748b;
   }
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     &::before {
       content: '';
       margin: 0;
     }
-    @include lineClamp(1);
+    @include mixin.lineClamp(1);
     font-size: 0.75rem;
   }
 }
@@ -114,7 +114,7 @@
   font-size: 0.75rem;
   color: #64748b;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     gap: 0.4rem;
     font-size: 0.65rem;
   }
@@ -130,7 +130,7 @@
   font-size: 0.75rem;
   font-weight: 500;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     font-size: 0.65rem;
     padding: 0.05rem 0.35rem;
   }
@@ -147,7 +147,7 @@
 }
 
 .originalLink {
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     font-size: 0.75rem;
   }
 }

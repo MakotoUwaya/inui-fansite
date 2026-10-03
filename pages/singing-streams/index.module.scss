@@ -1,12 +1,14 @@
-@import 'variable.scss';
-@import 'mixin.scss';
+@use "sass:color";
+
+@use 'variable.scss';
+@use 'mixin.scss';
 
 .root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 1.5rem 1rem 3rem;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     padding: 1rem 0.75rem 2rem;
   }
 }
@@ -20,7 +22,7 @@
   padding-bottom: 1.25rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     flex-direction: column;
     align-items: stretch;
     gap: 1rem;
@@ -33,7 +35,7 @@
   align-items: center;
   gap: 1rem;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     gap: 0.75rem;
   }
 }
@@ -74,7 +76,7 @@
   color: #f8fafc;
   letter-spacing: -0.01em;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     font-size: 1.15rem;
   }
 }
@@ -85,7 +87,7 @@
   gap: 0.5rem;
   max-width: 100%;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     width: 100%;
   }
 }
@@ -97,7 +99,7 @@
 }
 
 .singerSelect {
-  background-color: lighten($base-black, 12);
+  background-color: color.adjust(variable.$base-black, $lightness: 12%, $space: hsl);
   color: #f8fafc;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 6px;
@@ -108,7 +110,7 @@
   transition: all 0.15s ease-in-out;
   max-width: 100%;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     flex: 1;
     min-width: 0;
   }
@@ -116,11 +118,11 @@
   &:hover,
   &:focus {
     border-color: #fbbf24;
-    background-color: lighten($base-black, 16);
+    background-color: color.adjust(variable.$base-black, $lightness: 16%, $space: hsl);
   }
 
   option {
-    background-color: $base-black;
+    background-color: variable.$base-black;
     color: #f8fafc;
   }
 }
@@ -131,7 +133,7 @@
   width: 380px;
   max-width: 100%;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     width: 100%;
     min-width: 0;
   }
@@ -147,7 +149,7 @@
 .input {
   width: 100%;
   padding: 0.45rem 2rem 0.45rem 0.75rem;
-  background-color: lighten($base-black, 10);
+  background-color: color.adjust(variable.$base-black, $lightness: 10%, $space: hsl);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 6px 0 0 6px;
   color: #ffffff;
@@ -195,7 +197,7 @@
   transition: background-color 0.15s ease;
 
   &:hover {
-    background-color: darken(#3b82f6, 8%);
+    background-color: color.adjust(#3b82f6, $lightness: -8%, $space: hsl);
   }
 }
 

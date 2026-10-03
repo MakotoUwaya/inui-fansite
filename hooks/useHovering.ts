@@ -1,6 +1,6 @@
 import { RefObject, useCallback, useEffect, useState } from 'react';
 
-export const useHovering = (ref: RefObject<HTMLElement>) => {
+export const useHovering = (ref: RefObject<HTMLElement | null>) => {
   const [isHovering, setHovering] = useState(false);
 
   const onMouseEnter = useCallback(() => {
