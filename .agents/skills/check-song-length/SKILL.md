@@ -41,7 +41,10 @@ pnpm exec tsx scripts/check-song-length.ts --update <ID> --end 255
 # 4. 長さは正常として確認済みにマーク（メドレー等で元々長い曲）
 pnpm exec tsx scripts/check-song-length.ts --mark-ok <ID>
 
-# 5. 複数曲の一括更新（JSON配列またはJSONファイル）
+# 5. インテリジェント自動チェック・補正（iTunes公式曲長と連動）
+pnpm exec tsx scripts/check-song-length.ts --auto-check
+
+# 6. 複数曲の一括更新（JSON配列またはJSONファイル）
 pnpm exec tsx scripts/check-song-length.ts --batch '[{"id":"...","end":"4:20"},{"id":"...","markOk":true}]'
 ```
 

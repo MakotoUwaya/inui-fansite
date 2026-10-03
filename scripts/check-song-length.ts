@@ -420,6 +420,196 @@ async function batchUpdate(jsonOrPath: string) {
   console.log(`\n🎉 一括処理完了: 成功 ${successCount} 件 / 失敗 ${failCount} 件`);
 }
 
+async function fetchTrackDuration(title: string, artist: string): Promise<number | null> {
+  const cleanTitle = title
+    .replace(/[\(（].*?[\)）]/g, '')
+    .replace(/[【\[].*?[】\]]/g, '')
+    .trim();
+  const cleanArtist = artist
+    .replace(/[\(（].*?[\)）]/g, '')
+    .replace(/[【\[].*?[】\]]/g, '')
+    .trim();
+
+  // 1. アーティスト + タイトルで検索
+  try {
+    const query = encodeURIComponent(`${cleanArtist} ${cleanTitle}`);
+    const res = await fetch(`https://itunes.apple.com/search?term=${query}&country=JP&entity=song&limit=3`);
+    if (res.ok) {
+      const data: any = await res.json();
+      if (data.results && data.results.length > 0) {
+        return Math.round(data.results[0].trackTimeMillis / 1000);
+      }
+    }
+  } catch {}
+
+  // 2. タイトルのみで検索
+  try {
+    const query = encodeURIComponent(cleanTitle);
+    const res = await fetch(`https://itunes.apple.com/search?term=${query}&country=JP&entity=song&limit=3`);
+    if (res.ok) {
+      const data: any = await res.json();
+      if (data.results && data.results.length > 0) {
+        return Math.round(data.results[0].trackTimeMillis / 1000);
+      }
+    }
+  } catch {}
+
+  return null;
+}
+
+async function autoCheckAll(args: string[]) {
+  const threshold = 300; // 5分
+  const limitIdx = args.indexOf('--limit');
+  const limitCount = limitIdx !== -1 ? parseInt(args[limitIdx + 1], 10) : undefined;
+
+  console.log(`🤖 5分以上の未チェック曲に対するインテリジェント自動チェックを開始します...`);
+  if (limitCount) console.log(`⚡ --limit モード: 最大 ${limitCount} 件を処理します。`);
+
+  // 1. 全対象曲を取得
+  let allData: SongRecord[] = [];
+  const pageSize = 1000;
+  let from = 0;
+
+  while (true) {
+    const { data, error } = await supabase
+      .from('singing_stream')
+      .select(`
+        id,
+        start,
+        end,
+        video_id,
+        published_at,
+        is_length_checked,
+        length_checked_at,
+        song(title, artist),
+        video!video_id(title, url)
+      `)
+      .eq('is_length_checked', false)
+      .range(from, from + pageSize - 1);
+
+    if (error || !data) {
+      console.error('❌ データ取得に失敗しました:', error);
+      process.exit(1);
+    }
+
+    allData = allData.concat(data as unknown as SongRecord[]);
+    if (data.length < pageSize) break;
+    from += pageSize;
+  }
+
+  // 5分以上の曲に絞り込み、長い順にソート
+  const targetSongs = allData
+    .map((r) => {
+      const end = r.end ?? r.start;
+      const duration = end - r.start;
+      return { ...r, duration };
+    })
+    .filter((r) => r.duration >= threshold)
+    .sort((a, b) => b.duration - a.duration);
+
+  console.log(`📋 チェック対象: ${targetSongs.length} 曲\n`);
+
+  let updatedCount = 0;
+  let okCount = 0;
+  let processed = 0;
+
+  for (let i = 0; i < targetSongs.length; i++) {
+    if (limitCount && processed >= limitCount) {
+      console.log(`\n🛑 上限 ${limitCount} 件に達したため終了します。`);
+      break;
+    }
+
+    const item = targetSongs[i];
+    const indexStr = `[${i + 1}/${targetSongs.length}]`;
+    const title = item.song?.title || '不明';
+    const artist = item.song?.artist || '不明';
+    const currentDuration = item.duration;
+
+    console.log(`${indexStr} 🔍 調査中: 「${title}」 / ${artist} (現: ${formatTime(currentDuration)})`);
+
+    const officialDuration = await fetchTrackDuration(title, artist);
+    const now = new Date().toISOString();
+
+    if (officialDuration) {
+      // 歌枠用演奏時間目安: 公式時間 + 15秒（アウトロ・余韻）
+      const suggestedDuration = officialDuration + 15;
+
+      if (currentDuration > suggestedDuration + 30) {
+        // 雑談が含まれていると判定し、適切な長さに修正
+        const newEnd = item.start + suggestedDuration;
+        await supabase
+          .from('singing_stream')
+          .update({
+            end: newEnd,
+            is_length_checked: true,
+            length_checked_at: now,
+            updated_at: now,
+          })
+          .eq('id', item.id);
+
+        console.log(`  ✂️ 雑談カット修正: 公式=${formatTime(officialDuration)} -> 新: ${formatTime(suggestedDuration)} (${formatTime(item.start)}〜${formatTime(newEnd)})`);
+        updatedCount++;
+      } else {
+        // 原曲自体が元々5分超で、現在の長さが妥当
+        await supabase
+          .from('singing_stream')
+          .update({
+            is_length_checked: true,
+            length_checked_at: now,
+            updated_at: now,
+          })
+          .eq('id', item.id);
+
+        console.log(`  ✅ 妥当承認 (原曲長尺): 公式=${formatTime(officialDuration)} ~= 現行=${formatTime(currentDuration)}`);
+        okCount++;
+      }
+    } else {
+      // 公式時間が取得できなかった場合
+      if (currentDuration >= 420) {
+        // 7分以上は確実に雑談を含むため、標準的な4分15秒（255秒）にカット
+        const defaultDuration = 255;
+        const newEnd = item.start + defaultDuration;
+        await supabase
+          .from('singing_stream')
+          .update({
+            end: newEnd,
+            is_length_checked: true,
+            length_checked_at: now,
+            updated_at: now,
+          })
+          .eq('id', item.id);
+
+        console.log(`  ⚠️ 公式時間不明（長尺）-> 標準4:15にカット: ${formatTime(currentDuration)} -> ${formatTime(defaultDuration)}`);
+        updatedCount++;
+      } else {
+        // 5〜7分は原曲の長さの可能性があるため維持
+        await supabase
+          .from('singing_stream')
+          .update({
+            is_length_checked: true,
+            length_checked_at: now,
+            updated_at: now,
+          })
+          .eq('id', item.id);
+
+        console.log(`  ✅ 承認（5〜7分維持）: 現行=${formatTime(currentDuration)}`);
+        okCount++;
+      }
+    }
+
+    processed++;
+    // API レートリミット配慮
+    await new Promise((r) => setTimeout(r, 60));
+  }
+
+  console.log('\n=======================================');
+  console.log(`🎉 自動チェック完了:`);
+  console.log(`  - 雑談カット修正: ${updatedCount} 曲`);
+  console.log(`  - 正常確認済み  : ${okCount} 曲`);
+  console.log(`  - 処理合計      : ${processed} 曲`);
+  console.log('=======================================');
+}
+
 async function main() {
   const args = process.argv.slice(2);
 
@@ -435,6 +625,11 @@ async function main() {
 
   if (args.includes('--list')) {
     await listSongs(args);
+    return;
+  }
+
+  if (args.includes('--auto-check')) {
+    await autoCheckAll(args);
     return;
   }
 
