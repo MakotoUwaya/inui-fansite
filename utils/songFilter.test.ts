@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { filterStreams } from './songFilter';
 import { ALL_SINGERS_KEY } from './singerConfig';
 import type { SingingStreamForSearch } from '../types';
@@ -7,6 +8,7 @@ describe('songFilter', () => {
     {
       id: '1',
       start: 0,
+      end: 60,
       video_id: 'v1',
       published_at: '2024-01-01',
       singers: ['戌亥とこ'],
@@ -20,6 +22,7 @@ describe('songFilter', () => {
     {
       id: '2',
       start: 60,
+      end: 120,
       video_id: 'v1',
       published_at: '2024-01-01',
       singers: ['戌亥とこ', '長尾景'],
@@ -33,6 +36,7 @@ describe('songFilter', () => {
     {
       id: '3',
       start: 120,
+      end: 180,
       video_id: 'v2',
       published_at: '2024-01-02',
       singers: ['Elira Pendora'],

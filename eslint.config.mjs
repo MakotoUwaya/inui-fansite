@@ -1,18 +1,13 @@
-import { FlatCompat } from '@eslint/eslintrc';
-import { fixupConfigRules } from '@eslint/compat';
-
-const compat = new FlatCompat({
-  baseDirectory: import.meta.dirname,
-});
+import nextCoreWebVitals from 'eslint-config-next/core-web-vitals';
 
 const eslintConfig = [
-  ...fixupConfigRules(
-    compat.extends('next/core-web-vitals')
-  ),
+  ...nextCoreWebVitals,
   {
     rules: {
       'react/display-name': 'off',
       '@next/next/link-passhref': 'off',
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/incompatible-library': 'off',
     },
   },
   {

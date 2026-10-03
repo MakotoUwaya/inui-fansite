@@ -27,6 +27,7 @@ module.exports = {
   },
   sassOptions: {
     includePaths: [path.join(__dirname, 'styles')],
+    loadPaths: [path.join(__dirname, 'styles')],
     api: 'modern',
   },
   async redirects() {

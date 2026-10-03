@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import {
   DEFAULT_SINGER,
   ALL_SINGERS_KEY,
@@ -68,6 +69,7 @@ describe('singerConfig', () => {
       {
         id: '1',
         start: 0,
+        end: 60,
         video_id: 'v1',
         published_at: '2024-01-01',
         singers: ['戌亥とこ'],
@@ -77,6 +79,7 @@ describe('singerConfig', () => {
       {
         id: '2',
         start: 60,
+        end: 120,
         video_id: 'v1',
         published_at: '2024-01-01',
         singers: ['戌亥とこ', '長尾景'],
@@ -86,6 +89,7 @@ describe('singerConfig', () => {
       {
         id: '3',
         start: 120,
+        end: 180,
         video_id: 'v2',
         published_at: '2024-01-02',
         singers: ['Elira Pendora'],
@@ -95,6 +99,7 @@ describe('singerConfig', () => {
       {
         id: '4',
         start: 180,
+        end: 240,
         video_id: 'v2',
         published_at: '2024-01-02',
         singers: ['Elira Pendora'],
@@ -104,6 +109,7 @@ describe('singerConfig', () => {
       {
         id: '5',
         start: 240,
+        end: 300,
         video_id: 'v2',
         published_at: '2024-01-02',
         singers: ['Elira Pendora'],
@@ -113,6 +119,7 @@ describe('singerConfig', () => {
       {
         id: '6',
         start: 300,
+        end: 360,
         video_id: 'v3',
         published_at: '2024-01-03',
         singers: ['SUPPORTED BY DAM'], // 除外対象ノイズ
