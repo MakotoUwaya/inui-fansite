@@ -1,19 +1,22 @@
 import React from 'react';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { SingingStreamMediaObject } from './SingingStreamMediaObject';
 import type { SingingStreamForSearch } from '../../types';
 
-jest.mock('next/router', () => ({
+vi.mock('next/router', () => ({
   useRouter: () => ({
     query: {},
   }),
 }));
 
 // next/image のモック
-jest.mock('next/image', () => {
-  return function DummyImage(props: any) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={props.src} alt={props.alt} />;
+vi.mock('next/image', () => {
+  return {
+    default: function DummyImage(props: any) {
+      // eslint-disable-next-line @next/next/no-img-element
+      return <img src={props.src} alt={props.alt} />;
+    },
   };
 });
 

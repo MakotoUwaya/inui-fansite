@@ -1,4 +1,3 @@
-import { DateTime } from 'luxon';
 import useSWRImmutable from 'swr/immutable';
 import { supabase } from '../utils/supabaseClient';
 import type {
@@ -82,7 +81,7 @@ async function getForList(key: string): Promise<SingingStreamForSearch[] | null>
 }
 
 async function createSingingStream(): Promise<void> {
-  const isoDateTime = `${DateTime.now().toISODate()}T${DateTime.now().toISOTime()}`;
+  const isoDateTime = new Date().toISOString();
   console.log(isoDateTime);
   const videoId = 'oygRG7OrYQI';
   const videoPublishedAt = '2022-08-20T03:00:00+00:00';

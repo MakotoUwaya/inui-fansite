@@ -36,6 +36,7 @@ YouTube 公式の IFrame Player API を利用し、アーカイブの歌唱開�
 - **Framework**: Next.js (Pages Router), TypeScript
 - **Styling**: SCSS Modules
 - **Database / Backend**: Supabase
+- **Testing**: Vitest, React Testing Library
 - **Player API**: YouTube IFrame Player API
 - **Icons**: react-icons (Material Design Icons / Simple Icons)
 - **Package Manager**: pnpm
