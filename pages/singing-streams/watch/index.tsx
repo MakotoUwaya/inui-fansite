@@ -1,37 +1,36 @@
 import { motion } from 'framer-motion';
-import { shuffle, without } from 'lodash-es';
 import { useRouter } from 'next/router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef } from 'react';
 import { MdQueueMusic } from 'react-icons/md';
 import { Layout } from '../../../components/Layout/Layout';
-import { MobilePlayerController } from '../../../components/MobilePlayerController/MobilePlayerController';
-import { PlayerController } from '../../../components/PlayerController/PlayerController';
 import { Playlist } from '../../../components/Playlist/Playlist';
-import type { RepeatType } from '../../../components/RepeatButton/RepeatButton';
-import { YTPlayer } from '../../../components/YTPlayer/YTPlayer';
+import { YTPlayerContext } from '../../../contexts/ytplayer';
 import { useSingingStreamForWatch, useSingingStreamsForSearch } from '../../../hooks/singing-stream';
 import { useIsMobile } from '../../../hooks/useIsMobile';
-import { useIsPlayedVideos } from '../../../hooks/useIsPlayedVideos';
-import { useLocalStorage } from '../../../hooks/useLocalStorage';
-import { useYTPlayer } from '../../../hooks/useYTPlayer';
 import { filterStreams, getFilterSummary } from '../../../utils/songFilter';
-import type { SingingStreamForSearch } from '../../../types';
 import styles from './index.module.scss';
 
-// Since player.removeEventListener doesn't work, manage state used in onStateChange as local variable.
-let repeatTypeVariable: RepeatType = 'none';
-let startSeconds = 0;
-let endSeconds = 0;
-
 function SingingStreamsWatchPage() {
-  const reqIdRef = useRef<number>();
   const router = useRouter();
+  const placeholderRef = useRef<HTMLDivElement>(null);
+
+  const {
+    currentStream,
+    currentStreamId,
+    streams: globalStreams,
+    isMobilePlaylistVisible,
+    setMobilePlaylistVisible,
+    setPlaceholderRect,
+    playSong,
+    syncPlaylist,
+  } = useContext(YTPlayerContext);
+
   const streamId = useMemo(() => {
     if (router.query.v && typeof router.query.v === 'string') {
       return router.query.v;
     }
-    return;
-  }, [router]);
+    return currentStreamId ?? undefined;
+  }, [router.query.v, currentStreamId]);
 
   // クエリパラメータから絞り込み条件を抽出
   const filterQuery = typeof router.query.filter === 'string' ? router.query.filter : undefined;
@@ -45,7 +44,7 @@ function SingingStreamsWatchPage() {
 
   const filterSummary = useMemo(() => getFilterSummary(filterOptions), [filterOptions]);
 
-  const { stream: currentStream } = useSingingStreamForWatch(streamId);
+  const { stream: fetchedStream } = useSingingStreamForWatch(streamId);
   const { streams: rawStreams } = useSingingStreamsForSearch();
 
   // 絞り込み条件に合致するストリーム一覧（現在再生中の曲が含まれない場合はリスト先頭に追加）
@@ -61,298 +60,85 @@ function SingingStreamsWatchPage() {
     return filtered;
   }, [rawStreams, filterOptions, streamId]);
 
-  const [isPlaying, setPlaying] = useState(false);
-  const [isEnded, setEnded] = useState(false);
-  const [isPlayedOnce, setPlayedOnce] = useState(false);
-  const [isShuffledOnce, setShuffledOnce] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [isMobilePlaylistVisible, setMobilePlaylistVisible] = useState(false);
-  const [streams, setStreams] = useState<SingingStreamForSearch[]>([]);
-  const [isAutoPlay, setIsAutoPlay] = useState(true);
-  const isAutoPlayRef = useRef(true);
-
-  const enableAutoPlay = useCallback(() => {
-    isAutoPlayRef.current = true;
-    setIsAutoPlay(true);
-  }, []);
-
-  const [isMute, setMute] = useLocalStorage('isMute', false);
-  const [repeatType, setRepeatType] = useLocalStorage<RepeatType>('repeatType', 'none');
-  const [volume, setVolume] = useLocalStorage('volume', 80);
-
   const isMobile = useIsMobile();
-  const { isPlayedVideo, addPlayedVideo } = useIsPlayedVideos();
 
-  const isFirstStream = useMemo(
-    () => (streams ? streams.findIndex((stream) => stream.id === streamId) === 0 : false),
-    [streams, streamId],
-  );
-  const isLastStream = useMemo(
-    () => (streams ? streams.findIndex((stream) => stream.id === streamId) === streams.length - 1 : false),
-    [streams, streamId],
-  );
-
-  // 絞り込みクエリパラメータを保持したまま曲を切り替えるヘルパー
-  const navigateToStream = useCallback(
-    (targetStreamId: string) => {
-      const query: Record<string, string> = { v: targetStreamId };
-      if (filterQuery) query.filter = filterQuery;
-      if (singerQuery) query.singer = singerQuery;
-      if (keywordQuery) query.keyword = keywordQuery;
-      router.push({ pathname: '/singing-streams/watch', query });
-    },
-    [filterQuery, singerQuery, keywordQuery, router],
-  );
-
-  // 全曲再生モードに切り替える（フィルター解除）
-  const onClearFilter = useCallback(() => {
-    if (!streamId) return;
-    router.push({
-      pathname: '/singing-streams/watch',
-      query: { v: streamId },
-    });
-  }, [streamId, router]);
-
-  const { player, ...ytPlayerProps } = useYTPlayer({
-    mountId: 'singing-stream-player',
-    controls: true,
-    autoplay: false,
-    width: '100%',
-    height: '100%',
-  });
-
-  const onPlay = useCallback(() => {
-    if (!player) return;
-    enableAutoPlay();
-    player.playVideo();
-  }, [player, enableAutoPlay]);
-
-  const onPause = useCallback(() => {
-    if (!player) return;
-    player.pauseVideo();
-  }, [player]);
-
-  const onSkipPrev = useCallback(() => {
-    if (!streams || !currentStream || !player) return;
-    enableAutoPlay();
-    if (currentTime >= 5) {
-      player.seekTo(currentStream.start);
-      setCurrentTime(0);
-      return;
-    }
-    const playingStreamIndex = streams.findIndex((stream) => stream.id === currentStream.id);
-    if (playingStreamIndex === 0) return;
-    const prevStream = streams[playingStreamIndex - 1];
-    if (prevStream) {
-      navigateToStream(prevStream.id);
-    }
-  }, [currentStream, currentTime, player, streams, enableAutoPlay, navigateToStream]);
-
-  const onSkipNext = useCallback(() => {
-    if (!streams || !currentStream) return;
-    enableAutoPlay();
-    const playingStreamIndex = streams.findIndex((stream) => stream.id === currentStream.id);
-    if (playingStreamIndex === streams.length - 1) return;
-    const nextStream = streams[playingStreamIndex + 1];
-    if (nextStream) {
-      navigateToStream(nextStream.id);
-    }
-  }, [currentStream, streams, enableAutoPlay, navigateToStream]);
-
-  const onVolumeChange = useCallback(
-    (value: number) => {
-      if (!player) return;
-      player.setVolume(value);
-      setVolume(value);
-    },
-    [player, setVolume],
-  );
-
-  const onMute = useCallback(
-    (mute: boolean) => {
-      mute ? player?.mute() : player?.unMute();
-      setMute(mute);
-    },
-    [player, setMute],
-  );
-
-  const onSeek = useCallback(
-    (time: number) => {
-      if (!player || !currentStream) return;
-      player.seekTo(currentStream.start + time);
-    },
-    [player, currentStream],
-  );
-
-  const onRepeat = useCallback(
-    (repeat: RepeatType) => {
-      repeatTypeVariable = repeat;
-      setRepeatType(repeat);
-    },
-    [setRepeatType],
-  );
-
-  const onStateChange = useCallback((event: { target: YT.Player; data: number }) => {
-    // unplayed
-    if (event.data === -1) {
-      setPlayedOnce(false);
-    }
-
-    // ended
-    if (event.data === 0) {
-      if (repeatTypeVariable === 'repeatOne') {
-        event.target.seekTo(startSeconds);
-      } else {
-        setEnded(true);
+  // プレースホルダーの DOMRect をグローバルプレイヤーに追従同期
+  useEffect(() => {
+    const updateRect = () => {
+      if (placeholderRef.current) {
+        const rect = placeholderRef.current.getBoundingClientRect();
+        setPlaceholderRect(rect);
       }
-    } else {
-      setEnded(false);
+    };
+
+    updateRect();
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (placeholderRef.current && typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(updateRect);
+      resizeObserver.observe(placeholderRef.current);
     }
 
-    // playing
-    if (event.data === 1) {
-      enableAutoPlay();
-      const currentTime = event.target.getCurrentTime();
-      if (currentTime < startSeconds) {
-        event.target.seekTo(startSeconds);
-      } else if (currentTime > endSeconds) {
-        setEnded(true);
-        setPlaying(false);
-      } else {
-        setPlaying(true);
-        setPlayedOnce(true);
+    window.addEventListener('resize', updateRect);
+    window.addEventListener('scroll', updateRect, { passive: true });
+
+    return () => {
+      if (resizeObserver) {
+        resizeObserver.disconnect();
       }
-    } else {
-      setPlaying(false);
+      window.removeEventListener('resize', updateRect);
+      window.removeEventListener('scroll', updateRect);
+      setPlaceholderRect(null);
+    };
+  }, [setPlaceholderRect]);
+
+  // URLの streamId が変わり、まだ再生中の曲と一致していない場合、新曲を再生
+  useEffect(() => {
+    if (!router.isReady || !streamId) return;
+
+    // 現在再生中の曲と同一であれば再ロードしない
+    if (currentStreamId === streamId) return;
+
+    // watch用の詳細データがあれば優先、なければ baseStreams / rawStreams からフォールバック
+    const targetStream =
+      fetchedStream ||
+      baseStreams.find((s) => s.id === streamId) ||
+      rawStreams?.find((s) => s.id === streamId);
+
+    if (targetStream) {
+      playSong(targetStream, baseStreams.length > 0 ? baseStreams : undefined, filterOptions);
     }
-  }, [enableAutoPlay]);
+  }, [
+    router.isReady,
+    streamId,
+    currentStreamId,
+    fetchedStream,
+    baseStreams,
+    rawStreams,
+    filterOptions,
+    playSong,
+  ]);
+
+  // プレイリストの同期（URL の条件に基づく baseStreams と同期）
+  useEffect(() => {
+    if (!router.isReady) return;
+    if (baseStreams.length > 0) {
+      syncPlaylist(baseStreams, filterOptions);
+    }
+  }, [router.isReady, baseStreams, filterOptions, syncPlaylist]);
 
   const onMobilePlayerVisibleChange = useCallback(() => {
     setMobilePlaylistVisible((visible) => !visible);
-  }, []);
+  }, [setMobilePlaylistVisible]);
 
-  const onShuffle = useCallback(() => {
-    if (!streams || !streamId) return;
-    const current = streams.find((stream) => stream.id === streamId);
-    if (!current) return;
-    setStreams([current].concat(shuffle(without(streams, current))));
-    setShuffledOnce(true);
-  }, [streamId, streams]);
-
-  useEffect(() => {
-    if (baseStreams.length > 0) {
-      setStreams(baseStreams);
-    }
-  }, [baseStreams]);
-
-  // When repeatType is changed, the local variable is also changed.
-  useEffect(() => {
-    repeatTypeVariable = repeatType;
-  }, [repeatType]);
-
-  // When the start and end of the stream are changed, the local variables are also changed.
-  useEffect(() => {
-    startSeconds = currentStream?.start ?? 0;
-    endSeconds = currentStream?.end ?? 0;
-  }, [currentStream?.start, currentStream?.end]);
-
-  // Update current time
-  useEffect(() => {
-    const step = () => {
-      if (!player || !currentStream) return;
-      const currentTime = player.getCurrentTime() - currentStream.start;
-      setCurrentTime(isNaN(currentTime) ? 0 : Math.max(0, currentTime));
-      if (isPlaying) {
-        reqIdRef.current = requestAnimationFrame(step);
-      }
-    };
-    reqIdRef.current = requestAnimationFrame(step);
-    return () => {
-      reqIdRef.current && cancelAnimationFrame(reqIdRef.current);
-    };
-  }, [isPlaying, player, currentStream]);
-
-  // Change mute status.
-  useEffect(() => {
-    if (!player) return;
-    isMute ? player.mute() : player.unMute();
-  }, [isMute, player]);
-
-  // Update volume.
-  useEffect(() => {
-    if (!player) return;
-    player.setVolume(volume);
-  }, [player, volume]);
-
-  // Add onStateChange event listener.
-  useEffect(() => {
-    if (!player) return;
-    player.addEventListener('onStateChange', onStateChange);
-    return () => {
-      try {
-        player.removeEventListener('onStateChange', onStateChange);
-      } catch {
-        // ignore detached player errors
-      }
-    };
-  }, [onStateChange, player]);
-
-  // when stream changes, load the video.
-  useEffect(() => {
-    if (currentStream && player && !isPlayedOnce) {
-      const param = {
-        videoId: currentStream.video_id,
-        startSeconds: currentStream.start,
-        endSeconds: currentStream.end,
-      };
-      player.loadVideoById(param);
-    }
-  }, [player, currentStream, isPlayedOnce]);
-
-  useEffect(() => {
-    const handleRouteChange = () => {
-      setCurrentTime(0);
-      setPlayedOnce(false);
-      setEnded(false);
-      setMobilePlaylistVisible(false);
-    };
-    router.events.on('routeChangeStart', handleRouteChange);
-    return () => {
-      router.events.off('routeChangeStart', handleRouteChange);
-    };
-  }, [router.events]);
-
-  // When the video ends, streams will be played in order.
-  useEffect(() => {
-    if (!streams || !isEnded || !isPlayedOnce || !currentStream) return;
-    enableAutoPlay();
-    const playingStreamIndex = streams.findIndex((s) => s.id === currentStream.id);
-    const nextStreamId =
-      playingStreamIndex === streams.length - 1
-        ? repeatType === 'repeat'
-        ? streams[0].id
-        : null
-        : streams[playingStreamIndex + 1]?.id;
-    if (nextStreamId) {
-      navigateToStream(nextStreamId);
-    }
-  }, [isEnded, isPlayedOnce, currentStream, streams, repeatType, enableAutoPlay, navigateToStream]);
-
-  useEffect(() => {
-    if (!isPlayedOnce || !currentStream) return;
-
-    if (!isPlayedVideo(currentStream.video_id)) {
-      addPlayedVideo(currentStream.video_id);
-    }
-  }, [currentStream, isPlayedOnce, isPlayedVideo, addPlayedVideo]);
-
-  const needNativePlayPush = false;
+  const displayStream = fetchedStream || (currentStreamId === streamId ? currentStream : null);
+  const activeStreams = globalStreams.length > 0 ? globalStreams : baseStreams;
 
   return (
-    <Layout className={styles.root} title={currentStream?.song.title || ''} padding={isMobile ? 'all' : 'horizontal'}>
+    <Layout className={styles.root} title={displayStream?.song.title || ''} padding={isMobile ? 'all' : 'horizontal'}>
       <main className={styles.main}>
         <div className={styles.player}>
-          <YTPlayer {...ytPlayerProps} hidden={!currentStream || !player} />
+          <div ref={placeholderRef} className={styles.playerPlaceholder} />
         </div>
         {!isMobile ? (
           !rawStreams ? (
@@ -364,82 +150,16 @@ function SingingStreamsWatchPage() {
                   <span className={styles.playlistTitle}>
                     {filterSummary.isFiltered ? filterSummary.label : '再生リスト'}
                   </span>
-                  <span className={styles.playlistCount}>({streams.length}曲)</span>
+                  <span className={styles.playlistCount}>({activeStreams.length}曲)</span>
                 </div>
-                {filterSummary.isFiltered && (
-                  <button
-                    type="button"
-                    className={styles.clearFilterButton}
-                    onClick={onClearFilter}
-                    title="フィルターを解除して全曲再生モードに切り替えます"
-                  >
-                    全曲再生にする
-                  </button>
-                )}
               </div>
-              <Playlist className={styles.playlist} streams={streams} />
+              <Playlist className={styles.playlist} streams={activeStreams} />
             </div>
           )
         ) : null}
       </main>
-      {currentStream && player ? (
-        <motion.div
-          className={styles.controller}
-          initial={{ y: '100%' }}
-          animate={{ y: 0 }}
-          transition={{ ease: 'circOut', duration: 0.5 }}
-        >
-          {isMobile ? (
-            <MobilePlayerController
-              isPlaying={isPlaying}
-              isSkipPrevDisabled={isFirstStream}
-              isSkipNextDisabled={isLastStream}
-              isShuffled={isShuffledOnce}
-              needNativePlayPush={needNativePlayPush}
-              length={currentStream.end - currentStream.start}
-              videoId={currentStream.video_id}
-              publishedAt={currentStream.published_at}
-              songTitle={currentStream.song.title}
-              songArtist={currentStream.song.artist}
-              currentTime={currentTime}
-              repeatType={repeatType}
-              onPlay={onPlay}
-              onPause={onPause}
-              onRepeat={onRepeat}
-              onShuffle={onShuffle}
-              onSeek={onSeek}
-              onSkipPrev={onSkipPrev}
-              onSkipNext={onSkipNext}
-            />
-          ) : (
-            <PlayerController
-              isPlaying={isPlaying}
-              isMute={isMute}
-              isSkipPrevDisabled={isFirstStream}
-              isSkipNextDisabled={isLastStream}
-              isShuffled={isShuffledOnce}
-              needNativePlayPush={needNativePlayPush}
-              length={currentStream.end - currentStream.start}
-              repeatType={repeatType}
-              volume={volume}
-              videoId={currentStream.video_id}
-              songTitle={currentStream.song.title}
-              songArtist={currentStream.song.artist}
-              publishedAt={currentStream.published_at}
-              currentTime={currentTime}
-              onPlay={onPlay}
-              onPause={onPause}
-              onSkipPrev={onSkipPrev}
-              onSkipNext={onSkipNext}
-              onRepeat={onRepeat}
-              onShuffle={onShuffle}
-              onSeek={onSeek}
-              onMute={onMute}
-              onVolumeChange={onVolumeChange}
-            />
-          )}
-        </motion.div>
-      ) : null}
+
+      {/* モバイル表示時の再生リストドロワー */}
       {isMobile && rawStreams ? (
         <motion.div
           className={styles.mobilePlaylistWrapper}
@@ -451,7 +171,12 @@ function SingingStreamsWatchPage() {
             hidden: { y: 'calc(100% - 48px)' },
           }}
         >
-          <button className={styles.mobilePlaylistVisibilityToggle} onClick={onMobilePlayerVisibleChange}>
+          <button
+            type="button"
+            className={styles.mobilePlaylistVisibilityToggle}
+            onClick={onMobilePlayerVisibleChange}
+            aria-label="再生リストの表示切替"
+          >
             <MdQueueMusic />
           </button>
           <div className={styles.playlistHeader}>
@@ -459,22 +184,12 @@ function SingingStreamsWatchPage() {
               <span className={styles.playlistTitle}>
                 {filterSummary.isFiltered ? filterSummary.label : '再生リスト'}
               </span>
-              <span className={styles.playlistCount}>({streams.length}曲)</span>
+              <span className={styles.playlistCount}>({activeStreams.length}曲)</span>
             </div>
-            {filterSummary.isFiltered && (
-              <button
-                type="button"
-                className={styles.clearFilterButton}
-                onClick={onClearFilter}
-                title="フィルターを解除して全曲再生モードに切り替えます"
-              >
-                全曲再生にする
-              </button>
-            )}
           </div>
           <Playlist
             className={styles.mobilePlaylist}
-            streams={streams}
+            streams={activeStreams}
             isVisible={isMobilePlaylistVisible}
           />
         </motion.div>

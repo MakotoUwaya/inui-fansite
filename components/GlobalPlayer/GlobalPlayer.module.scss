@@ -1,0 +1,27 @@
+@import 'variable.scss';
+@import 'mixin.scss';
+
+.videoContainer {
+  overflow: hidden;
+  background-color: $gray-900;
+}
+
+.iframeWrapper {
+  width: 100%;
+  height: 100%;
+
+  :global(iframe) {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+  }
+}
+
+.controller {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+}

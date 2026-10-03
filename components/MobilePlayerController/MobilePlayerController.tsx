@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import { format } from 'date-fns';
 import Image from 'next/image';
+import Link, { type LinkProps } from 'next/link';
 import { memo } from 'react';
 import { MdShuffle, MdSkipNext, MdSkipPrevious } from 'react-icons/md';
 import { formatVideoLength } from '../../utils/formatVideoLength';
@@ -23,6 +24,8 @@ type Props = {
   songTitle: string;
   songArtist: string;
   publishedAt: string;
+  streamId?: string;
+  watchHref?: LinkProps['href'];
   onPlay: () => void;
   onPause: () => void;
   onSeek: (time: number) => void;
@@ -45,6 +48,8 @@ export const MobilePlayerController = memo(function MobilePlayerController({
   songTitle,
   songArtist,
   publishedAt,
+  streamId,
+  watchHref,
   onPlay,
   onPause,
   onSeek,
@@ -53,24 +58,36 @@ export const MobilePlayerController = memo(function MobilePlayerController({
   onSkipPrev,
   onSkipNext,
 }: Props) {
+  const targetHref = watchHref || (streamId ? `/singing-streams/watch?v=${streamId}` : null);
+
+  const streamInfoContent = (
+    <>
+      <div className={styles.thumbnailWrapper}>
+        <Image
+          alt={songTitle}
+          width={96}
+          height={54}
+          src={`https://i.ytimg.com/vi/${videoId}/default.jpg`}
+          style={{ objectFit: 'cover' }}
+        />
+      </div>
+      <div className={styles.meta}>
+        <div className={styles.songTitle} title={songTitle}>{songTitle}</div>
+        <div className={styles.songArtist} title={songArtist}>{songArtist}</div>
+        <div className={styles.publishedAt}>{format(new Date(publishedAt), 'yyyy/MM/dd')} 配信</div>
+      </div>
+    </>
+  );
+
   return (
     <div className={styles.root}>
-      <div className={styles.streamInfo}>
-        <div className={styles.thumbnailWrapper}>
-          <Image
-            alt={songTitle}
-            width={96}
-            height={54}
-            src={`https://i.ytimg.com/vi/${videoId}/default.jpg`}
-            style={{ objectFit: 'cover' }}
-          />
-        </div>
-        <div className={styles.meta}>
-          <div className={styles.songTitle} title={songTitle}>{songTitle}</div>
-          <div className={styles.songArtist} title={songArtist}>{songArtist}</div>
-          <div className={styles.publishedAt}>{format(new Date(publishedAt), 'yyyy/MM/dd')} 配信</div>
-        </div>
-      </div>
+      {targetHref ? (
+        <Link href={targetHref} className={styles.streamInfo}>
+          {streamInfoContent}
+        </Link>
+      ) : (
+        <div className={styles.streamInfo}>{streamInfoContent}</div>
+      )}
       <div className={styles.slider}>
         <Slider value={currentTime} max={length} onScrub={onSeek} />
         <div className={styles.lengths}>
