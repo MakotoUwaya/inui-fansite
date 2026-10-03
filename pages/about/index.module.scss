@@ -37,12 +37,16 @@
   font-size: 1.05rem;
   color: lighten($base-black, 70);
   line-height: 1.6;
-  max-width: 600px;
+  max-width: 720px;
   margin: 0 auto;
 
   @include responsive(sm) {
     font-size: 0.925rem;
   }
+}
+
+.nowrap {
+  display: inline-block;
 }
 
 /* サイトでできること (Features) */

@@ -11,7 +11,7 @@ function AboutPage() {
       <div className={styles.pageHeader}>
         <h1 className={styles.pageTitle}>当サイトについて</h1>
         <p className={styles.pageSubtitle}>
-          inui.fans は、VTuberの歌枠アーカイブをより快適に楽しむための非公式ファンサイトです。
+          inui.fans は、歌枠アーカイブを快適に楽しむための<span className={styles.nowrap}>非公式ファンサイトです。</span>
         </p>
       </div>
 
