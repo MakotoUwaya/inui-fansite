@@ -30,6 +30,8 @@ export type SingingStream = {
   created_at: string;
   updated_at: string;
   published_at: string;
+  is_length_checked?: boolean;
+  length_checked_at?: string;
   video?: Video;
 };
 
