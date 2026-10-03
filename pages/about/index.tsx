@@ -107,7 +107,7 @@ function AboutPage() {
               <ExternalLink className={styles.textLink} href="https://github.com/qisarazu/iroha-fansite">
                 iroha-fansite
               </ExternalLink>
-              ）の素晴らしい設計と実装をベースに、戌亥とこおよび仲間たちの歌枠向けにカスタマイズした非公式フォーク（Unofficial Fork）です。
+              ）の素晴らしい設計と実装をベースに、VTuber の歌枠向けにカスタマイズした非公式フォーク（Unofficial Fork）です。
             </p>
 
             <div className={styles.quoteBox}>
