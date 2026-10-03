@@ -19,7 +19,7 @@ YouTube動画URL（歌枠または単曲動画）を受け取り、全自動でS
    ユーザーから受け取った有志コメント（タイムテーブル）を一時ファイル（`temp-timetable.txt`）に保存する。
 2. **登録スクリプトの実行**:
    ```bash
-   npm run add-songs -- "<YouTube動画URL>" temp-timetable.txt
+   pnpm exec tsx --env-file=.env.local scripts/add-songs.ts "<YouTube動画URL>" temp-timetable.txt
    ```
    - コラボ歌枠の場合、タイムテーブル内の絵文字（🍹, 💡, 🐌, 🍬, 🥨🍚, 🧸🌙, 🌶, 🍝 等）や「ソロ」「デュエット」「全員」などの表記から、曲ごとの正確な歌唱者（`singers`）が自動判定・反映されます。
 3. **一時ファイルの削除**:
@@ -30,9 +30,28 @@ YouTube動画URL（歌枠または単曲動画）を受け取り、全自動でS
 （再生時間が9分未満の場合は自動的に単曲と判定され、タイトルから曲名・アーティスト名を推測して `00:00 〜 動画末尾` で登録されます）
 
 ```bash
-npm run add-songs -- "<YouTube動画URL>"
+pnpm exec tsx --env-file=.env.local scripts/add-songs.ts "<YouTube動画URL>"
 ```
 ※曲名やアーティスト名を明示したい場合は `--title "曲名" --artist "アーティスト"` オプションを付与可能。
+
+---
+
+## 🏷️ 登録後の自動ポスト処理（タグ付け & 曲長チェック・雑談カット）
+
+楽曲登録時、`scripts/add-songs.ts` 内部で以下の処理が**完全自動**で実行されます：
+
+1. **Jev による自動タグ付け (`add-tags` スキル連携)**:
+   - TypeSafe AI (Jev) により、楽曲のムード（`ballad`, `emotional`, `cool`, `bright`, `jazz_rnb`）、ジャンル（`vocaloid`, `anime`, `jpop`, `nostalgic`, `vtuber`）、夜曲適性（`is_night_pick`）が即座に判定・保存されます。
+   - ※万一スキップや失敗があった場合は、事後に `pnpm exec tsx scripts/tag-all-songs.ts` を実行して未タグ曲を補完します。
+
+2. **曲長チェック・雑談自動トリミング (`check-song-length` スキル連携)**:
+   - 登録完了時に `autoCheckVideo(videoId)` が自動起動し、iTunes Search API の公式音源データと照合します。
+   - 歌唱終了後の長時間の雑談が含まれて 5 分以上になっている曲は、**公式演奏時間 + 余韻 15 秒（アウトロ・拍手等）** に自動トリミング補正され、`is_length_checked = true` が記録されます。
+   - ※個別に再確認・手動調整したい場合は以下を実行します：
+     ```bash
+     pnpm exec tsx scripts/check-song-length.ts --video-id <VIDEO_ID> --list
+     pnpm exec tsx scripts/check-song-length.ts --update <ID> --end <MM:SS>
+     ```
 
 ---
 

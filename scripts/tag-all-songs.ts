@@ -1,73 +1,64 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import './load-env';
 import { TypeSafeClient, choice, noul } from '@typesafe-ai/sdk';
-import { createClient } from '@supabase/supabase-js';
-
-// 環境変数の読み込み
-function loadEnv() {
-  const envFiles = ['.env.local', '.env'];
-  for (const file of envFiles) {
-    const fullPath = path.resolve(process.cwd(), file);
-    if (fs.existsSync(fullPath)) {
-      const content = fs.readFileSync(fullPath, 'utf-8');
-      for (const line of content.split('\n')) {
-        const trimmed = line.trim();
-        if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
-          const [key, ...values] = trimmed.split('=');
-          const val = values.join('=').trim().replace(/^["']|["']$/g, '');
-          if (!process.env[key.trim()]) {
-            process.env[key.trim()] = val;
-          }
-        }
-      }
-    }
-  }
-}
-
-loadEnv();
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+import { supabase } from '../utils/supabaseClient';
 const typesafeApiKey = process.env.TYPESAFE_API_KEY || '';
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('❌ Supabase の環境変数が設定されていません。');
-  process.exit(1);
-}
 
 if (!typesafeApiKey) {
   console.error('❌ TYPESAFE_API_KEY が設定されていません。');
+  console.error('.env.local に以下のように設定してください:');
+  console.error('TYPESAFE_API_KEY=your_typesafe_api_key_here');
   process.exit(1);
 }
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 const jev = new TypeSafeClient({ apiKey: typesafeApiKey });
 
 const isForce = process.argv.includes('--force');
+const limitIndex = process.argv.indexOf('--limit');
+const limitCount = limitIndex !== -1 ? parseInt(process.argv[limitIndex + 1], 10) : undefined;
 
 async function main() {
   console.log('🚀 Jev による楽曲自動タグ付けバッチを開始します...');
   if (isForce) console.log('⚡ --force モード: 既存のメタデータも再判定して上書きします。');
+  if (limitCount) console.log(`⚡ --limit モード: 最大 ${limitCount} 曲まで処理します。`);
 
-  // 1. 全曲取得
-  const { data: songs, error: songError } = await supabase
-    .from('song')
-    .select('id, title, artist')
-    .order('created_at', { ascending: true });
+  // 1. 全曲取得（ページネーション対応）
+  let songs: { id: string; title: string; artist: string }[] = [];
+  const pageSize = 1000;
+  let from = 0;
+  while (true) {
+    const { data, error: songError } = await supabase
+      .from('song')
+      .select('id, title, artist')
+      .order('created_at', { ascending: true })
+      .range(from, from + pageSize - 1);
 
-  if (songError || !songs) {
-    console.error('❌ 楽曲の取得に失敗しました:', songError);
-    process.exit(1);
+    if (songError || !data) {
+      console.error('❌ 楽曲の取得に失敗しました:', songError);
+      process.exit(1);
+    }
+    songs = songs.concat(data);
+    if (data.length < pageSize) break;
+    from += pageSize;
   }
 
   console.log(`📋 対象楽曲数: ${songs.length} 曲\n`);
 
-  // 2. 既存のメタデータ取得（スキップ判定用）
-  const { data: existingMetadata } = await supabase
-    .from('song_metadata')
-    .select('song_id');
+  // 2. 既存のメタデータ取得（スキップ判定用、ページネーション対応）
+  let existingMetadata: { song_id: string }[] = [];
+  from = 0;
+  while (true) {
+    const { data, error: metaError } = await supabase
+      .from('song_metadata')
+      .select('song_id')
+      .range(from, from + pageSize - 1);
 
-  const existingSongIds = new Set((existingMetadata || []).map((m: any) => m.song_id));
+    if (metaError || !data) break;
+    existingMetadata = existingMetadata.concat(data);
+    if (data.length < pageSize) break;
+    from += pageSize;
+  }
+
+  const existingSongIds = new Set(existingMetadata.map((m) => m.song_id));
 
   let processedCount = 0;
   let skippedCount = 0;
@@ -76,6 +67,11 @@ async function main() {
   for (let i = 0; i < songs.length; i++) {
     const song = songs[i];
     const indexStr = `[${i + 1}/${songs.length}]`;
+
+    if (limitCount && processedCount >= limitCount) {
+      console.log(`\n🛑 指定の処理件数上限（${limitCount}件）に達したため終了します。`);
+      break;
+    }
 
     if (!isForce && existingSongIds.has(song.id)) {
       console.log(`${indexStr} ⏭️  スキップ: 「${song.title}」 / ${song.artist || '不明'}`);

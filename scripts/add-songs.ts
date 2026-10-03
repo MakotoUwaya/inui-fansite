@@ -1,7 +1,9 @@
+import './load-env';
 import * as fs from 'fs';
 import * as path from 'path';
 import crypto from 'crypto';
 import { supabase } from '../utils/supabaseClient';
+import { autoCheckVideo } from './check-song-length';
 
 interface ParsedSong {
   title: string;
@@ -626,6 +628,14 @@ async function main() {
       }
     }
     console.log(`✓ 登録: ${s.title} / ${s.artist || '不明'} (${formatTime(s.start)} - ${formatTime(s.end || 0)})`);
+  }
+
+  // 3. 登録楽曲の曲長・雑談チェックの自動実行
+  console.log('\n🔍 登録楽曲の曲長・雑談自動チェックを実行します...');
+  try {
+    await autoCheckVideo(videoId);
+  } catch (checkErr: any) {
+    console.warn('⚠️ 曲長自動チェックでエラーが発生しました:', checkErr.message);
   }
 
   console.log(`\n========================================`);
