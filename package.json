@@ -10,10 +10,7 @@
     "start": "next start",
     "lint": "eslint .",
     "deploy": "pnpm dlx vercel --prod",
-    "test": "vitest run",
-    "add-songs": "tsx --env-file=.env scripts/add-songs.ts",
-    "test-jev": "tsx scripts/test-jev-tagging.ts",
-    "tag-songs": "tsx scripts/tag-all-songs.ts"
+    "test": "vitest run"
   },
   "license": "MIT",
   "dependencies": {

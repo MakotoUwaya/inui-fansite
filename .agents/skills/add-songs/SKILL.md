@@ -19,7 +19,7 @@ YouTube動画URL（歌枠または単曲動画）を受け取り、全自動でS
    ユーザーから受け取った有志コメント（タイムテーブル）を一時ファイル（`temp-timetable.txt`）に保存する。
 2. **登録スクリプトの実行**:
    ```bash
-   npm run add-songs -- "<YouTube動画URL>" temp-timetable.txt
+   pnpm exec tsx --env-file=.env.local scripts/add-songs.ts "<YouTube動画URL>" temp-timetable.txt
    ```
    - コラボ歌枠の場合、タイムテーブル内の絵文字（🍹, 💡, 🐌, 🍬, 🥨🍚, 🧸🌙, 🌶, 🍝 等）や「ソロ」「デュエット」「全員」などの表記から、曲ごとの正確な歌唱者（`singers`）が自動判定・反映されます。
 3. **一時ファイルの削除**:
@@ -30,7 +30,7 @@ YouTube動画URL（歌枠または単曲動画）を受け取り、全自動でS
 （再生時間が9分未満の場合は自動的に単曲と判定され、タイトルから曲名・アーティスト名を推測して `00:00 〜 動画末尾` で登録されます）
 
 ```bash
-npm run add-songs -- "<YouTube動画URL>"
+pnpm exec tsx --env-file=.env.local scripts/add-songs.ts "<YouTube動画URL>"
 ```
 ※曲名やアーティスト名を明示したい場合は `--title "曲名" --artist "アーティスト"` オプションを付与可能。
 
