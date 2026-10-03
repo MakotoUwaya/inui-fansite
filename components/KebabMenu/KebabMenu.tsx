@@ -1,7 +1,6 @@
-import type PopperJS from '@popperjs/core';
 import { memo, useCallback, useState, ComponentPropsWithoutRef } from 'react';
 import { MdMoreVert } from 'react-icons/md';
-import { usePopper } from 'react-popper';
+import { useFloating, offset, flip, autoUpdate, Placement } from '@floating-ui/react';
 import { useClickAway } from 'react-use';
 import { IconButton } from '../IconButton/IconButton';
 import styles from './KebabMenu.module.scss';
@@ -9,7 +8,7 @@ import styles from './KebabMenu.module.scss';
 type Props = Omit<ComponentPropsWithoutRef<typeof IconButton>, 'className'> & {
   buttonClassName?: string;
   menuClassName?: string;
-  placement?: PopperJS.Placement;
+  placement?: Placement;
   children: React.ReactNode;
 };
 
@@ -22,15 +21,15 @@ export const KebabMenu = memo(function KebabMenu({
 }: Props) {
   const [isOpen, setOpen] = useState(false);
 
-  const [referenceElement, setReferenceElement] = useState<HTMLButtonElement | null>(null);
-  const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(null);
-  const { styles: popperStyles, attributes } = usePopper(referenceElement, popperElement, {
+  const { refs, floatingStyles } = useFloating({
     placement,
-    modifiers: [{ name: 'offset', options: { offset: [0, 8] } }, { name: 'flip' }],
+    middleware: [offset(8), flip()],
+    whileElementsMounted: autoUpdate,
   });
 
-  useClickAway({ current: popperElement }, (e) => {
-    if (referenceElement?.contains(e.target as Node)) return;
+  useClickAway({ current: refs.floating.current }, (e) => {
+    const domRef = refs.domReference.current as HTMLElement | null;
+    if (domRef?.contains(e.target as Node)) return;
     setOpen(false);
   });
 
@@ -44,16 +43,15 @@ export const KebabMenu = memo(function KebabMenu({
         {...buttonProps}
         className={`${styles.button} ${buttonClassName}`}
         onClick={onClick}
-        ref={setReferenceElement}
+        ref={refs.setReference}
       >
         <MdMoreVert color="#ffffff" />
       </IconButton>
       {isOpen ? (
         <div
           className={`${styles.body} ${menuClassName}`}
-          style={popperStyles.popper}
-          ref={setPopperElement}
-          {...attributes.popper}
+          style={floatingStyles}
+          ref={refs.setFloating}
         >
           {children}
         </div>
