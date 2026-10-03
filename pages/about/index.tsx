@@ -20,7 +20,7 @@ function AboutPage() {
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>サイトでできること</h2>
           <p className={styles.sectionSubtitle}>
-            膨大な歌枠アーカイブの中から、あなたの「今聴きたい」をスマートにサポート
+            膨大な歌枠アーカイブの中から、あなたの「今聴きたい」をスマートにサポートします。
           </p>
         </div>
 
