@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { MdPause, MdPlayArrow } from 'react-icons/md';
-import { usePopper } from 'react-popper';
+import { useFloating, offset, flip, autoUpdate } from '@floating-ui/react';
 import { useHovering } from '../../hooks/useHovering';
 import { IconButton } from '../IconButton/IconButton';
 import styles from './PlayButton.module.scss';
@@ -14,10 +14,24 @@ type Props = {
 };
 
 export const PlayButton = memo(({ needNativePlayPush, isPlaying, onPlay, onPause }: Props) => {
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const [popperRef, setPopperElement] = useState<HTMLDivElement | null>(null);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
   const [showPopper, setShowPopper] = useState(false);
   const isHovering = useHovering(buttonRef);
+
+  const { refs, floatingStyles } = useFloating({
+    placement: 'top',
+    middleware: [offset(8), flip()],
+    whileElementsMounted: autoUpdate,
+  });
+
+  const setButtonRef = useCallback(
+    (node: HTMLButtonElement | null) => {
+      buttonRef.current = node;
+      refs.setReference(node);
+    },
+    [refs],
+  );
+
   const onPlayClick = useCallback(() => {
     if (needNativePlayPush) {
       setShowPopper(true);
@@ -25,11 +39,6 @@ export const PlayButton = memo(({ needNativePlayPush, isPlaying, onPlay, onPause
       onPlay();
     }
   }, [needNativePlayPush, onPlay]);
-
-  const { styles: popperStyles, attributes } = usePopper(buttonRef.current, popperRef, {
-    placement: 'top',
-    modifiers: [{ name: 'offset', options: { offset: [0, 8] } }, { name: 'flip' }],
-  });
 
   useEffect(() => {
     if (needNativePlayPush && isHovering) {
@@ -42,7 +51,7 @@ export const PlayButton = memo(({ needNativePlayPush, isPlaying, onPlay, onPause
   return (
     <>
       {isPlaying ? (
-        <IconButton size="large" aria-label="停止" onClick={onPause} ref={buttonRef}>
+        <IconButton size="large" aria-label="停止" onClick={onPause} ref={setButtonRef}>
           <MdPause />
         </IconButton>
       ) : (
@@ -51,13 +60,13 @@ export const PlayButton = memo(({ needNativePlayPush, isPlaying, onPlay, onPause
           size="large"
           aria-label="再生"
           onClick={onPlayClick}
-          ref={buttonRef}
+          ref={setButtonRef}
         >
           <MdPlayArrow />
         </IconButton>
       )}
       {showPopper ? (
-        <div {...attributes.popper} style={popperStyles.popper} className={styles.tips} ref={setPopperElement}>
+        <div style={floatingStyles} className={styles.tips} ref={refs.setFloating}>
           <p>YouTubeプレイヤーをクリックして</p>
           <p>再生してください</p>
         </div>
