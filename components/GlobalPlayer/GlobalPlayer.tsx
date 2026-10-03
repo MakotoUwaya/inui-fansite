@@ -102,7 +102,7 @@ export const GlobalPlayer = memo(function GlobalPlayer() {
       </div>
 
       {/* グローバルフッタープレイヤーコントローラー */}
-      {currentStream && player ? (
+      {currentStream ? (
         <motion.div
           className={styles.controller}
           initial={{ y: '100%' }}

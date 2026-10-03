@@ -115,16 +115,17 @@ $mobile-playlist-draggable-height: 48px;
 .mobilePlaylistWrapper {
   position: fixed;
   top: variable.$header-height;
-  bottom: 0;
+  bottom: variable.$mobile-player-controller-height;
   left: 0;
   right: 0;
-  padding: 0 1rem calc(env(safe-area-inset-bottom, 0px) + 1rem);
-  z-index: 1;
+  padding: 0 1rem 0.5rem;
+  z-index: 40;
   overflow: hidden;
   background-color: variable.$primary-900;
   border-radius: 12px 12px 0 0;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.4);
 }
 
 .mobilePlaylistVisibilityToggle {
