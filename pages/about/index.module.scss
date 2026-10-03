@@ -1,12 +1,14 @@
-@import 'variable.scss';
-@import 'mixin.scss';
+@use "sass:color";
+
+@use 'variable.scss';
+@use 'mixin.scss';
 
 .root {
   max-width: 1080px;
   margin: 0 auto;
   padding: 4rem 1.5rem 5rem;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     padding: 2.5rem 1rem 3.5rem;
   }
 }
@@ -16,7 +18,7 @@
   text-align: center;
   margin-bottom: 3.5rem;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     margin-bottom: 2.5rem;
   }
 }
@@ -28,19 +30,19 @@
   color: #ffffff;
   margin-bottom: 0.75rem;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     font-size: 2rem;
   }
 }
 
 .pageSubtitle {
   font-size: 1.05rem;
-  color: lighten($base-black, 70);
+  color: color.adjust(variable.$base-black, $lightness: 70%, $space: hsl);
   line-height: 1.6;
   max-width: 720px;
   margin: 0 auto;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     font-size: 0.925rem;
   }
 }
@@ -53,7 +55,7 @@
 .featuresSection {
   margin-bottom: 4.5rem;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     margin-bottom: 3.5rem;
   }
 }
@@ -69,14 +71,14 @@
   color: #ffffff;
   margin-bottom: 0.5rem;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     font-size: 1.4rem;
   }
 }
 
 .sectionSubtitle {
   font-size: 0.95rem;
-  color: lighten($base-black, 65);
+  color: color.adjust(variable.$base-black, $lightness: 65%, $space: hsl);
 }
 
 .featureGrid {
@@ -84,11 +86,11 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 1.25rem;
 
-  @include responsive(md) {
+  @include mixin.responsive(md) {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
@@ -96,7 +98,7 @@
 
 .featureCard {
   padding: 2rem;
-  background: lighten($base-black, 7);
+  background: color.adjust(variable.$base-black, $lightness: 7%, $space: hsl);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   transition: transform 0.2s ease, border-color 0.2s ease;
@@ -106,7 +108,7 @@
     border-color: rgba(255, 255, 255, 0.2);
   }
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     padding: 1.5rem;
   }
 }
@@ -147,7 +149,7 @@
 .featureCardDesc {
   font-size: 0.9rem;
   line-height: 1.65;
-  color: lighten($base-black, 70);
+  color: color.adjust(variable.$base-black, $lightness: 70%, $space: hsl);
   margin: 0;
 }
 
@@ -155,19 +157,19 @@
 .youtubeSection {
   margin-bottom: 4rem;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     margin-bottom: 3rem;
   }
 }
 
 .youtubeCard {
-  background: linear-gradient(145deg, lighten($base-black, 8) 0%, lighten($base-black, 5) 100%);
+  background: linear-gradient(145deg, color.adjust(variable.$base-black, $lightness: 8%, $space: hsl) 0%, color.adjust(variable.$base-black, $lightness: 5%, $space: hsl) 100%);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   padding: 2.25rem;
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     padding: 1.5rem;
   }
 }
@@ -180,7 +182,7 @@
   padding-bottom: 1.25rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     gap: 0.85rem;
   }
 }
@@ -197,7 +199,7 @@
   font-size: 1.85rem;
   flex-shrink: 0;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     width: 44px;
     height: 44px;
     font-size: 1.5rem;
@@ -216,7 +218,7 @@
   color: #ffffff;
   margin: 0;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     font-size: 1.1rem;
   }
 }
@@ -241,7 +243,7 @@
 .youtubeCardText {
   font-size: 0.95rem;
   line-height: 1.75;
-  color: lighten($base-black, 80);
+  color: color.adjust(variable.$base-black, $lightness: 80%, $space: hsl);
   margin: 0;
 
   b {
@@ -249,7 +251,7 @@
     font-weight: 600;
   }
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     font-size: 0.875rem;
   }
 }
@@ -279,7 +281,7 @@
     color: #ffffff;
   }
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     font-size: 0.825rem;
     padding: 0.55rem 1rem;
   }
@@ -290,19 +292,19 @@
 .creditsSection {
   margin-bottom: 4rem;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     margin-bottom: 3rem;
   }
 }
 
 .creditsCard {
-  background: linear-gradient(145deg, lighten($base-black, 8) 0%, lighten($base-black, 5) 100%);
+  background: linear-gradient(145deg, color.adjust(variable.$base-black, $lightness: 8%, $space: hsl) 0%, color.adjust(variable.$base-black, $lightness: 5%, $space: hsl) 100%);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   padding: 2.25rem;
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     padding: 1.5rem;
   }
 }
@@ -315,7 +317,7 @@
   padding-bottom: 1.25rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     gap: 0.85rem;
   }
 }
@@ -332,7 +334,7 @@
   font-size: 1.85rem;
   flex-shrink: 0;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     width: 44px;
     height: 44px;
     font-size: 1.5rem;
@@ -351,7 +353,7 @@
   color: #ffffff;
   margin: 0;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     font-size: 1.1rem;
   }
 }
@@ -376,10 +378,10 @@
 .creditsCardText {
   font-size: 0.95rem;
   line-height: 1.75;
-  color: lighten($base-black, 80);
+  color: color.adjust(variable.$base-black, $lightness: 80%, $space: hsl);
   margin: 0;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     font-size: 0.875rem;
   }
 }
@@ -405,7 +407,7 @@
   border-left: 3px solid #ef4444;
   border-radius: 0 8px 8px 0;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     padding: 1rem 1.25rem;
   }
 }
@@ -413,18 +415,18 @@
 .quoteHeader {
   font-size: 0.8rem;
   font-weight: 600;
-  color: lighten($base-black, 65);
+  color: color.adjust(variable.$base-black, $lightness: 65%, $space: hsl);
   margin-bottom: 0.5rem;
 }
 
 .quoteText {
   font-size: 0.925rem;
   line-height: 1.7;
-  color: lighten($base-black, 90);
+  color: color.adjust(variable.$base-black, $lightness: 90%, $space: hsl);
   font-style: italic;
   margin: 0;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     font-size: 0.85rem;
   }
 }
@@ -457,7 +459,7 @@
     color: #ffffff;
   }
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     font-size: 0.825rem;
     padding: 0.55rem 1rem;
     width: 100%;
@@ -480,16 +482,16 @@
 
   p {
     font-size: 0.85rem;
-    color: lighten($base-black, 60);
+    color: color.adjust(variable.$base-black, $lightness: 60%, $space: hsl);
     line-height: 1.6;
     margin: 0;
 
     b {
-      color: lighten($base-black, 80);
+      color: color.adjust(variable.$base-black, $lightness: 80%, $space: hsl);
     }
   }
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     padding: 1.25rem 1rem;
     p {
       font-size: 0.8rem;

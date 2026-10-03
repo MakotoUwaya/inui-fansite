@@ -25,7 +25,7 @@ export const Layout = memo(function Layout({ className, title, description, padd
   return (
     <>
       <Head>
-        <title>{title} | inui.fans</title>
+        <title>{`${title} | inui.fans`}</title>
         <meta name="description" content={description ?? DEFAULT_DESCRIPTION} />
       </Head>
       <div>

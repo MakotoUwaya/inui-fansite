@@ -1,16 +1,18 @@
-@import 'variable.scss';
-@import 'mixin.scss';
+@use "sass:color";
+
+@use 'variable.scss';
+@use 'mixin.scss';
 
 $mobile-playlist-draggable-height: 48px;
 
 .main {
   display: flex;
   justify-content: space-between;
-  height: calc(100vh - $header-height - $pc-player-controller-height);
+  height: calc(100vh - variable.$header-height - variable.$pc-player-controller-height);
   padding: 56px 0 24px;
   overflow: hidden;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     height: auto;
   }
 }
@@ -18,7 +20,7 @@ $mobile-playlist-draggable-height: 48px;
 .player {
   flex: 1 1;
   position: relative;
-  background-color: $gray-900;
+  background-color: variable.$gray-900;
   width: 100%;
 
   &::before {
@@ -46,7 +48,7 @@ $mobile-playlist-draggable-height: 48px;
 }
 
 .sidePanelSkeleton {
-  background-color: $gray-900;
+  background-color: variable.$gray-900;
 }
 
 .sidePanel {
@@ -95,7 +97,7 @@ $mobile-playlist-draggable-height: 48px;
 
 .playlistCount {
   font-size: 0.8rem;
-  color: lighten($base-black, 65);
+  color: color.adjust(variable.$base-black, $lightness: 65%, $space: hsl);
   white-space: nowrap;
 }
 
@@ -112,14 +114,14 @@ $mobile-playlist-draggable-height: 48px;
 
 .mobilePlaylistWrapper {
   position: fixed;
-  top: $header-height;
+  top: variable.$header-height;
   bottom: 0;
   left: 0;
   right: 0;
   padding: 0 1rem calc(env(safe-area-inset-bottom, 0px) + 1rem);
   z-index: 1;
   overflow: hidden;
-  background-color: $primary-900;
+  background-color: variable.$primary-900;
   border-radius: 12px 12px 0 0;
   display: flex;
   flex-direction: column;
@@ -131,7 +133,7 @@ $mobile-playlist-draggable-height: 48px;
   justify-content: center;
   width: 100%;
   height: $mobile-playlist-draggable-height;
-  color: $base-white;
+  color: variable.$base-white;
   font-size: 1.75rem;
   border: none;
   background-color: transparent;

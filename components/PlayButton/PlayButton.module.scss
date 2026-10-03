@@ -1,9 +1,9 @@
-@import 'variable.scss';
+@use 'variable.scss';
 
 .tips {
   padding: 0.25rem 0.5rem;
-  background-color: $gray-800;
-  border: 1px solid $gray-700;
+  background-color: variable.$gray-800;
+  border: 1px solid variable.$gray-700;
 }
 
 .play.disabled {

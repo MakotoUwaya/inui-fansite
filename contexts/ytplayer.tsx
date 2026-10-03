@@ -68,7 +68,7 @@ let endSecondsVariable = 0;
 
 export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const reqIdRef = useRef<number>();
+  const reqIdRef = useRef<number | undefined>(undefined);
 
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [apiReady, setApiReady] = useState(false);

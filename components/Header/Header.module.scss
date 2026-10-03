@@ -1,5 +1,7 @@
-@import 'variable.scss';
-@import 'mixin.scss';
+@use "sass:color";
+
+@use 'variable.scss';
+@use 'mixin.scss';
 
 .root {
   position: sticky;
@@ -20,7 +22,7 @@
   align-items: center;
   justify-content: space-between;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     padding: 0.75rem 1rem;
     gap: 0.5rem;
   }
@@ -51,7 +53,7 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     font-size: 1.05rem;
   }
 }
@@ -70,7 +72,7 @@
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  color: lighten($base-black, 70);
+  color: color.adjust(variable.$base-black, $lightness: 70%, $space: hsl);
   text-decoration: none;
   background: transparent;
   transition: all 0.15s ease-in-out;
@@ -81,7 +83,7 @@
     transform: translateY(-1px);
   }
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     width: 34px;
     height: 34px;
   }
@@ -95,7 +97,7 @@
 .navIcon {
   font-size: 1.3rem;
 
-  @include responsive(sm) {
+  @include mixin.responsive(sm) {
     font-size: 1.15rem;
   }
 }

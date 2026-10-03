@@ -1,5 +1,5 @@
-@import 'variable.scss';
-@import 'mixin.scss';
+@use 'variable.scss';
+@use 'mixin.scss';
 
 .root {
   display: grid;
@@ -7,9 +7,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 0.875rem;
-  background-color: $gray-900;
+  background-color: variable.$gray-900;
   line-height: 1.2;
-  height: $pc-player-controller-height;
+  height: variable.$pc-player-controller-height;
 }
 
 .leftControls,
@@ -47,7 +47,7 @@
 .sonTitle {
   font-size: 1rem;
   font-weight: bold;
-  @include lineClamp(1);
+  @include mixin.lineClamp(1);
   word-break: break-all;
 }
 
@@ -75,15 +75,15 @@
 }
 
 .repeat {
-  color: $gray-700;
+  color: variable.$gray-700;
   &.repeating {
-    color: $base-white;
+    color: variable.$base-white;
   }
 }
 
 .shuffle {
-  color: $gray-700;
+  color: variable.$gray-700;
   &.shuffled {
-    color: $base-white;
+    color: variable.$base-white;
   }
 }

@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link, { type LinkProps } from 'next/link';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { MdShuffle, MdSkipNext, MdSkipPrevious, MdVolumeOff, MdVolumeUp } from 'react-icons/md';
-import { useHoverDirty } from 'react-use';
+import { useHovering } from '../../hooks/useHovering';
 import { formatVideoLength } from '../../utils/formatVideoLength';
 import { IconButton } from '../IconButton/IconButton';
 import { PlayButton } from '../PlayButton/PlayButton';
@@ -68,7 +68,7 @@ export const PlayerController = memo(function PlayerController({
   onSkipNext,
 }: Props) {
   const volumeRef = useRef<HTMLDivElement>(null);
-  const isVolumeHovered = useHoverDirty(volumeRef);
+  const isVolumeHovered = useHovering(volumeRef);
   const [isControllerHovering, setControllerHovering] = useState(false);
   const [visibleVolumeControl, setVisibleVolumeControl] = useState(false);
 

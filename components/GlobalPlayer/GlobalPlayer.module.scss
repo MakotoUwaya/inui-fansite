@@ -1,9 +1,9 @@
-@import 'variable.scss';
-@import 'mixin.scss';
+@use 'variable.scss';
+@use 'mixin.scss';
 
 .videoContainer {
   overflow: hidden;
-  background-color: $gray-900;
+  background-color: variable.$gray-900;
 }
 
 .iframeWrapper {

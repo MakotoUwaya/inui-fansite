@@ -1,5 +1,5 @@
-@import 'variable.scss';
-@import 'mixin.scss';
+@use 'variable.scss';
+@use 'mixin.scss';
 
 .root {
   overflow-y: auto;
@@ -9,11 +9,11 @@
 .root::-webkit-scrollbar {
   overflow: hidden;
   width: 0.5rem;
-  background: $base-white;
+  background: variable.$base-white;
   border-radius: 4px;
 }
 
 .root::-webkit-scrollbar-thumb {
-  background: $primary-dark;
+  background: variable.$primary-dark;
   border-radius: 2px;
 }
