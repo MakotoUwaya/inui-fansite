@@ -543,33 +543,28 @@ export default function AdjustSongPage() {
     setEditSingers(editSingers.filter((s) => s !== singerName));
   };
 
-  // 保存処理
-  const handleSave = async (andNext: boolean = false, markOkOnly: boolean = false) => {
+  // 保存・確定処理
+  const handleSave = async (andNext: boolean = false) => {
     if (!currentSong) return;
     setSaving(true);
     setStatusMessage(null);
 
-    const saveStart = markOkOnly ? currentSong.start : editStart;
-    const saveEnd = markOkOnly ? currentSong.end : editEnd;
     const targetSongId = currentSong.song_id || currentSong.song?.id;
 
     try {
       const payload: Record<string, any> = {
         id: currentSong.id,
         song_id: targetSongId,
-        start: saveStart,
-        end: saveEnd,
+        start: editStart,
+        end: editEnd,
         is_length_checked: true,
-      };
-
-      if (!markOkOnly) {
-        payload.singers = editSingers;
-        payload.metadata = {
+        singers: editSingers,
+        metadata: {
           mood: editMood,
           genre: editGenre,
           is_night_pick: editNightPick,
-        };
-      }
+        },
+      };
 
       const res = await fetch('/api/admin/update-song-length', {
         method: 'POST',
@@ -586,26 +581,26 @@ export default function AdjustSongPage() {
       setSongs((prev) =>
         prev.map((s) => {
           if (s.id !== currentSong.id) return s;
-          const updatedSong = { ...s, start: saveStart, end: saveEnd, is_length_checked: true, length_checked_at: new Date().toISOString() };
-          if (!markOkOnly) {
-            updatedSong.singers = editSingers;
-            if (updatedSong.song) {
-              updatedSong.song.song_metadata = {
+          return {
+            ...s,
+            start: editStart,
+            end: editEnd,
+            singers: editSingers,
+            is_length_checked: true,
+            length_checked_at: new Date().toISOString(),
+            song: {
+              ...s.song,
+              song_metadata: {
                 mood: editMood,
                 genre: editGenre,
                 is_night_pick: editNightPick,
-              };
-            }
-          }
-          return updatedSong;
+              },
+            },
+          };
         })
       );
 
-      setStatusMessage(
-        markOkOnly
-          ? `✅ 「${currentSong.song.title}」を現在の時間のまま確認済みにマークしました`
-          : `✅ 「${currentSong.song.title}」の変更を保存し、確認済みにしました`
-      );
+      setStatusMessage(`✅ 「${currentSong.song.title}」を確定・保存しました`);
 
       if (andNext) {
         // 次の曲へ移動
@@ -1244,18 +1239,13 @@ export default function AdjustSongPage() {
                   </div>
                 </div>
 
-                {/* ボタンの使い分けヘルプガイド */}
+                {/* 使い方ガイド */}
                 <div className={styles.helpGuideArea}>
                   <div className={helpTitleClass(styles)}>
-                    <MdHelpOutline /> ボタンの使い分けガイド
+                    <MdHelpOutline /> 操作の流れ
                   </div>
                   <div className={styles.helpItem}>
-                    <strong>✅ 変更なしでOKにして次へ:</strong>
-                    <span>試聴して問題ない場合、現在の時間のまま確認済みにマークして次の曲へ進みます（数値変更なし）。</span>
-                  </div>
-                  <div className={styles.helpItem}>
-                    <strong>💾 変更を保存して次へ:</strong>
-                    <span>編集した「時間・歌唱者・タグ」をDBに反映保存し、確認済みにマークして次の曲へ進みます。</span>
+                    <span>各確認ボタン（1:歌い出し、2:歌い終わり、3:雑談）で試聴し、必要なら微調整して<strong>「確定して次へ (Ctrl+Enter)」</strong>を押すだけで保存して次の曲へ進みます。</span>
                   </div>
                 </div>
 
@@ -1303,18 +1293,10 @@ export default function AdjustSongPage() {
 
                   <div className={styles.saveButtons}>
                     <button
-                      className={styles.btnMarkOkOnly}
-                      onClick={() => handleSave(true, true)}
-                      disabled={saving}
-                      title="現在の時間のまま確認済みにマークして次の曲へ"
-                    >
-                      <MdCheck /> 変更なしでOKにして次へ
-                    </button>
-
-                    <button
                       className={styles.btnSaveOnly}
                       onClick={() => handleSave(false)}
                       disabled={saving}
+                      title="次の曲へ進まずその場で保存"
                     >
                       <MdSave /> 保存のみ
                     </button>
@@ -1323,9 +1305,9 @@ export default function AdjustSongPage() {
                       className={styles.btnSaveAndNext}
                       onClick={() => handleSave(true)}
                       disabled={saving}
-                      title="時間・歌唱者・タグの変更を保存して次の曲へ進む [Ctrl + Enter]"
+                      title="画面の内容で確定し、確認済みにして次の曲へ進む [Ctrl + Enter]"
                     >
-                      <MdSave /> 変更を保存して次へ (Ctrl+Enter)
+                      <MdCheck /> 確定して次へ (Ctrl+Enter)
                     </button>
                   </div>
                 </div>
@@ -1339,7 +1321,7 @@ export default function AdjustSongPage() {
                   <span><kbd>1</kbd> 歌い出し確認 (±0s)</span>
                   <span><kbd>2</kbd> 歌い終わり確認 (前3s)</span>
                   <span><kbd>3</kbd> 雑談確認 (+5s)</span>
-                  <span><kbd>Ctrl+Enter</kbd> 変更を保存して次へ</span>
+                  <span><kbd>Ctrl+Enter</kbd> 確定して次へ</span>
                   <span><kbd>Alt+←/→</kbd> 前後曲へ移動</span>
                 </div>
               </section>
