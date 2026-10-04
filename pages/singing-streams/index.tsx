@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { MdClear, MdSearch, MdClose } from 'react-icons/md';
+import { RiRainbowLine } from 'react-icons/ri';
 import { Layout } from '../../components/Layout/Layout';
 import { SingingStreamMediaObject } from '../../components/SingingStreamMediaObject/SingingStreamMediaObject';
 import { Spinner } from '../../components/Spinner/Spinner';
@@ -14,6 +15,7 @@ import {
   resolveCurrentSinger,
   getSingerIcon,
   getSingerAvatar,
+  getNijiViewerUrl,
 } from '../../utils/singerConfig';
 import { FILTER_PRESETS, FilterPresetId } from '../../utils/songMetadata';
 import { filterStreams } from '../../utils/songFilter';
@@ -42,6 +44,7 @@ function SingingStreamsPage() {
   // 現在の歌い手の表示名とアイコン
   const currentSingerName = isAllSingers ? 'すべての歌い手（全曲モード）' : activeSinger;
   const currentSingerIcon = isAllSingers ? '🌐' : getSingerIcon(activeSinger);
+  const nijiViewerUrl = isAllSingers ? null : getNijiViewerUrl(activeSinger);
 
   // プリセットフィルター情報（URLパラメータで指定されている場合のみ表示）
   const activePreset = useMemo(
@@ -134,6 +137,18 @@ function SingingStreamsPage() {
               <span className={styles.singerIcon}>{currentSingerIcon}</span>
             )}
             <span className={styles.singerTitle}>{currentSingerName}</span>
+            {nijiViewerUrl && (
+              <a
+                href={nijiViewerUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.nijiViewerLink}
+                title={`${activeSinger} の情報を NijiViewer で見る`}
+                aria-label={`${activeSinger} の情報を NijiViewer で見る`}
+              >
+                <RiRainbowLine className={styles.nijiViewerIcon} />
+              </a>
+            )}
           </div>
 
           <div className={styles.selectWrapper}>

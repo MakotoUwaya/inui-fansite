@@ -6,6 +6,7 @@ import {
   getSingerAvatar,
   resolveCurrentSinger,
   getSingersWithCount,
+  getNijiViewerUrl,
 } from './singerConfig';
 import type { SingingStreamForSearch } from '../types';
 
@@ -154,6 +155,29 @@ describe('singerConfig', () => {
 
       // ノイズタグは除外されること
       expect(result.some((s) => s.name === 'SUPPORTED BY DAM')).toBe(false);
+    });
+  });
+
+  describe('getNijiViewerUrl', () => {
+    it('returns NijiViewer liver URL for Inui Toko', () => {
+      expect(getNijiViewerUrl('戌亥とこ')).toBe(
+        'https://nijiviewer.mukwty.com/liver/UCXRlIK3Cw_TJIQC5kSJJQMg',
+      );
+    });
+
+    it('returns NijiViewer liver URL for other mapped singers', () => {
+      expect(getNijiViewerUrl('早乙女ベリー')).toBe(
+        'https://nijiviewer.mukwty.com/liver/UC0xry7czPasj1wPxR8L0MZg',
+      );
+      expect(getNijiViewerUrl('町田ちま')).toBe(
+        'https://nijiviewer.mukwty.com/liver/UCo7TRj3cS-f_1D9ZDmuTsjw',
+      );
+    });
+
+    it('returns null for unmapped singer or all key', () => {
+      expect(getNijiViewerUrl('all')).toBeNull();
+      expect(getNijiViewerUrl('星街すいせい')).toBeNull();
+      expect(getNijiViewerUrl('未知のライバー')).toBeNull();
     });
   });
 });

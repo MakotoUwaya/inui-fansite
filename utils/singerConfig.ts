@@ -210,3 +210,63 @@ export function resolveCurrentSinger(querySinger?: string | string[]): string {
   const singer = Array.isArray(querySinger) ? querySinger[0] : querySinger;
   return singer.trim() || DEFAULT_SINGER;
 }
+
+/**
+ * にじさんじライバーのYouTubeチャンネルIDマッピング
+ */
+export const SINGER_CHANNEL_IDS: Record<string, string> = {
+  '戌亥とこ': 'UCXRlIK3Cw_TJIQC5kSJJQMg',
+  '早乙女ベリー': 'UC0xry7czPasj1wPxR8L0MZg',
+  '珠乃井ナナ': 'UCkhViRjLUKgIcVpar9JiNrw',
+  '町田ちま': 'UCo7TRj3cS-f_1D9ZDmuTsjw',
+  'アンジュ・カトリーナ': 'UCHVXbQzkl3rDfsXWo8xi2qw',
+  'リゼ・ヘルエスタ': 'UCZ1xuCK1kNmn5RzPYIZop3w',
+  '長尾景': 'UCXW4MqCQn-jCaxlX-nn-BYg',
+  '弦月藤士郎': 'UCGw7lrT-rVZCWHfdG9Frcgg',
+  '甲斐田晴': 'UCo2N7C-Z91waaR6lF3LL_jw',
+  '緑仙': 'UCt5-0i4AVHXaWJrL8Wql3mw',
+  '渡会雲雀': 'UC4l9gz3q65lTBFfFtW5LLeA',
+  '宇佐美リト': 'UCambvP8yxNDot4FzQc9cgiw',
+  '伊波ライ': 'UCz89MGFBrAqwJ5xMr5weSuA',
+  '榊ネス': 'UCYkmXr1qzHgYmCYosUJ0ABw',
+  '倉持めると': 'UCiA-trSZfB0i92V_-dyDqBw',
+  '小清水透': 'UCUP8TmlO7NNra88AMqGU_vQ',
+  'フレン・E・ルスタリオ': 'UCuep1JCrMvSxOGgGhBfJuYw',
+  'ルンルン': 'UCzNXpqpdvlibmNc1JpM1o4g',
+  '樋口楓': 'UCpEDglLnIshEMa5n1vepVeg',
+  '竜胆尊': 'UCPvGypSgfDkVe7JG2KygK7A',
+  'ドーラ': 'UC53UDnhAAYwvNO7j_2Ju1cQ',
+  'ベルモンド・バンデラス': 'UCbc8fwhdUNlqi-J99ISYu4A',
+  '夢追翔': 'UCTIE7LM5X15NVugV7Krp9Hw',
+  '三枝明那': 'UCNW1Ex0r6HsWRD4LCtPwvoQ',
+  '葉加瀬冬雪': 'UCGYAYLDE7TZiiC8U6teciDQ',
+  '朝日南アカネ': 'UCe_p3YEuYJb8Np0Ip9dk-FQ',
+  '東堂コハク': 'UCebT4Aq-3XWb5je1S1FvR_A',
+  '風楽奏斗': 'UCC7rRD6P7RQcx0hKv9RQP4w',
+  '緋八マナ': 'UCqXxS-9x9Ha_UiH6hG4kh5Q',
+  '北見遊征': 'UCcx3crxPFi006DUhb_YU-tw',
+  '立伝都々': 'UCnbJ8LTbHrsRgqkxwJXCU8w',
+  '渚トラウト': 'UCpjypWF_wNRs9_TrjjWngpQ',
+  '蝸堂みかる': 'UCIq2HwA2iBOso7ar4VuU-TA',
+  '城瀬いすみ': 'UCHVSA2OScyef9W7OwPGgJ9w',
+  '天宮こころ': 'UCkIimWZ9gBJRamKF0rmPU8w',
+  '鈴原るる': 'UC_a1IKPxyZ53p3i8_4t1Y-g',
+  'Elira Pendora': 'UCIeSUTOTkF9Hs7q3SGcO-Ow',
+  'Finana Ryugu': 'UCu-J8uIXuLZh16gG-cT1naw',
+  'Luca Kaneshiro': 'UC7Gb7Uawe20QyFibhLl1lzA',
+  'Maria Marionette': 'UCwaS8_S7kMiKA3izlTWHbQg',
+  'Doppio Dropscythe': 'UCy91xBlY_Brh3bnHxKtjrrg',
+  'Meloco Kyoran': 'UChKXd7oqD18qiIYBoRIHTlw',
+  'Yu Q. Wilson': 'UCQQwo2x7EQznEavx8cibFOQ',
+};
+
+/**
+ * 歌い手名から NijiViewer (https://nijiviewer.mukwty.com) のライバー個別ページ URL を取得する
+ */
+export function getNijiViewerUrl(singer: string): string | null {
+  const channelId = SINGER_CHANNEL_IDS[singer];
+  if (!channelId) {
+    return null;
+  }
+  return `https://nijiviewer.mukwty.com/liver/${channelId}`;
+}
