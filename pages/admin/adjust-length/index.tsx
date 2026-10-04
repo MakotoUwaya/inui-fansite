@@ -87,6 +87,8 @@ export default function AdjustSongLengthPage() {
 
   // プレイヤー状態
   const playerRef = useRef<any>(null);
+  const currentSongRef = useRef<SongRecord | null>(null);
+  const pendingVideoRef = useRef<{ videoId: string; start: number } | null>(null);
   const [playerReady, setPlayerReady] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
@@ -201,6 +203,10 @@ export default function AdjustSongLengthPage() {
     return songs.find((s) => s.id === selectedId) || null;
   }, [songs, selectedId]);
 
+  useEffect(() => {
+    currentSongRef.current = currentSong;
+  }, [currentSong]);
+
   // 曲選択時の処理
   const handleSelectSong = useCallback((song: SongRecord) => {
     setSelectedId(song.id);
@@ -215,12 +221,23 @@ export default function AdjustSongLengthPage() {
       stopTimerRef.current = null;
     }
 
+    const seekTime = Math.max(0, song.start - 3);
+
     // YouTubeプレイヤーの動画読み込み
     if (playerRef.current && typeof playerRef.current.loadVideoById === 'function') {
-      playerRef.current.loadVideoById({
+      try {
+        playerRef.current.loadVideoById({
+          videoId: song.video_id,
+          startSeconds: seekTime,
+        });
+      } catch (e) {
+        console.warn('loadVideoById failed:', e);
+      }
+    } else {
+      pendingVideoRef.current = {
         videoId: song.video_id,
-        startSeconds: Math.max(0, song.start - 3),
-      });
+        start: song.start,
+      };
     }
   }, []);
 
@@ -231,38 +248,57 @@ export default function AdjustSongLengthPage() {
     }
   }, [filteredSongs, selectedId, handleSelectSong]);
 
-  // YouTube IFrame API 初期化
+  // YouTube IFrame API 初期化（マウント時に1回だけ実行）
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
 
     const initPlayer = () => {
+      const container = document.getElementById('adjust-yt-player');
+      if (!container) return;
+
       if (!(window as any).YT || !(window as any).YT.Player) return;
 
       if (!playerRef.current) {
-        playerRef.current = new (window as any).YT.Player('adjust-yt-player', {
-          width: '100%',
-          height: '100%',
-          playerVars: {
-            controls: 1,
-            modestbranding: 1,
-            rel: 0,
-          },
-          events: {
-            onReady: () => {
-              setPlayerReady(true);
-              if (currentSong) {
-                playerRef.current.cueVideoById({
-                  videoId: currentSong.video_id,
-                  startSeconds: Math.max(0, currentSong.start - 3),
-                });
-              }
+        try {
+          const newPlayer = new (window as any).YT.Player('adjust-yt-player', {
+            width: '100%',
+            height: '100%',
+            playerVars: {
+              controls: 1,
+              modestbranding: 1,
+              rel: 0,
             },
-            onStateChange: (event: any) => {
-              // 1: playing, 2: paused
-              setIsPlaying(event.data === 1);
+            events: {
+              onReady: (event: any) => {
+                playerRef.current = event.target;
+                setPlayerReady(true);
+
+                const pending = pendingVideoRef.current;
+                const targetSong = currentSongRef.current;
+
+                if (pending && typeof event.target.cueVideoById === 'function') {
+                  event.target.cueVideoById({
+                    videoId: pending.videoId,
+                    startSeconds: Math.max(0, pending.start - 3),
+                  });
+                  pendingVideoRef.current = null;
+                } else if (targetSong && typeof event.target.cueVideoById === 'function') {
+                  event.target.cueVideoById({
+                    videoId: targetSong.video_id,
+                    startSeconds: Math.max(0, targetSong.start - 3),
+                  });
+                }
+              },
+              onStateChange: (event: any) => {
+                // 1: playing, 2: paused
+                setIsPlaying(event.data === 1);
+              },
             },
-          },
-        });
+          });
+          playerRef.current = newPlayer;
+        } catch (e) {
+          console.warn('YT.Player init error:', e);
+        }
       }
     };
 
@@ -280,16 +316,18 @@ export default function AdjustSongLengthPage() {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [currentSong]);
+  }, []);
 
   // 再生時間の定期更新
   useEffect(() => {
     const timer = setInterval(() => {
       if (playerRef.current && typeof playerRef.current.getCurrentTime === 'function') {
-        const time = playerRef.current.getCurrentTime();
-        if (typeof time === 'number' && !isNaN(time)) {
-          setCurrentTime(Math.floor(time));
-        }
+        try {
+          const time = playerRef.current.getCurrentTime();
+          if (typeof time === 'number' && !isNaN(time)) {
+            setCurrentTime(Math.floor(time));
+          }
+        } catch {}
       }
     }, 200);
 
@@ -306,21 +344,25 @@ export default function AdjustSongLengthPage() {
 
   // 1. 開始から再生（前3秒から）
   const playStart = useCallback(() => {
-    if (!playerRef.current) return;
+    if (!playerRef.current || typeof playerRef.current.seekTo !== 'function') return;
     clearStopTimer();
     const seekSec = Math.max(0, editStart - 3);
     playerRef.current.seekTo(seekSec, true);
-    playerRef.current.playVideo();
+    if (typeof playerRef.current.playVideo === 'function') {
+      playerRef.current.playVideo();
+    }
   }, [editStart]);
 
   // 2. 終了前7秒〜終了まで再生（終了地点で自動一時停止）
   const playEndBefore = useCallback(() => {
-    if (!playerRef.current || editEnd === null) return;
+    if (!playerRef.current || editEnd === null || typeof playerRef.current.seekTo !== 'function') return;
     clearStopTimer();
     const playLength = 7;
     const seekSec = Math.max(editStart, editEnd - playLength);
     playerRef.current.seekTo(seekSec, true);
-    playerRef.current.playVideo();
+    if (typeof playerRef.current.playVideo === 'function') {
+      playerRef.current.playVideo();
+    }
 
     // 終了時刻に達したら停止
     const durationMs = (editEnd - seekSec) * 1000 / playbackRate;
@@ -333,10 +375,12 @@ export default function AdjustSongLengthPage() {
 
   // 3. 終了地点から5秒再生（雑談が入っていないか確認・自動停止）
   const playEndAfter = useCallback(() => {
-    if (!playerRef.current || editEnd === null) return;
+    if (!playerRef.current || editEnd === null || typeof playerRef.current.seekTo !== 'function') return;
     clearStopTimer();
     playerRef.current.seekTo(editEnd, true);
-    playerRef.current.playVideo();
+    if (typeof playerRef.current.playVideo === 'function') {
+      playerRef.current.playVideo();
+    }
 
     // 5秒後に停止
     const durationMs = 5000 / playbackRate;
@@ -352,9 +396,13 @@ export default function AdjustSongLengthPage() {
     if (!playerRef.current) return;
     clearStopTimer();
     if (isPlaying) {
-      playerRef.current.pauseVideo();
+      if (typeof playerRef.current.pauseVideo === 'function') {
+        playerRef.current.pauseVideo();
+      }
     } else {
-      playerRef.current.playVideo();
+      if (typeof playerRef.current.playVideo === 'function') {
+        playerRef.current.playVideo();
+      }
     }
   }, [isPlaying]);
 
@@ -368,7 +416,7 @@ export default function AdjustSongLengthPage() {
 
   // 現在位置を開始にセット
   const setCurrentAsStart = () => {
-    if (!playerRef.current) return;
+    if (!playerRef.current || typeof playerRef.current.getCurrentTime !== 'function') return;
     const time = Math.floor(playerRef.current.getCurrentTime());
     setEditStart(time);
     setStartInputStr(formatTime(time));
@@ -376,7 +424,7 @@ export default function AdjustSongLengthPage() {
 
   // 現在位置を終了にセット
   const setCurrentAsEnd = () => {
-    if (!playerRef.current) return;
+    if (!playerRef.current || typeof playerRef.current.getCurrentTime !== 'function') return;
     const time = Math.floor(playerRef.current.getCurrentTime());
     setEditEnd(time);
     setEndInputStr(formatTime(time));
@@ -767,18 +815,14 @@ export default function AdjustSongLengthPage() {
 
           {/* 右ペイン：プレイヤー＆微調整 */}
           <main className={styles.mainContent}>
-            {!currentSong ? (
-              <div className={styles.noSelected}>
-                <span>👈 左のリストから調整したい楽曲を選択してください</span>
+            {/* プレイヤー領域（DOMアンマウントによるiframe破壊を防ぐため常駐） */}
+            <section className={styles.playerSection}>
+              <div className={styles.videoWrapper}>
+                <div id="adjust-yt-player" />
               </div>
-            ) : (
-              <>
-                {/* プレイヤー領域 */}
-                <section className={styles.playerSection}>
-                  <div className={styles.videoWrapper}>
-                    <div id="adjust-yt-player" />
-                  </div>
 
+              {currentSong && (
+                <>
                   <div className={styles.songHeader}>
                     <div className={styles.songDetails}>
                       <h2 className={styles.title}>{currentSong.song?.title}</h2>
@@ -812,6 +856,7 @@ export default function AdjustSongLengthPage() {
                       <button
                         className={styles.btnPlayStart}
                         onClick={playStart}
+                        disabled={!playerReady}
                         title="曲の開始3秒前から再生して歌い出しを確認 [キー: 1]"
                       >
                         <MdPlayArrow /> 歌い出し確認 (前3s)
@@ -820,6 +865,7 @@ export default function AdjustSongLengthPage() {
                       <button
                         className={styles.btnPlayEndBefore}
                         onClick={playEndBefore}
+                        disabled={!playerReady || editEnd === null}
                         title="終了時刻の手前7秒〜終了までを再生して歌が切れていないか確認 [キー: 2]"
                       >
                         <MdPlayArrow /> 歌い終わり確認 (前7s)
@@ -828,6 +874,7 @@ export default function AdjustSongLengthPage() {
                       <button
                         className={styles.btnPlayEndAfter}
                         onClick={playEndAfter}
+                        disabled={!playerReady || editEnd === null}
                         title="終了時刻から5秒再生して雑談が入っていないか確認 [キー: 3]"
                       >
                         <MdPlayArrow /> 終了後の雑談確認 (+5s)
@@ -836,6 +883,7 @@ export default function AdjustSongLengthPage() {
                       <button
                         className={styles.btnTogglePlay}
                         onClick={togglePlay}
+                        disabled={!playerReady}
                         title="再生 / 一時停止 [Space]"
                       >
                         {isPlaying ? <MdPause /> : <MdPlayArrow />}
@@ -850,16 +898,24 @@ export default function AdjustSongLengthPage() {
                           key={rate}
                           className={playbackRate === rate ? styles.active : ''}
                           onClick={() => changeRate(rate)}
+                          disabled={!playerReady}
                         >
                           {rate}x
                         </button>
                       ))}
                     </div>
                   </div>
-                </section>
+                </>
+              )}
+            </section>
 
-                {/* 時間微調整コントロール */}
-                <section className={styles.adjustSection}>
+            {!currentSong ? (
+              <div className={styles.noSelected}>
+                <span>👈 左のリストから調整したい楽曲を選択してください</span>
+              </div>
+            ) : (
+              /* 時間微調整コントロール */
+              <section className={styles.adjustSection}>
                   {/* 現在の再生位置インジケーター */}
                   <div className={styles.currentTimeIndicator}>
                     <span className={styles.label}>▶ 現在の再生位置 (動画全体):</span>
@@ -1038,8 +1094,7 @@ export default function AdjustSongLengthPage() {
                     <span><kbd>Alt+←/→</kbd> 前後曲へ移動</span>
                   </div>
                 </section>
-              </>
-            )}
+              )}
           </main>
         </div>
       </div>
