@@ -1,6 +1,7 @@
 import './load-env';
 import * as fs from 'fs';
 import { supabase } from '../utils/supabaseClient';
+import { detectSongBoundariesWithGemini } from '../utils/geminiSongLengthDetector';
 
 /**
  * 秒数を MM:SS または HH:MM:SS 形式に変換
@@ -77,6 +78,9 @@ function printHelp() {
     --all                       チェック済みも含めて表示
   --update <id> --end <秒|MM:SS> 指定した曲の終了時刻を更新し、チェック済みにする
   --mark-ok <id>                指定した曲の長さを変更せず、確認済みにする
+  --auto-check                  Gemini / iTunes による歌唱区間自動判定・雑談カットを実行
+    --video-id <videoId>        特定の動画内の曲のみ自動チェック
+    --limit <件数>               処理件数の上限
   --batch <jsonまたはファイルパス> 複数曲を一括更新
                                 JSON形式: [{"id": "...", "end": 240}, {"id": "...", "markOk": true}]
   --help                        このヘルプを表示
@@ -458,17 +462,20 @@ async function fetchTrackDuration(title: string, artist: string): Promise<number
 }
 
 export async function autoCheckVideo(videoId: string) {
-  return autoCheckAll(['--video-id', videoId]);
+  // 新規登録動画内の曲は、曲長に関わらず全曲 Gemini による歌唱区間判定を行う
+  return autoCheckAll(['--video-id', videoId, '--threshold', '0']);
 }
 
 export async function autoCheckAll(args: string[] = []) {
-  const threshold = 300; // 5分
+  const thresholdIdx = args.indexOf('--threshold');
+  const threshold = thresholdIdx !== -1 ? parseTimeString(args[thresholdIdx + 1]) : 300;
   const limitIdx = args.indexOf('--limit');
   const limitCount = limitIdx !== -1 ? parseInt(args[limitIdx + 1], 10) : undefined;
   const videoIdIdx = args.indexOf('--video-id');
   const videoIdFilter = videoIdIdx !== -1 ? args[videoIdIdx + 1] : undefined;
 
-  console.log(`🤖 5分以上の未チェック曲に対するインテリジェント自動チェックを開始します...`);
+  console.log(`🤖 Gemini / 自動判定による歌唱区間・雑談カットチェックを開始します...`);
+  console.log(`⏱️ 対象最小尺: ${threshold === 0 ? '全曲（新規登録動画モード）' : `${formatTime(threshold)} 以上`}`);
   if (videoIdFilter) console.log(`🎬 対象動画: ${videoIdFilter}`);
   if (limitCount) console.log(`⚡ --limit モード: 最大 ${limitCount} 件を処理します。`);
 
@@ -536,83 +543,42 @@ export async function autoCheckAll(args: string[] = []) {
     const indexStr = `[${i + 1}/${targetSongs.length}]`;
     const title = item.song?.title || '不明';
     const artist = item.song?.artist || '不明';
-    const currentDuration = item.duration;
 
-    console.log(`${indexStr} 🔍 調査中: 「${title}」 / ${artist} (現: ${formatTime(currentDuration)})`);
+    console.log(`${indexStr} 🔍 調査中: 「${title}」 / ${artist} (現: ${formatTime(item.start)}〜${formatTime(item.end ?? item.start)})`);
 
-    const officialDuration = await fetchTrackDuration(title, artist);
+    const result = await detectSongBoundariesWithGemini({
+      videoId: item.video_id,
+      title,
+      artist,
+      initialStart: item.start,
+      initialEnd: item.end,
+    });
+
     const now = new Date().toISOString();
+    const hasDiff = result.start !== item.start || result.end !== item.end;
 
-    if (officialDuration) {
-      // 歌枠用演奏時間目安: 公式時間 + 15秒（アウトロ・余韻）
-      const suggestedDuration = officialDuration + 15;
+    await supabase
+      .from('singing_stream')
+      .update({
+        start: result.start,
+        end: result.end,
+        is_length_checked: true,
+        length_checked_at: now,
+        updated_at: now,
+      })
+      .eq('id', item.id);
 
-      if (currentDuration > suggestedDuration + 30) {
-        // 雑談が含まれていると判定し、適切な長さに修正
-        const newEnd = item.start + suggestedDuration;
-        await supabase
-          .from('singing_stream')
-          .update({
-            end: newEnd,
-            is_length_checked: true,
-            length_checked_at: now,
-            updated_at: now,
-          })
-          .eq('id', item.id);
-
-        console.log(`  ✂️ 雑談カット修正: 公式=${formatTime(officialDuration)} -> 新: ${formatTime(suggestedDuration)} (${formatTime(item.start)}〜${formatTime(newEnd)})`);
-        updatedCount++;
-      } else {
-        // 原曲自体が元々5分超で、現在の長さが妥当
-        await supabase
-          .from('singing_stream')
-          .update({
-            is_length_checked: true,
-            length_checked_at: now,
-            updated_at: now,
-          })
-          .eq('id', item.id);
-
-        console.log(`  ✅ 妥当承認 (原曲長尺): 公式=${formatTime(officialDuration)} ~= 現行=${formatTime(currentDuration)}`);
-        okCount++;
-      }
+    if (hasDiff) {
+      console.log(`  ✂️ 自動補正 [${result.method}]: ${formatTime(item.start)}〜${formatTime(item.end ?? 0)} -> ${formatTime(result.start)}〜${formatTime(result.end)} (${result.reason})`);
+      updatedCount++;
     } else {
-      // 公式時間が取得できなかった場合
-      if (currentDuration >= 420) {
-        // 7分以上は確実に雑談を含むため、標準的な4分15秒（255秒）にカット
-        const defaultDuration = 255;
-        const newEnd = item.start + defaultDuration;
-        await supabase
-          .from('singing_stream')
-          .update({
-            end: newEnd,
-            is_length_checked: true,
-            length_checked_at: now,
-            updated_at: now,
-          })
-          .eq('id', item.id);
-
-        console.log(`  ⚠️ 公式時間不明（長尺）-> 標準4:15にカット: ${formatTime(currentDuration)} -> ${formatTime(defaultDuration)}`);
-        updatedCount++;
-      } else {
-        // 5〜7分は原曲の長さの可能性があるため維持
-        await supabase
-          .from('singing_stream')
-          .update({
-            is_length_checked: true,
-            length_checked_at: now,
-            updated_at: now,
-          })
-          .eq('id', item.id);
-
-        console.log(`  ✅ 承認（5〜7分維持）: 現行=${formatTime(currentDuration)}`);
-        okCount++;
-      }
+      console.log(`  ✅ 妥当承認 [${result.method}]: ${formatTime(result.start)}〜${formatTime(result.end)} (${result.reason})`);
+      okCount++;
     }
 
     processed++;
-    // API レートリミット配慮
-    await new Promise((r) => setTimeout(r, 60));
+    // レートリミット配慮
+    await new Promise((r) => setTimeout(r, 200));
   }
 
   console.log('\n=======================================');
