@@ -81,6 +81,37 @@
   }
 }
 
+.nijiViewerLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #38bdf8;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.nijiViewerIcon {
+  font-size: 1.05rem;
+}
+
 .selectWrapper {
   display: flex;
   align-items: center;
