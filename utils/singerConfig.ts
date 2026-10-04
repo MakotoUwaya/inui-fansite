@@ -281,63 +281,10 @@ export const SINGER_CHANNEL_IDS: Record<string, string> = {
 };
 
 /**
- * にじさんじ所属ライバーのセット（NijiViewer への遷移対象）
- */
-export const NIJISANJI_SINGERS = new Set<string>([
-  '戌亥とこ',
-  '早乙女ベリー',
-  '珠乃井ナナ',
-  '町田ちま',
-  'アンジュ・カトリーナ',
-  'リゼ・ヘルエスタ',
-  '長尾景',
-  '弦月藤士郎',
-  '甲斐田晴',
-  '緑仙',
-  '渡会雲雀',
-  '宇佐美リト',
-  '伊波ライ',
-  '榊ネス',
-  '倉持めると',
-  '小清水透',
-  'フレン・E・ルスタリオ',
-  'ルンルン',
-  '樋口楓',
-  '竜胆尊',
-  'ドーラ',
-  'ベルモンド・バンデラス',
-  '夢追翔',
-  '三枝明那',
-  '葉加瀬冬雪',
-  '朝日南アカネ',
-  '東堂コハク',
-  '風楽奏斗',
-  '緋八マナ',
-  '北見遊征',
-  '立伝都々',
-  '渚トラウト',
-  '蝸堂みかる',
-  '城瀬いすみ',
-  '天宮こころ',
-  '鈴原るる',
-  '綺沙良',
-  'Elira Pendora',
-  'Finana Ryugu',
-  'Luca Kaneshiro',
-  'Maria Marionette',
-  'Doppio Dropscythe',
-  'Meloco Kyoran',
-  'Yu Q. Wilson',
-]);
-
-/**
  * 歌い手名から NijiViewer (https://nijiviewer.mukwty.com) のライバー個別ページ URL を取得する
- * にじさんじ所属ライバーの場合のみ URL を返却する
+ * チャンネル ID が登録されている場合は遷移 URL を返却する
  */
 export function getNijiViewerUrl(singer: string): string | null {
-  if (!NIJISANJI_SINGERS.has(singer)) {
-    return null;
-  }
   const channelId = SINGER_CHANNEL_IDS[singer];
   if (!channelId) {
     return null;
