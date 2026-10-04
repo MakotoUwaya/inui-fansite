@@ -228,12 +228,12 @@ export const SINGER_CHANNEL_IDS: Record<string, string> = {
   '渡会雲雀': 'UC4l9gz3q65lTBFfFtW5LLeA',
   '宇佐美リト': 'UCambvP8yxNDot4FzQc9cgiw',
   '伊波ライ': 'UCz89MGFBrAqwJ5xMr5weSuA',
-  '榊ネス': 'UCYkmXr1qzHgYmCYosUJ0ABw',
+  '榊ネス': 'UCyXBNgCulibV9pRm3ZKpmoQ',
   '倉持めると': 'UCiA-trSZfB0i92V_-dyDqBw',
   '小清水透': 'UCUP8TmlO7NNra88AMqGU_vQ',
   'フレン・E・ルスタリオ': 'UCuep1JCrMvSxOGgGhBfJuYw',
   'ルンルン': 'UCzNXpqpdvlibmNc1JpM1o4g',
-  '樋口楓': 'UCpEDglLnIshEMa5n1vepVeg',
+  '樋口楓': 'UCsg-YqdqQ-KFF0LNk23BY4A',
   '竜胆尊': 'UCPvGypSgfDkVe7JG2KygK7A',
   'ドーラ': 'UC53UDnhAAYwvNO7j_2Ju1cQ',
   'ベルモンド・バンデラス': 'UCbc8fwhdUNlqi-J99ISYu4A',
@@ -250,18 +250,39 @@ export const SINGER_CHANNEL_IDS: Record<string, string> = {
   '蝸堂みかる': 'UCIq2HwA2iBOso7ar4VuU-TA',
   '城瀬いすみ': 'UCHVSA2OScyef9W7OwPGgJ9w',
   '天宮こころ': 'UCkIimWZ9gBJRamKF0rmPU8w',
-  '鈴原るる': 'UC_a1IKPxyZ53p3i8_4t1Y-g',
+  '鈴原るる': 'UC_a1ZYZ8ZTXpjg9xUY9sj8w',
+  '綺沙良': 'UCiJ_Um3KbfF19NzkDYLzZVQ',
   'Elira Pendora': 'UCIeSUTOTkF9Hs7q3SGcO-Ow',
   'Finana Ryugu': 'UCu-J8uIXuLZh16gG-cT1naw',
   'Luca Kaneshiro': 'UC7Gb7Uawe20QyFibhLl1lzA',
   'Maria Marionette': 'UCwaS8_S7kMiKA3izlTWHbQg',
   'Doppio Dropscythe': 'UCy91xBlY_Brh3bnHxKtjrrg',
   'Meloco Kyoran': 'UChKXd7oqD18qiIYBoRIHTlw',
-  'Yu Q. Wilson': 'UCQQwo2x7EQznEavx8cibFOQ',
+  'Yu Q. Wilson': 'UCKpKC3M5fkcEvtOr06dmYlA',
+  // ホロライブ
+  '星街すいせい': 'UC5CwaMl1eIgY8h02uZw7u8A',
+  '白上フブキ': 'UCdn5BQ06XqgXoAxIhbqw5Rg',
+  '宝鐘マリン': 'UCCzUftO8KOVkV4wQG1vkUvg',
+  'AZKi': 'UC0TXe_LYZ4scaW2XMyi5_kw',
+  // その他VTuber・個人勢
+  'HACHI': 'UC7XCjKxBEct0uAukpQXNFPw',
+  '田中ヒメ': 'UCFv2z4iM5vHrS8bZPq4fHQQ',
+  '鈴木ヒナ': 'UCFv2z4iM5vHrS8bZPq4fHQQ',
+  '音ノ乃のの': 'UCqe0-vqZwAvZUb22wCMu1fA',
+  'エルセ': 'UCGphOcrcx_oLH22bevHe8og',
+  'MaiR': 'UCsiKFVHkQSMlSe0vaCG0anw',
+  '朝ノ瑠璃': 'UCODNLyn3L83wEmC0DLL0cxA',
+  'かしこまり': 'UCfiK42sBHraMBK6eNWtsy7A',
+  '奏天まひろ': 'UC_G7GmYMrHg_yLorA0MMy8w',
+  '宗谷いちか': 'UC2kyQhzGOB-JPgcQX9OMgEw',
+  '花鋏キョウ': 'UC4OeUf_KfYRrwksschtRYow',
+  '奏みみ': 'UCpHIwGHq_3OfX42cyfyJp-A',
+  '富士葵': 'UC3Ruo_5doyu514PesWGvCAg',
 };
 
 /**
  * 歌い手名から NijiViewer (https://nijiviewer.mukwty.com) のライバー個別ページ URL を取得する
+ * チャンネル ID が登録されている場合は遷移 URL を返却する
  */
 export function getNijiViewerUrl(singer: string): string | null {
   const channelId = SINGER_CHANNEL_IDS[singer];

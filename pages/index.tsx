@@ -1,20 +1,25 @@
+import clsx from 'clsx';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { MdMusicNote } from 'react-icons/md';
 import { Layout } from '../components/Layout/Layout';
+import { useHolodexChannels } from '../hooks/holodex';
 import { useSingingStreamsForSearch } from '../hooks/singing-stream';
+import { formatSubscriberCount, getChannelGroup } from '../utils/holodex';
 import {
   DEFAULT_SINGER,
   ALL_SINGERS_KEY,
   getSingersWithCount,
   getSingerAvatar,
+  SINGER_CHANNEL_IDS,
 } from '../utils/singerConfig';
 import { FILTER_PRESETS } from '../utils/songMetadata';
 import styles from './index.module.scss';
 
 function IndexPage() {
   const { streams } = useSingingStreamsForSearch();
+  const { channels } = useHolodexChannels();
 
   // 歌い手ごとの楽曲数サマリー
   const singerSummaries = useMemo(() => getSingersWithCount(streams), [streams]);
@@ -42,6 +47,11 @@ function IndexPage() {
           <div className={styles.singersGrid}>
             {singerSummaries.map((singer) => {
               const avatarUrl = getSingerAvatar(singer.name);
+              const channelId = SINGER_CHANNEL_IDS[singer.name];
+              const ch = channelId ? channels[channelId] : undefined;
+              const groupName = getChannelGroup(ch);
+              const subCountText = formatSubscriberCount(ch?.subscriber_count);
+
               return (
                 <Link
                   key={singer.name}
@@ -64,11 +74,40 @@ function IndexPage() {
                       <span className={styles.singerCardIcon}>{singer.icon}</span>
                     )}
                   </div>
+
                   <div className={styles.singerCardInfo}>
-                    <h3 className={styles.singerCardName} title={singer.name}>
-                      {singer.name}
-                    </h3>
-                    <span className={styles.singerCardCount}>{singer.count} 曲</span>
+                    <div className={styles.singerCardHeader}>
+                      <h3 className={styles.singerCardName} title={singer.name}>
+                        {singer.name}
+                      </h3>
+                      <span className={styles.singerCardCount}>{singer.count} 曲</span>
+                    </div>
+
+                    <div className={styles.singerCardMeta}>
+                      <div className={styles.singerCardTags}>
+                        {ch?.org && (
+                          <span className={clsx(styles.tag, styles.tagOrg)}>
+                            {ch.org}
+                          </span>
+                        )}
+                        {groupName && (
+                          <span className={clsx(styles.tag, styles.tagSuborg)}>
+                            {groupName}
+                          </span>
+                        )}
+                        {ch?.type && ch.type.toLowerCase() !== 'vtuber' && (
+                          <span className={clsx(styles.tag, styles.tagType)}>
+                            {ch.type}
+                          </span>
+                        )}
+                      </div>
+
+                      {subCountText ? (
+                        <span className={styles.subscriberCount} title={`登録者数: ${subCountText}`}>
+                          👥 {subCountText}
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
                 </Link>
               );
@@ -77,14 +116,22 @@ function IndexPage() {
             {/* 全曲モードカード */}
             <Link
               href={`/singing-streams?singer=${ALL_SINGERS_KEY}`}
-              className={`${styles.singerCard} ${styles.singerCardAll}`}
+              className={clsx(styles.singerCard, styles.singerCardAll)}
             >
               <div className={styles.singerCardVisual}>
                 <span className={styles.singerCardIcon}>🌐</span>
               </div>
               <div className={styles.singerCardInfo}>
-                <h3 className={styles.singerCardName}>すべての歌い手</h3>
-                <span className={styles.singerCardCount}>全 {totalSongCount} 曲（全曲モード）</span>
+                <div className={styles.singerCardHeader}>
+                  <h3 className={styles.singerCardName}>すべての歌い手</h3>
+                  <span className={styles.singerCardCount}>全 {totalSongCount} 曲</span>
+                </div>
+                <div className={styles.singerCardMeta}>
+                  <div className={styles.singerCardTags}>
+                    <span className={clsx(styles.tag, styles.tagOrg)}>全曲モード</span>
+                    <span className={clsx(styles.tag, styles.tagSuborg)}>全アーカイブ横断</span>
+                  </div>
+                </div>
               </div>
             </Link>
           </div>

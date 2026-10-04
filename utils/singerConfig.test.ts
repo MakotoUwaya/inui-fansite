@@ -165,18 +165,23 @@ describe('singerConfig', () => {
       );
     });
 
-    it('returns NijiViewer liver URL for other mapped singers', () => {
+    it('returns NijiViewer liver URL for other mapped singers including non-Nijisanji', () => {
       expect(getNijiViewerUrl('早乙女ベリー')).toBe(
         'https://nijiviewer.mukwty.com/liver/UC0xry7czPasj1wPxR8L0MZg',
       );
       expect(getNijiViewerUrl('町田ちま')).toBe(
         'https://nijiviewer.mukwty.com/liver/UCo7TRj3cS-f_1D9ZDmuTsjw',
       );
+      expect(getNijiViewerUrl('宝鐘マリン')).toBe(
+        'https://nijiviewer.mukwty.com/liver/UCCzUftO8KOVkV4wQG1vkUvg',
+      );
+      expect(getNijiViewerUrl('星街すいせい')).toBe(
+        'https://nijiviewer.mukwty.com/liver/UC5CwaMl1eIgY8h02uZw7u8A',
+      );
     });
 
     it('returns null for unmapped singer or all key', () => {
       expect(getNijiViewerUrl('all')).toBeNull();
-      expect(getNijiViewerUrl('星街すいせい')).toBeNull();
       expect(getNijiViewerUrl('未知のライバー')).toBeNull();
     });
   });
