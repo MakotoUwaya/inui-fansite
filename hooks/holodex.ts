@@ -3,9 +3,10 @@ import type { HolodexChannelSummary } from '../utils/holodex';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-export function useHolodexChannels() {
+export function useHolodexChannels(channelId?: string) {
+  const url = channelId ? `/api/channels?id=${encodeURIComponent(channelId)}` : '/api/channels';
   const { data, error, isLoading } = useSWR<Record<string, HolodexChannelSummary>>(
-    '/api/channels',
+    url,
     fetcher,
     {
       revalidateOnFocus: false,

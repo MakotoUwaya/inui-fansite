@@ -113,9 +113,22 @@ export default async function handler(
   }
 
   const now = Date.now();
+  const apiKey = process.env.HOLODEX_APIKEY || '';
+  const requestedId = typeof req.query?.id === 'string' ? req.query.id : undefined;
 
   // キャッシュが有効な場合はキャッシュを返却
   if (cachedChannels && now - lastFetchedAt < CACHE_TTL_MS) {
+    if (requestedId && !cachedChannels[requestedId] && apiKey) {
+      try {
+        const extraCh = await fetchChannelById(requestedId, apiKey);
+        if (extraCh && extraCh.id) {
+          cachedChannels[extraCh.id] = extraCh;
+        }
+      } catch (err) {
+        console.warn(`[API /channels] Failed to fetch on-demand channel ${requestedId}:`, err);
+      }
+    }
+
     res.setHeader(
       'Cache-Control',
       'public, s-maxage=3600, stale-while-revalidate=86400',
@@ -123,7 +136,6 @@ export default async function handler(
     return res.status(200).json(cachedChannels);
   }
 
-  const apiKey = process.env.HOLODEX_APIKEY || '';
   if (!apiKey) {
     // API Key がない場合は直前のキャッシュまたは空オブジェクトを返却
     if (cachedChannels) {
@@ -167,6 +179,17 @@ export default async function handler(
         if (ch && ch.id) {
           channelMap[ch.id] = ch;
         }
+      }
+    }
+
+    if (requestedId && !channelMap[requestedId]) {
+      try {
+        const extraCh = await fetchChannelById(requestedId, apiKey);
+        if (extraCh && extraCh.id) {
+          channelMap[extraCh.id] = extraCh;
+        }
+      } catch (err) {
+        console.warn(`[API /channels] Failed to fetch requested channel ${requestedId}:`, err);
       }
     }
 

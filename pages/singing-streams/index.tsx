@@ -33,10 +33,23 @@ function SingingStreamsPage() {
   const router = useRouter();
   const { register, handleSubmit, resetField, watch, setValue } = useForm<SearchForm>();
   const { streams } = useSingingStreamsForSearch();
-  const { channels } = useHolodexChannels();
 
-  // URLクエリから歌い手を判定（未指定ならデフォルト: 戌亥とこ）
-  const activeSinger = resolveCurrentSinger(router.query.singer as string | undefined);
+  // URLクエリから歌い手およびチャンネルIDを判定（未指定ならデフォルト: 戌亥とこ）
+  const rawQuerySinger = router.query.singer as string | undefined;
+  const rawQueryChannel = router.query.channel as string | undefined;
+
+  const requestedChannelId = useMemo(() => {
+    if (rawQueryChannel && rawQueryChannel.startsWith('UC')) return rawQueryChannel;
+    if (rawQuerySinger && rawQuerySinger.startsWith('UC')) return rawQuerySinger;
+    return undefined;
+  }, [rawQueryChannel, rawQuerySinger]);
+
+  const { channels } = useHolodexChannels(requestedChannelId);
+
+  const activeSinger = useMemo(
+    () => resolveCurrentSinger(rawQuerySinger, rawQueryChannel, channels),
+    [rawQuerySinger, rawQueryChannel, channels],
+  );
   const activeFilterId = (router.query.filter as FilterPresetId) || 'all';
   const searchKeyword = (router.query.keyword as string) || '';
 
@@ -46,16 +59,22 @@ function SingingStreamsPage() {
   // 全曲モードかどうか
   const isAllSingers = activeSinger === ALL_SINGERS_KEY;
 
-  // 現在の歌い手の表示名とアイコン
-  const currentSingerName = isAllSingers ? 'すべての歌い手（全曲モード）' : activeSinger;
-  const currentSingerIcon = isAllSingers ? '🌐' : getSingerIcon(activeSinger);
-  const nijiViewerUrl = isAllSingers ? null : getNijiViewerUrl(activeSinger);
-
   // 現在の歌い手の Holodex チャンネル情報
-  const currentChannelId = isAllSingers ? undefined : SINGER_CHANNEL_IDS[activeSinger];
+  const currentChannelId = useMemo(() => {
+    if (isAllSingers) return undefined;
+    if (requestedChannelId) return requestedChannelId;
+    return SINGER_CHANNEL_IDS[activeSinger];
+  }, [isAllSingers, requestedChannelId, activeSinger]);
+
   const currentChannel = currentChannelId ? channels[currentChannelId] : undefined;
   const currentGroup = getChannelGroup(currentChannel);
   const currentSubCount = formatSubscriberCount(currentChannel?.subscriber_count);
+  const currentAvatar = getSingerAvatar(activeSinger, currentChannel?.photo);
+  const nijiViewerUrl = isAllSingers ? null : getNijiViewerUrl(activeSinger, currentChannelId);
+
+  // 現在の歌い手の表示名とアイコン
+  const currentSingerName = isAllSingers ? 'すべての歌い手（全曲モード）' : activeSinger;
+  const currentSingerIcon = isAllSingers ? '🌐' : getSingerIcon(activeSinger);
 
   // プリセットフィルター情報（URLパラメータで指定されている場合のみ表示）
   const activePreset = useMemo(
@@ -133,15 +152,16 @@ function SingingStreamsPage() {
       <div className={styles.headerBar}>
         <div className={styles.singerControl}>
           <div className={styles.currentSingerBadge}>
-            {getSingerAvatar(activeSinger) ? (
+            {currentAvatar ? (
               <div className={styles.singerAvatarWrapper}>
                 <Image
-                  src={getSingerAvatar(activeSinger)!}
+                  src={currentAvatar}
                   alt={currentSingerName}
                   width={36}
                   height={36}
                   className={styles.singerHeaderAvatar}
                   style={{ width: '100%', height: '100%' }}
+                  unoptimized={currentAvatar.startsWith('http')}
                 />
               </div>
             ) : (
@@ -196,6 +216,11 @@ function SingingStreamsPage() {
               value={activeSinger}
               onChange={onSingerChange}
             >
+              {!isAllSingers && !singerSummaries.some((s) => s.name === activeSinger) && (
+                <option value={activeSinger}>
+                  {currentSingerIcon} {currentSingerName} (0曲)
+                </option>
+              )}
               {singerSummaries.map((s) => (
                 <option key={s.name} value={s.name}>
                   {s.icon} {s.name} ({s.count}曲)
@@ -250,7 +275,11 @@ function SingingStreamsPage() {
         {!displayedStreams ? (
           <Spinner className={styles.spinner} />
         ) : !displayedStreams.length ? (
-          <div className={styles.empty}>条件に一致する楽曲はありません</div>
+          <div className={styles.empty}>
+            {searchKeyword
+              ? '条件に一致する楽曲はありません'
+              : `${currentSingerName} の楽曲データはまだ登録されていません`}
+          </div>
         ) : (
           <>
             <div className={styles.resultCount}>
