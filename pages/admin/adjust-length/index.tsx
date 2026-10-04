@@ -147,7 +147,6 @@ export default function AdjustSongPage() {
         .from('singing_stream')
         .select(`
           id,
-          song_id,
           start,
           end,
           video_id,
@@ -155,7 +154,7 @@ export default function AdjustSongPage() {
           singers,
           is_length_checked,
           length_checked_at,
-          song!inner(id, title, artist, song_metadata(mood, genre, is_night_pick)),
+          song(id, title, artist, song_metadata(mood, genre, is_night_pick)),
           video!video_id(title, url)
         `)
         .order('published_at', { ascending: false })
@@ -549,7 +548,7 @@ export default function AdjustSongPage() {
     setSaving(true);
     setStatusMessage(null);
 
-    const targetSongId = currentSong.song_id || currentSong.song?.id;
+    const targetSongId = currentSong.id;
 
     try {
       const payload: Record<string, any> = {

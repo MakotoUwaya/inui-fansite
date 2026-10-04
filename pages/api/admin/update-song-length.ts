@@ -53,7 +53,7 @@ export default async function handler(
       .from('singing_stream')
       .update(updatePayload)
       .eq('id', id)
-      .select('id, song_id, start, end, singers, is_length_checked, length_checked_at')
+      .select('id, start, end, singers, is_length_checked, length_checked_at')
       .single();
 
     if (streamError) {
@@ -62,7 +62,8 @@ export default async function handler(
     }
 
     // 2. song_metadata の更新（指定されている場合）
-    const targetSongId = song_id || streamData?.song_id;
+    // singing_stream.id === song.id === song_metadata.song_id
+    const targetSongId = id;
     let savedMetadata = null;
 
     if (targetSongId && metadata && typeof metadata === 'object') {
