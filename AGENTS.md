@@ -19,6 +19,10 @@
 - **それ以外の全操作は確認不要（自律実行）**:
   - ファイルの作成・編集・削除（`Remove-Item` 等）は確認を挟まず自律実行してください。
   - `git add`、`git commit`、`git status`、`npm run build`、テスト、その他各種コマンドは確認不要で完了まで進めてください。
+- **PR・ブランチ運用ルール**:
+  - リポジトリ設定で「Automatically delete head branches (`deleteBranchOnMerge`)」を常に有効化しておくこと。
+  - PR マージ（`gh pr merge` 等）を実行・支援する際は、必ずブランチ削除オプション（`--delete-branch`）を付与すること。
+  - マージ完了後は、作業用ローカルブランチも速やかに削除（`git branch -d` 等）し、`git fetch --prune` で追跡ブランチを整理すること。
 
 ## 3. 進行状況の可視化
 - ツール呼び出し前に「何のために何をするか（目的）」を一言で端的に出力してください。
