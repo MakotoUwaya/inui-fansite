@@ -329,6 +329,8 @@ function extractSingersFromTitle(title: string): string[] {
         part === '歌枠' ||
         part === 'コラボ歌枠' ||
         part.includes('歌枠') ||
+        part.includes('カラオケ') ||
+        part.includes('ボカロ') ||
         /KARAOKE/i.test(part) ||
         part.startsWith('#') ||
         part.includes('ドリームスターズ') ||
@@ -337,6 +339,7 @@ function extractSingersFromTitle(title: string): string[] {
       ) {
         continue;
       }
+
       if (part === '西弦緑渡') {
         foundSingers.add('西園チグサ');
         foundSingers.add('弦月藤士郎');
