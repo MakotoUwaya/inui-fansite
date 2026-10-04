@@ -101,8 +101,8 @@ export const GlobalPlayer = memo(function GlobalPlayer() {
         <div id="singing-stream-player" className={styles.iframeWrapper} />
       </div>
 
-      {/* グローバルフッタープレイヤーコントローラー */}
-      {currentStream ? (
+      {/* グローバルフッタープレイヤーコントローラー（管理・調整画面では非表示） */}
+      {currentStream && !router.pathname.startsWith('/admin') ? (
         <motion.div
           className={styles.controller}
           initial={{ y: '100%' }}
