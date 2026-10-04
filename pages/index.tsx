@@ -95,7 +95,7 @@ function IndexPage() {
                             {groupName}
                           </span>
                         )}
-                        {ch?.type && (
+                        {ch?.type && ch.type.toLowerCase() !== 'vtuber' && (
                           <span className={clsx(styles.tag, styles.tagType)}>
                             {ch.type}
                           </span>

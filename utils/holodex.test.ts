@@ -63,6 +63,25 @@ describe('holodex utils', () => {
       ).toBe('1SEEDs1期');
     });
 
+    it('ignores ZZ for group and suborg', () => {
+      expect(
+        getChannelGroup({
+          id: '4',
+          name: '富士葵',
+          group: 'ZZ',
+          suborg: 'ZZ',
+        }),
+      ).toBe('');
+      expect(
+        getChannelGroup({
+          id: '5',
+          name: '個人勢',
+          group: '',
+          suborg: '0iZZ',
+        }),
+      ).toBe('');
+    });
+
     it('returns empty string when both are missing or null', () => {
       expect(getChannelGroup(null)).toBe('');
       expect(getChannelGroup({ id: '3', name: 'ライバー' })).toBe('');

@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo } from 'react';
@@ -7,7 +8,9 @@ import { RiRainbowLine } from 'react-icons/ri';
 import { Layout } from '../../components/Layout/Layout';
 import { SingingStreamMediaObject } from '../../components/SingingStreamMediaObject/SingingStreamMediaObject';
 import { Spinner } from '../../components/Spinner/Spinner';
+import { useHolodexChannels } from '../../hooks/holodex';
 import { useSingingStreamsForSearch } from '../../hooks/singing-stream';
+import { formatSubscriberCount, getChannelGroup } from '../../utils/holodex';
 import {
   DEFAULT_SINGER,
   ALL_SINGERS_KEY,
@@ -16,6 +19,7 @@ import {
   getSingerIcon,
   getSingerAvatar,
   getNijiViewerUrl,
+  SINGER_CHANNEL_IDS,
 } from '../../utils/singerConfig';
 import { FILTER_PRESETS, FilterPresetId } from '../../utils/songMetadata';
 import { filterStreams } from '../../utils/songFilter';
@@ -29,6 +33,7 @@ function SingingStreamsPage() {
   const router = useRouter();
   const { register, handleSubmit, resetField, watch, setValue } = useForm<SearchForm>();
   const { streams } = useSingingStreamsForSearch();
+  const { channels } = useHolodexChannels();
 
   // URLクエリから歌い手を判定（未指定ならデフォルト: 戌亥とこ）
   const activeSinger = resolveCurrentSinger(router.query.singer as string | undefined);
@@ -45,6 +50,12 @@ function SingingStreamsPage() {
   const currentSingerName = isAllSingers ? 'すべての歌い手（全曲モード）' : activeSinger;
   const currentSingerIcon = isAllSingers ? '🌐' : getSingerIcon(activeSinger);
   const nijiViewerUrl = isAllSingers ? null : getNijiViewerUrl(activeSinger);
+
+  // 現在の歌い手の Holodex チャンネル情報
+  const currentChannelId = isAllSingers ? undefined : SINGER_CHANNEL_IDS[activeSinger];
+  const currentChannel = currentChannelId ? channels[currentChannelId] : undefined;
+  const currentGroup = getChannelGroup(currentChannel);
+  const currentSubCount = formatSubscriberCount(currentChannel?.subscriber_count);
 
   // プリセットフィルター情報（URLパラメータで指定されている場合のみ表示）
   const activePreset = useMemo(
@@ -148,6 +159,30 @@ function SingingStreamsPage() {
               >
                 <RiRainbowLine className={styles.nijiViewerIcon} />
               </a>
+            )}
+            {!isAllSingers && (currentChannel?.org || currentGroup || currentSubCount) && (
+              <div className={styles.singerTags}>
+                {currentChannel?.org && (
+                  <span className={clsx(styles.tag, styles.tagOrg)}>
+                    {currentChannel.org}
+                  </span>
+                )}
+                {currentGroup && (
+                  <span className={clsx(styles.tag, styles.tagSuborg)}>
+                    {currentGroup}
+                  </span>
+                )}
+                {currentChannel?.type && currentChannel.type.toLowerCase() !== 'vtuber' && (
+                  <span className={clsx(styles.tag, styles.tagType)}>
+                    {currentChannel.type}
+                  </span>
+                )}
+                {currentSubCount && (
+                  <span className={styles.subscriberCount} title={`登録者数: ${currentSubCount}`}>
+                    👥 {currentSubCount}
+                  </span>
+                )}
+              </div>
             )}
           </div>
 

@@ -18,10 +18,15 @@ export interface HolodexChannelSummary {
  */
 export function getChannelGroup(channel?: HolodexChannelSummary | null): string {
   if (!channel) return '';
-  if (channel.group && channel.group.trim()) {
-    return channel.group.trim();
+  const group = channel.group?.trim();
+  if (group && group.toUpperCase() !== 'ZZ') {
+    return group;
   }
-  return formatSuborg(channel.suborg);
+  const formattedSuborg = formatSuborg(channel.suborg);
+  if (formattedSuborg && formattedSuborg.toUpperCase() !== 'ZZ') {
+    return formattedSuborg;
+  }
+  return '';
 }
 
 /**
