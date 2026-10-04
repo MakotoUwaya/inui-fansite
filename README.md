@@ -42,6 +42,12 @@ YouTube 公式の IFrame Player API を利用し、アーカイブの歌唱開�
 - **Icons**: react-icons (Material Design Icons / Simple Icons)
 - **Package Manager**: pnpm
 
+## 🔑 環境変数 (Environment Variables)
+
+- `NEXT_PUBLIC_SUPABASE_URL`: Supabase プロジェクト URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Supabase Anon Key
+- `HOLODEX_APIKEY`: [Holodex API](https://docs.holodex.net/) キー（トップページのライバー詳細情報・登録者数等の取得用。未指定時はフォールバック表示）
+
 ## 📄 免責事項 (Disclaimer)
 
 当サイトはファンによって運営されている**非公式ファンサイト**です。
