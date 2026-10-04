@@ -32,10 +32,11 @@ export const useSlider = (
   );
 
   useEffect(() => {
-    if (!valueProp) return;
+    if (isSlidingRef.current) return;
+    if (valueProp == null) return;
     const newValue = calc(valueProp);
     setValue(newValue);
-  }, [calc, min, valueProp]);
+  }, [calc, valueProp]);
 
   useEffect(() => {
     const refCurrent = ref.current;
@@ -114,6 +115,7 @@ export const useSlider = (
     return () => {
       off(refCurrent, 'mousedown', onMouseDown);
       off(refCurrent, 'touchstart', onTouchStart);
+      unbindEvents();
     };
   }, [calc, isMounted, max, min, onScrub, ref]);
 

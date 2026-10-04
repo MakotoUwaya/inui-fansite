@@ -91,28 +91,50 @@ function SingingStreamsWatchPage() {
     };
   }, [setPlaceholderRect]);
 
-  const lastLoadedIdRef = useRef<string | null>(null);
+  const prevUrlStreamIdRef = useRef<string | undefined>(undefined);
+  const isInitializedRef = useRef(false);
 
   // 初回ロード時、またはブラウザの進む/戻る等で URL の v が外部変更された際に曲を再生
   useEffect(() => {
     if (!router.isReady) return;
 
-    const targetId = urlStreamId || currentStreamId;
-    if (!targetId) return;
+    // 初回マウント時、または URL の v が外部から変更された場合のみ処理
+    const isUrlChanged = prevUrlStreamIdRef.current !== urlStreamId;
+    prevUrlStreamIdRef.current = urlStreamId;
 
-    // 既にこの曲をロード済み、または現在再生中であれば再ロードしない
-    if (lastLoadedIdRef.current === targetId || (currentStreamId && currentStreamId === targetId)) {
+    if (!isInitializedRef.current) {
+      isInitializedRef.current = true;
+      // 初回訪問時: URL の指定曲を優先、なければ現在再生中の曲、どちらもなければリスト先頭
+      const targetId = urlStreamId || currentStreamId || baseStreams[0]?.id;
+      if (!targetId) return;
+
+      // 既に再生中の曲と同じであれば再ロードせず継続
+      if (currentStreamId === targetId) return;
+
+      const targetStream =
+        (fetchedStream && fetchedStream.id === targetId ? fetchedStream : null) ||
+        baseStreams.find((s) => s.id === targetId) ||
+        rawStreams?.find((s) => s.id === targetId);
+
+      if (targetStream) {
+        playSong(targetStream, baseStreams.length > 0 ? baseStreams : undefined, filterOptions);
+      }
       return;
     }
 
-    const targetStream =
-      (fetchedStream && fetchedStream.id === targetId ? fetchedStream : null) ||
-      baseStreams.find((s) => s.id === targetId) ||
-      rawStreams?.find((s) => s.id === targetId);
+    // 初回以降: ブラウザの戻る/進む等で URL の v が明示的に変わった場合のみ反応
+    if (isUrlChanged && urlStreamId) {
+      // 既に内部でその曲を再生中（shallow 同期によって URL が変わった場合）は何もしない
+      if (currentStreamId === urlStreamId) return;
 
-    if (targetStream) {
-      lastLoadedIdRef.current = targetId;
-      playSong(targetStream, baseStreams.length > 0 ? baseStreams : undefined, filterOptions);
+      const targetStream =
+        (fetchedStream && fetchedStream.id === urlStreamId ? fetchedStream : null) ||
+        baseStreams.find((s) => s.id === urlStreamId) ||
+        rawStreams?.find((s) => s.id === urlStreamId);
+
+      if (targetStream) {
+        playSong(targetStream, baseStreams.length > 0 ? baseStreams : undefined, filterOptions);
+      }
     }
   }, [
     router.isReady,
@@ -124,13 +146,6 @@ function SingingStreamsWatchPage() {
     filterOptions,
     playSong,
   ]);
-
-  // loadAndPlayStream による内部曲変更時に lastLoadedIdRef を追従同期
-  useEffect(() => {
-    if (currentStreamId) {
-      lastLoadedIdRef.current = currentStreamId;
-    }
-  }, [currentStreamId]);
 
   // プレイリストの同期（URL の条件に基づく baseStreams と同期）
   useEffect(() => {

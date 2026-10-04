@@ -69,6 +69,25 @@ let endSecondsVariable = 0;
 export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const reqIdRef = useRef<number | undefined>(undefined);
+  const isNavigatingRef = useRef(false);
+
+  // ルート遷移中は shallow replace 等によるルーティング干渉を防ぐ
+  useEffect(() => {
+    const handleStart = () => {
+      isNavigatingRef.current = true;
+    };
+    const handleComplete = () => {
+      isNavigatingRef.current = false;
+    };
+    router.events.on('routeChangeStart', handleStart);
+    router.events.on('routeChangeComplete', handleComplete);
+    router.events.on('routeChangeError', handleComplete);
+    return () => {
+      router.events.off('routeChangeStart', handleStart);
+      router.events.off('routeChangeComplete', handleComplete);
+      router.events.off('routeChangeError', handleComplete);
+    };
+  }, [router.events]);
 
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [apiReady, setApiReady] = useState(false);
@@ -193,7 +212,12 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
       }
 
       // watch ページにいる場合は URL のクエリ v を現在の曲IDに追従同期（shallow）
-      if (router.pathname === '/singing-streams/watch' && router.isReady) {
+      // ※ 他ページへの遷移中(isNavigatingRef)はページ遷移をキャンセルしないよう実行しない
+      if (
+        router.pathname === '/singing-streams/watch' &&
+        router.isReady &&
+        !isNavigatingRef.current
+      ) {
         const queryParams = new URLSearchParams();
         const currentQuery = router.query;
         for (const [k, v] of Object.entries(currentQuery)) {
@@ -202,10 +226,15 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
           }
         }
         queryParams.set('v', target.id);
-        router.replace(`/singing-streams/watch?${queryParams.toString()}`, undefined, {
-          shallow: true,
-          scroll: false,
-        });
+        const newUrl = `/singing-streams/watch?${queryParams.toString()}`;
+        try {
+          router.replace(newUrl, undefined, {
+            shallow: true,
+            scroll: false,
+          });
+        } catch {
+          // ignore
+        }
       }
     },
     [router],
@@ -319,7 +348,20 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
   const seekTo = useCallback(
     (time: number) => {
       if (!playerRef.current || !currentStream || typeof playerRef.current.seekTo !== 'function') return;
-      playerRef.current.seekTo(currentStream.start + time);
+      const targetTime = currentStream.start + Math.max(0, time);
+      if (currentStream.end > 0 && targetTime >= currentStream.end) {
+        setEnded(true);
+        setPlaying(false);
+        try {
+          playerRef.current.pauseVideo();
+        } catch {
+          // ignore
+        }
+        return;
+      }
+      playerRef.current.seekTo(targetTime);
+      setCurrentTime(Math.max(0, time));
+      setEnded(false);
     },
     [currentStream],
   );
@@ -447,7 +489,35 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const step = () => {
       if (!playerRef.current || !currentStream) return;
-      const time = playerRef.current.getCurrentTime() - currentStream.start;
+      let ytCurrentTime = 0;
+      try {
+        ytCurrentTime = playerRef.current.getCurrentTime();
+      } catch {
+        return;
+      }
+
+      // 曲終了時刻（end）到達判定
+      if (currentStream.end > 0 && ytCurrentTime >= currentStream.end) {
+        if (repeatTypeVariable === 'repeatOne') {
+          try {
+            playerRef.current.seekTo(currentStream.start);
+            setCurrentTime(0);
+          } catch {
+            // ignore
+          }
+          return;
+        }
+        setEnded(true);
+        setPlaying(false);
+        try {
+          playerRef.current.pauseVideo();
+        } catch {
+          // ignore
+        }
+        return;
+      }
+
+      const time = ytCurrentTime - currentStream.start;
       setCurrentTime(isNaN(time) ? 0 : Math.max(0, time));
       if (isPlaying) {
         reqIdRef.current = requestAnimationFrame(step);
@@ -464,15 +534,22 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
     if (!streams.length || !isEnded || !isPlayedOnce || !currentStream) return;
     enableAutoPlay();
     const playingIndex = streams.findIndex((s) => s.id === currentStream.id);
-    const nextStream =
-      playingIndex === streams.length - 1
-        ? repeatType === 'repeat'
-          ? streams[0]
-          : null
-        : streams[playingIndex + 1];
+    let nextStream: SingingStreamForSearch | null = null;
+    if (playingIndex !== -1) {
+      if (playingIndex === streams.length - 1) {
+        nextStream = repeatType === 'repeat' ? streams[0] : null;
+      } else {
+        nextStream = streams[playingIndex + 1];
+      }
+    } else {
+      nextStream = streams[0] || null;
+    }
 
     if (nextStream) {
       loadAndPlayStream(nextStream);
+    } else {
+      setEnded(false);
+      setPlaying(false);
     }
   }, [
     currentStream,
