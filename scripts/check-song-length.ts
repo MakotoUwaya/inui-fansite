@@ -684,7 +684,11 @@ async function main() {
   process.exit(1);
 }
 
-main().catch((err) => {
-  console.error('予期せぬエラーが発生しました:', err);
-  process.exit(1);
-});
+if (process.argv[1] && process.argv[1].replace(/\\/g, '/').endsWith('check-song-length.ts')) {
+
+  main().catch((err) => {
+    console.error('予期せぬエラーが発生しました:', err);
+    process.exit(1);
+  });
+}
+

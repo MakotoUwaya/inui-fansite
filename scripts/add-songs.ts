@@ -142,6 +142,16 @@ function resolveSingers(
     if (singer === '弦月藤士郎' && /🎻|❤|げんづき|弦月/.test(note)) {
       matchedSingers.push(singer);
     }
+    if (singer === '渡会雲雀' && /☕|わたらい|渡会|ひばり|雲雀/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '緑仙' && /🐼|りゅーしぇん|緑仙/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '西園チグサ' && /🐬|ちぐさ|西園/.test(note)) {
+      matchedSingers.push(singer);
+    }
+
   }
 
   const unique = Array.from(new Set(matchedSingers));
@@ -184,6 +194,9 @@ function parseTimetable(text: string, videoSingers: string[] = ['戌亥とこ'])
     // 全角英数記号の正規化など
     rest = rest.replace(/^[0-9０-９]+[．\.]\s*/, '').trim();
 
+    // 年号表記 (2017) などの除去
+    rest = rest.replace(/\((?:19\d{2}|20\d{2})\)$/, '').trim();
+
     // 歌唱でないノイズ行を除外 (OPやEDは単語・境界として判定)
     if (/^(?:声入り|開始|待機|オープニング|エンディング|雑談|挨拶|トーク|SET\s*LIST|(?:OP|ED)(?:[\s:：、\-]|$))/i.test(rest)) {
       continue;
@@ -192,6 +205,14 @@ function parseTimetable(text: string, videoSingers: string[] = ['戌亥とこ'])
     let title = rest;
     let artist = '';
     let note = '';
+
+    // パイプ（| or ｜）による歌唱者・注記の分離（例: "夜咄ディセイブ   ｜渡会"）
+    const pipeMatch = rest.match(/^(.*?)\s*[|｜]\s*(.*)$/);
+    if (pipeMatch) {
+      title = pipeMatch[1].trim();
+      note = pipeMatch[2].trim();
+      rest = title;
+    }
 
     // "曲名 / アーティスト名" または "曲名 - アーティスト名" または "曲名 by アーティスト名" を分割
     const delimiterMatch =
@@ -205,14 +226,17 @@ function parseTimetable(text: string, videoSingers: string[] = ['戌亥とこ'])
     }
 
     // アーティスト名または曲名末尾の注記（例: "（🍹ソロ", "（🛼ソロ", "(デュエット)", "／💚" など）を抽出
-    const noteMatch =
-      artist.match(/[(（]([^()（）]+)[)）]?$/) ||
-      artist.match(/[\/／]\s*([\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d]+)/u) ||
-      artist.match(/([\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d]+)$/u) ||
-      title.match(/[(（]([^()（）]+)[)）]?$/);
-    if (noteMatch) {
-      note = noteMatch[1].trim();
+    if (!note) {
+      const noteMatch =
+        artist.match(/[(（]([^()（）]+)[)）]?$/) ||
+        artist.match(/[\/／]\s*([\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d]+)/u) ||
+        artist.match(/([\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d]+)$/u) ||
+        title.match(/[(（]([^()（）]+)[)）]?$/);
+      if (noteMatch) {
+        note = noteMatch[1].trim();
+      }
     }
+
 
     // アーティスト名末尾の注記を除去してクリーンにする
     artist = artist.replace(/[(（][^()（）]*(?:ソロ|デュエット|コラボ|全員|合唱|🍹|🛼|☯️|☀️|💙|💚|🐣|🌂|🥽|🦁)[^()（）]*[)）]?$/gu, '').trim();
@@ -277,6 +301,18 @@ function extractSingersFromTitle(title: string): string[] {
     foundSingers.add('Meloco Kyoran');
     foundSingers.add('Yu Q. Wilson');
   }
+  if (/西弦緑渡/.test(title)) {
+    foundSingers.add('西園チグサ');
+    foundSingers.add('弦月藤士郎');
+    foundSingers.add('緑仙');
+    foundSingers.add('渡会雲雀');
+  }
+  if (/渡会雲雀/.test(title)) {
+    foundSingers.add('渡会雲雀');
+  }
+  if (/戌亥とこ/.test(title)) {
+    foundSingers.add('戌亥とこ');
+  }
 
   const bracketMatches = title.match(/[【\[(（]([^【\[(（）)\]】]+)[)）\]】]/g) || [];
 
@@ -294,8 +330,18 @@ function extractSingersFromTitle(title: string): string[] {
         part === 'コラボ歌枠' ||
         part.includes('歌枠') ||
         /KARAOKE/i.test(part) ||
-        part.startsWith('#')
+        part.startsWith('#') ||
+        part.includes('ドリームスターズ') ||
+        part.includes('バンド') ||
+        part.includes('Session')
       ) {
+        continue;
+      }
+      if (part === '西弦緑渡') {
+        foundSingers.add('西園チグサ');
+        foundSingers.add('弦月藤士郎');
+        foundSingers.add('緑仙');
+        foundSingers.add('渡会雲雀');
         continue;
       }
       foundSingers.add(part);
@@ -309,24 +355,31 @@ function extractSingersFromTitle(title: string): string[] {
 }
 
 /**
- * iTunes Search API を利用して原曲の長さ（秒）を取得
+ * iTunes Search API を利用して原曲の情報（長さ、アーティスト名）を取得
  */
-async function fetchTrackDuration(title: string, artist?: string): Promise<number | null> {
+async function fetchTrackInfo(title: string, artist?: string): Promise<{ duration: number | null; artist?: string }> {
   try {
     const query = `${title} ${artist || ''}`.trim();
     const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=1`;
     const res = await fetch(url);
-    if (!res.ok) return null;
+    if (!res.ok) return { duration: null };
     const data = await res.json();
-    const trackTimeMillis = data.results?.[0]?.trackTimeMillis;
-    if (trackTimeMillis && typeof trackTimeMillis === 'number') {
-      return Math.round(trackTimeMillis / 1000);
+    const item = data.results?.[0];
+    if (item) {
+      const duration = item.trackTimeMillis ? Math.round(item.trackTimeMillis / 1000) : null;
+      return { duration, artist: item.artistName };
     }
   } catch (e) {
     // ignore
   }
-  return null;
+  return { duration: null };
 }
+
+async function fetchTrackDuration(title: string, artist?: string): Promise<number | null> {
+  const info = await fetchTrackInfo(title, artist);
+  return info.duration;
+}
+
 
 /**
  * YouTube のページからタイトル、配信日時、動画長（秒）を取得
@@ -500,12 +553,17 @@ async function main() {
         if (s.end !== undefined) return;
         const nextSong = songs[i + 1];
         const nextStart = nextSong ? nextSong.start : null;
-        const trackDuration = await fetchTrackDuration(s.title, s.artist);
+        const trackInfo = await fetchTrackInfo(s.title, s.artist);
+        if (!s.artist && trackInfo.artist) {
+          s.artist = trackInfo.artist;
+        }
+        const trackDuration = trackInfo.duration;
 
         if (trackDuration) {
           const estimatedEnd = s.start + trackDuration + 8; // アウトロ8秒
           s.end = nextStart ? Math.min(estimatedEnd, nextStart) : estimatedEnd;
         } else {
+
           const defaultEnd = s.start + 270;
           s.end = nextStart ? Math.min(defaultEnd, nextStart) : defaultEnd;
         }

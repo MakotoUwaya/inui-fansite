@@ -68,7 +68,9 @@ export const SINGER_ICONS: Record<string, string> = {
   '風楽奏斗': '🍝',
   '夢追翔': '🎤',
   '緋八マナ': '🐝',
+  '西園チグサ': '🐬',
 };
+
 
 /**
  * 歌い手のYouTube公式アバター画像URLマッピング
@@ -135,7 +137,9 @@ export const SINGER_AVATARS: Record<string, string> = {
   '宗谷いちか': 'https://yt3.googleusercontent.com/SYYjMkHJKNjLPn72_m1OHBDwZzGVFBJfKJvIb-HzxaK8QmYvjnUNyBHthwLr787n3ig1ArsJGLk=s900-c-k-c0x00ffffff-no-rj',
   '花鋏キョウ': 'https://yt3.googleusercontent.com/YFD87IueOX8p7UcywKgJmTIlsxlbhxTACJZTiAAp2rBPT3_AeQMliFFdX-zFrlAq0FQan9_nvQ=s900-c-k-c0x00ffffff-no-rj',
   '綺沙良': 'https://yt3.googleusercontent.com/2JXV_c9_Fw9_19LZykzhdohREdfh9fAG73y_P0YW3nbzbjdDKhDh97N3z5kHdhFFaer0H2bk=s900-c-k-c0x00ffffff-no-rj',
+  '西園チグサ': 'https://yt3.googleusercontent.com/6JihrN90Qv35zVpSd4RGgFMRwokH7lGZnIRnsM-e7NmMkKF36nMcDE23rFQmkkq0qQBPD4NuwGM=s900-c-k-c0x00ffffff-no-rj',
 };
+
 
 export function getSingerAvatar(singer: string, fallbackPhoto?: string | null): string | undefined {
   return SINGER_AVATARS[singer] || fallbackPhoto || undefined;
