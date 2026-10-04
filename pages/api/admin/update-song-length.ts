@@ -20,7 +20,7 @@ export default async function handler(
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { id, start, end, is_length_checked } = req.body;
+  const { id, song_id, start, end, is_length_checked, singers, metadata } = req.body;
 
   if (!id || typeof id !== 'string') {
     return res.status(400).json({ error: '有効な曲IDを指定してください。' });
@@ -35,26 +35,65 @@ export default async function handler(
   }
 
   try {
+    const now = new Date().toISOString();
     const updatePayload: Record<string, any> = {
       start: Math.round(start),
       end: end !== null ? Math.round(end) : null,
       is_length_checked: Boolean(is_length_checked),
-      length_checked_at: is_length_checked ? new Date().toISOString() : null,
+      length_checked_at: is_length_checked ? now : null,
+      updated_at: now,
     };
 
-    const { data, error } = await supabase
+    if (Array.isArray(singers)) {
+      updatePayload.singers = singers.map((s: string) => s.trim()).filter(Boolean);
+    }
+
+    // 1. singing_stream の更新
+    const { data: streamData, error: streamError } = await supabase
       .from('singing_stream')
       .update(updatePayload)
       .eq('id', id)
-      .select('id, start, end, is_length_checked, length_checked_at')
+      .select('id, song_id, start, end, singers, is_length_checked, length_checked_at')
       .single();
 
-    if (error) {
-      console.error('Supabase update error:', error);
-      return res.status(500).json({ error: error.message });
+    if (streamError) {
+      console.error('Supabase singing_stream update error:', streamError);
+      return res.status(500).json({ error: streamError.message });
     }
 
-    return res.status(200).json({ success: true, data });
+    // 2. song_metadata の更新（指定されている場合）
+    const targetSongId = song_id || streamData?.song_id;
+    let savedMetadata = null;
+
+    if (targetSongId && metadata && typeof metadata === 'object') {
+      const metadataPayload: Record<string, any> = {
+        song_id: targetSongId,
+        mood: metadata.mood || null,
+        genre: metadata.genre || null,
+        is_night_pick: Boolean(metadata.is_night_pick),
+        updated_at: now,
+      };
+
+      const { data: metaData, error: metaError } = await supabase
+        .from('song_metadata')
+        .upsert(metadataPayload, { onConflict: 'song_id' })
+        .select('mood, genre, is_night_pick')
+        .single();
+
+      if (metaError) {
+        console.warn('Supabase song_metadata update error:', metaError);
+      } else {
+        savedMetadata = metaData;
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        ...streamData,
+        song_metadata: savedMetadata,
+      },
+    });
   } catch (err: any) {
     console.error('API Error:', err);
     return res.status(500).json({ error: err.message || '内部エラーが発生しました。' });

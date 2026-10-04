@@ -2,8 +2,22 @@ import type { GetServerSideProps } from 'next';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { MdClear, MdSearch, MdPlayArrow, MdPause, MdSave, MdCheck, MdArrowForward, MdArrowBack, MdRefresh } from 'react-icons/md';
+import {
+  MdClear,
+  MdSearch,
+  MdPlayArrow,
+  MdPause,
+  MdSave,
+  MdCheck,
+  MdArrowForward,
+  MdArrowBack,
+  MdRefresh,
+  MdClose,
+  MdAdd,
+  MdHelpOutline,
+} from 'react-icons/md';
 import { supabase } from '../../../utils/supabaseClient';
+import { MOOD_LABELS, GENRE_LABELS } from '../../../utils/songMetadata';
 import styles from './index.module.scss';
 
 // 秒数を MM:SS または HH:MM:SS に変換
@@ -43,6 +57,7 @@ function parseTimeString(timeStr: string): number | null {
 
 type SongRecord = {
   id: string;
+  song_id?: string;
   start: number;
   end: number | null;
   video_id: string;
@@ -51,8 +66,14 @@ type SongRecord = {
   is_length_checked: boolean;
   length_checked_at: string | null;
   song: {
+    id?: string;
     title: string;
     artist: string;
+    song_metadata?: {
+      mood: string | null;
+      genre: string | null;
+      is_night_pick: boolean;
+    } | null;
   };
   video: {
     title: string;
@@ -64,7 +85,19 @@ type CheckFilter = 'unchecked' | 'checked' | 'all';
 type LengthFilter = 'all' | 'long' | 'no-end';
 type SortOrder = 'newest' | 'oldest' | 'duration-desc' | 'duration-asc' | 'title';
 
-export default function AdjustSongLengthPage() {
+const COMMON_SINGERS = [
+  '戌亥とこ',
+  '町田ちま',
+  '星川サラ',
+  'リゼ・ヘルエスタ',
+  'アンジュ・カトリーナ',
+  '緑仙',
+  '樋口楓',
+  '西園チグサ',
+  '渡会雲雀',
+];
+
+export default function AdjustSongPage() {
   const [songs, setSongs] = useState<SongRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -79,11 +112,18 @@ export default function AdjustSongLengthPage() {
   const [lengthFilter, setLengthFilter] = useState<LengthFilter>('all');
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
 
-  // 編集フォーム状態
+  // 編集フォーム状態（時間）
   const [editStart, setEditStart] = useState<number>(0);
   const [editEnd, setEditEnd] = useState<number | null>(null);
   const [startInputStr, setStartInputStr] = useState('');
   const [endInputStr, setEndInputStr] = useState('');
+
+  // 編集フォーム状態（歌唱者・タグ）
+  const [editSingers, setEditSingers] = useState<string[]>([]);
+  const [newSingerInput, setNewSingerInput] = useState('');
+  const [editMood, setEditMood] = useState<string | null>(null);
+  const [editGenre, setEditGenre] = useState<string | null>(null);
+  const [editNightPick, setEditNightPick] = useState<boolean>(false);
 
   // プレイヤー状態
   const playerRef = useRef<any>(null);
@@ -105,7 +145,19 @@ export default function AdjustSongLengthPage() {
     while (true) {
       const { data, error } = await supabase
         .from('singing_stream')
-        .select('id, start, end, video_id, published_at, singers, is_length_checked, length_checked_at, song!inner(title, artist), video!video_id(title, url)')
+        .select(`
+          id,
+          song_id,
+          start,
+          end,
+          video_id,
+          published_at,
+          singers,
+          is_length_checked,
+          length_checked_at,
+          song!inner(id, title, artist, song_metadata(mood, genre, is_night_pick)),
+          video!video_id(title, url)
+        `)
         .order('published_at', { ascending: false })
         .order('start', { ascending: true })
         .range(from, from + pageSize - 1);
@@ -156,14 +208,15 @@ export default function AdjustSongLengthPage() {
       result = result.filter((s) => s.end === null);
     }
 
-    // キーワード検索（曲名、アーティスト、動画タイトル）
+    // キーワード検索（曲名、アーティスト、動画タイトル、歌唱者）
     if (searchKeyword.trim()) {
       const kw = searchKeyword.trim().toLowerCase();
       result = result.filter((s) => {
         const title = (s.song?.title || '').toLowerCase();
         const artist = (s.song?.artist || '').toLowerCase();
         const videoTitle = (s.video?.title || '').toLowerCase();
-        return title.includes(kw) || artist.includes(kw) || videoTitle.includes(kw);
+        const singersStr = (s.singers || []).join(' ').toLowerCase();
+        return title.includes(kw) || artist.includes(kw) || videoTitle.includes(kw) || singersStr.includes(kw);
       });
     }
 
@@ -214,6 +267,17 @@ export default function AdjustSongLengthPage() {
     setEditEnd(song.end);
     setStartInputStr(formatTime(song.start));
     setEndInputStr(song.end !== null ? formatTime(song.end) : '');
+
+    // 歌唱者・タグを初期化
+    setEditSingers(Array.isArray(song.singers) && song.singers.length > 0 ? [...song.singers] : ['戌亥とこ']);
+    setNewSingerInput('');
+
+    // メタデータ
+    const meta = Array.isArray(song.song?.song_metadata) ? song.song.song_metadata[0] : song.song?.song_metadata;
+    setEditMood(meta?.mood || null);
+    setEditGenre(meta?.genre || null);
+    setEditNightPick(Boolean(meta?.is_night_pick));
+
     setStatusMessage(null);
 
     if (stopTimerRef.current) {
@@ -221,7 +285,7 @@ export default function AdjustSongLengthPage() {
       stopTimerRef.current = null;
     }
 
-    const seekTime = Math.max(0, song.start - 3);
+    const seekTime = Math.max(0, song.start);
 
     // YouTubeプレイヤーの動画読み込み
     if (playerRef.current && typeof playerRef.current.loadVideoById === 'function') {
@@ -279,13 +343,13 @@ export default function AdjustSongLengthPage() {
                 if (pending && typeof event.target.cueVideoById === 'function') {
                   event.target.cueVideoById({
                     videoId: pending.videoId,
-                    startSeconds: Math.max(0, pending.start - 3),
+                    startSeconds: Math.max(0, pending.start),
                   });
                   pendingVideoRef.current = null;
                 } else if (targetSong && typeof event.target.cueVideoById === 'function') {
                   event.target.cueVideoById({
                     videoId: targetSong.video_id,
-                    startSeconds: Math.max(0, targetSong.start - 3),
+                    startSeconds: Math.max(0, targetSong.start),
                   });
                 }
               },
@@ -342,22 +406,21 @@ export default function AdjustSongLengthPage() {
     }
   };
 
-  // 1. 開始から再生（前3秒から）
+  // 1. 歌い出し確認 (±0s ジャストタイムで再生)
   const playStart = useCallback(() => {
     if (!playerRef.current || typeof playerRef.current.seekTo !== 'function') return;
     clearStopTimer();
-    const seekSec = Math.max(0, editStart - 3);
-    playerRef.current.seekTo(seekSec, true);
+    playerRef.current.seekTo(editStart, true);
     if (typeof playerRef.current.playVideo === 'function') {
       playerRef.current.playVideo();
     }
   }, [editStart]);
 
-  // 2. 終了前7秒〜終了まで再生（終了地点で自動一時停止）
+  // 2. 歌い終わり確認 (前3s〜終了まで再生して自動停止)
   const playEndBefore = useCallback(() => {
     if (!playerRef.current || editEnd === null || typeof playerRef.current.seekTo !== 'function') return;
     clearStopTimer();
-    const playLength = 7;
+    const playLength = 3;
     const seekSec = Math.max(editStart, editEnd - playLength);
     playerRef.current.seekTo(seekSec, true);
     if (typeof playerRef.current.playVideo === 'function') {
@@ -365,15 +428,15 @@ export default function AdjustSongLengthPage() {
     }
 
     // 終了時刻に達したら停止
-    const durationMs = (editEnd - seekSec) * 1000 / playbackRate;
+    const durationMs = ((editEnd - seekSec) * 1000) / playbackRate;
     stopTimerRef.current = setTimeout(() => {
       if (playerRef.current && typeof playerRef.current.pauseVideo === 'function') {
         playerRef.current.pauseVideo();
       }
-    }, durationMs + 200);
+    }, durationMs + 150);
   }, [editStart, editEnd, playbackRate]);
 
-  // 3. 終了地点から5秒再生（雑談が入っていないか確認・自動停止）
+  // 3. 終了後の雑談確認 (終了時刻から5秒再生して自動停止)
   const playEndAfter = useCallback(() => {
     if (!playerRef.current || editEnd === null || typeof playerRef.current.seekTo !== 'function') return;
     clearStopTimer();
@@ -468,6 +531,18 @@ export default function AdjustSongLengthPage() {
     }
   };
 
+  // 歌唱者の追加・削除
+  const addSinger = (singerName: string) => {
+    const trimmed = singerName.trim();
+    if (!trimmed || editSingers.includes(trimmed)) return;
+    setEditSingers([...editSingers, trimmed]);
+    setNewSingerInput('');
+  };
+
+  const removeSinger = (singerName: string) => {
+    setEditSingers(editSingers.filter((s) => s !== singerName));
+  };
+
   // 保存処理
   const handleSave = async (andNext: boolean = false, markOkOnly: boolean = false) => {
     if (!currentSong) return;
@@ -476,17 +551,30 @@ export default function AdjustSongLengthPage() {
 
     const saveStart = markOkOnly ? currentSong.start : editStart;
     const saveEnd = markOkOnly ? currentSong.end : editEnd;
+    const targetSongId = currentSong.song_id || currentSong.song?.id;
 
     try {
+      const payload: Record<string, any> = {
+        id: currentSong.id,
+        song_id: targetSongId,
+        start: saveStart,
+        end: saveEnd,
+        is_length_checked: true,
+      };
+
+      if (!markOkOnly) {
+        payload.singers = editSingers;
+        payload.metadata = {
+          mood: editMood,
+          genre: editGenre,
+          is_night_pick: editNightPick,
+        };
+      }
+
       const res = await fetch('/api/admin/update-song-length', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: currentSong.id,
-          start: saveStart,
-          end: saveEnd,
-          is_length_checked: true,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const json = await res.json();
@@ -496,14 +584,28 @@ export default function AdjustSongLengthPage() {
 
       // ローカル state を更新
       setSongs((prev) =>
-        prev.map((s) =>
-          s.id === currentSong.id
-            ? { ...s, start: saveStart, end: saveEnd, is_length_checked: true, length_checked_at: new Date().toISOString() }
-            : s
-        )
+        prev.map((s) => {
+          if (s.id !== currentSong.id) return s;
+          const updatedSong = { ...s, start: saveStart, end: saveEnd, is_length_checked: true, length_checked_at: new Date().toISOString() };
+          if (!markOkOnly) {
+            updatedSong.singers = editSingers;
+            if (updatedSong.song) {
+              updatedSong.song.song_metadata = {
+                mood: editMood,
+                genre: editGenre,
+                is_night_pick: editNightPick,
+              };
+            }
+          }
+          return updatedSong;
+        })
       );
 
-      setStatusMessage(`✅ 「${currentSong.song.title}」をチェック済みに保存しました`);
+      setStatusMessage(
+        markOkOnly
+          ? `✅ 「${currentSong.song.title}」を現在の時間のまま確認済みにマークしました`
+          : `✅ 「${currentSong.song.title}」の変更を保存し、確認済みにしました`
+      );
 
       if (andNext) {
         // 次の曲へ移動
@@ -545,7 +647,7 @@ export default function AdjustSongLengthPage() {
             : s
         )
       );
-      setStatusMessage(`↩️ 「${currentSong.song.title}」を未チェックに戻しました`);
+      setStatusMessage(`↩️ 「${currentSong.song.title}」を未確認に戻しました`);
     } catch (err: any) {
       setStatusMessage(`❌ エラー: ${err.message}`);
     } finally {
@@ -573,7 +675,6 @@ export default function AdjustSongLengthPage() {
   // キーボードショートカット
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // input 要素にフォーカスがあるときは一部ショートカットを除外
       const targetTag = (e.target as HTMLElement)?.tagName?.toLowerCase();
       const isInput = targetTag === 'input' || targetTag === 'textarea';
 
@@ -631,7 +732,7 @@ export default function AdjustSongLengthPage() {
   return (
     <>
       <Head>
-        <title>楽曲再生時間・開始終了 微調整ツール (Local Admin)</title>
+        <title>歌ってみた動画 調整ツール (Local Admin)</title>
       </Head>
 
       <div className={styles.container}>
@@ -639,7 +740,7 @@ export default function AdjustSongLengthPage() {
         <header className={styles.header}>
           <div className={styles.titleArea}>
             <h1>
-              <span>🎵</span> 楽曲再生時間 微調整ツール
+              <span>🎤</span> 歌ってみた動画 調整ツール
             </h1>
             <span className={styles.badgeLocal}>LOCAL ONLY</span>
           </div>
@@ -683,7 +784,7 @@ export default function AdjustSongLengthPage() {
                 <MdSearch className={styles.searchIcon} />
                 <input
                   type="text"
-                  placeholder="曲名・アーティスト・動画名で検索..."
+                  placeholder="曲名・歌手・歌唱者・動画名で検索..."
                   value={searchKeyword}
                   onChange={(e) => setSearchKeyword(e.target.value)}
                 />
@@ -773,6 +874,7 @@ export default function AdjustSongLengthPage() {
                   const isSelected = song.id === selectedId;
                   const durSec = song.end !== null ? song.end - song.start : null;
                   const isLong = durSec !== null && durSec >= 300;
+                  const singerDisplay = song.singers && song.singers.length > 0 ? song.singers.join(', ') : '戌亥とこ';
 
                   return (
                     <button
@@ -798,8 +900,8 @@ export default function AdjustSongLengthPage() {
                           </span>
                         </div>
                         <div className={styles.metaRow}>
-                          <span className={styles.artistName} title={song.song?.artist}>
-                            {song.song?.artist}
+                          <span className={styles.artistName} title={`原曲: ${song.song?.artist} | 歌: ${singerDisplay}`}>
+                            🎤 {singerDisplay}
                           </span>
                           <span className={styles.timeRange}>
                             {formatTime(song.start)} - {formatTime(song.end)}
@@ -813,7 +915,7 @@ export default function AdjustSongLengthPage() {
             </div>
           </aside>
 
-          {/* 右ペイン：プレイヤー＆微調整 */}
+          {/* 右ペイン：プレイヤー＆調整 */}
           <main className={styles.mainContent}>
             {/* プレイヤー領域（DOMアンマウントによるiframe破壊を防ぐため常駐） */}
             <section className={styles.playerSection}>
@@ -826,7 +928,7 @@ export default function AdjustSongLengthPage() {
                   <div className={styles.songHeader}>
                     <div className={styles.songDetails}>
                       <h2 className={styles.title}>{currentSong.song?.title}</h2>
-                      <div className={styles.artist}>アーティスト: {currentSong.song?.artist}</div>
+                      <div className={styles.artist}>原曲アーティスト: {currentSong.song?.artist}</div>
                       <div className={styles.videoTitle}>配信: {currentSong.video?.title}</div>
                     </div>
 
@@ -857,25 +959,25 @@ export default function AdjustSongLengthPage() {
                         className={styles.btnPlayStart}
                         onClick={playStart}
                         disabled={!playerReady}
-                        title="曲の開始3秒前から再生して歌い出しを確認 [キー: 1]"
+                        title="曲の開始時刻ジャスト（±0s）から再生して歌い出しを確認 [キー: 1]"
                       >
-                        <MdPlayArrow /> 歌い出し確認 (前3s)
+                        <MdPlayArrow /> 歌い出し確認 (±0s)
                       </button>
 
                       <button
                         className={styles.btnPlayEndBefore}
                         onClick={playEndBefore}
                         disabled={!playerReady || editEnd === null}
-                        title="終了時刻の手前7秒〜終了までを再生して歌が切れていないか確認 [キー: 2]"
+                        title="終了時刻の手前3秒〜終了までを再生し、自動停止して歌が切れていないか確認 [キー: 2]"
                       >
-                        <MdPlayArrow /> 歌い終わり確認 (前7s)
+                        <MdPlayArrow /> 歌い終わり確認 (前3s)
                       </button>
 
                       <button
                         className={styles.btnPlayEndAfter}
                         onClick={playEndAfter}
                         disabled={!playerReady || editEnd === null}
-                        title="終了時刻から5秒再生して雑談が入っていないか確認 [キー: 3]"
+                        title="終了時刻から5秒再生し、自動停止して直後に雑談やMCが入っていないか確認 [キー: 3]"
                       >
                         <MdPlayArrow /> 終了後の雑談確認 (+5s)
                       </button>
@@ -914,192 +1016,343 @@ export default function AdjustSongLengthPage() {
                 <span>👈 左のリストから調整したい楽曲を選択してください</span>
               </div>
             ) : (
-              /* 時間微調整コントロール */
+              /* 時間微調整＆歌唱者・タグ編集コントロール */
               <section className={styles.adjustSection}>
-                  {/* 現在の再生位置インジケーター */}
-                  <div className={styles.currentTimeIndicator}>
-                    <span className={styles.label}>▶ 現在の再生位置 (動画全体):</span>
-                    <span className={styles.value}>
-                      {formatTime(currentTime)} ({currentTime}s)
-                    </span>
-                  </div>
+                {/* 現在の再生位置インジケーター */}
+                <div className={styles.currentTimeIndicator}>
+                  <span className={styles.label}>▶ 現在の再生位置 (動画全体):</span>
+                  <span className={styles.value}>
+                    {formatTime(currentTime)} ({currentTime}s)
+                  </span>
+                </div>
 
-                  {/* 開始・終了時刻の入力カード */}
-                  <div className={styles.timeFieldsGrid}>
-                    {/* 開始時刻 */}
-                    <div className={styles.timeCard}>
-                      <div className={styles.cardHeader}>
-                        <span className={styles.fieldLabel}>開始時刻 (Start)</span>
-                        <span className={styles.calculatedSec}>{editStart} 秒</span>
-                      </div>
-
-                      <div className={styles.inputRow}>
-                        <input
-                          type="text"
-                          value={startInputStr}
-                          onChange={(e) => setStartInputStr(e.target.value)}
-                          onBlur={handleStartBlur}
-                          placeholder="MM:SS"
-                        />
-                        <button
-                          className={styles.btnSetCurrent}
-                          onClick={setCurrentAsStart}
-                          title="現在の再生位置を開始時刻に設定 [キー: []"
-                        >
-                          現在位置にセット [ [ ]
-                        </button>
-                      </div>
-
-                      <div className={styles.adjustButtons}>
-                        <button onClick={() => adjustStart(-5)}>-5s</button>
-                        <button onClick={() => adjustStart(-1)}>-1s</button>
-                        <button onClick={() => adjustStart(1)}>+1s</button>
-                        <button onClick={() => adjustStart(5)}>+5s</button>
-                      </div>
+                {/* 開始・終了時刻の入力カード */}
+                <div className={styles.timeFieldsGrid}>
+                  {/* 開始時刻 */}
+                  <div className={styles.timeCard}>
+                    <div className={styles.cardHeader}>
+                      <span className={styles.fieldLabel}>開始時刻 (Start)</span>
+                      <span className={styles.calculatedSec}>{editStart} 秒</span>
                     </div>
 
-                    {/* 終了時刻 */}
-                    <div className={styles.timeCard}>
-                      <div className={styles.cardHeader}>
-                        <span className={styles.fieldLabel}>終了時刻 (End)</span>
-                        <span className={styles.calculatedSec}>
-                          {editEnd !== null ? `${editEnd} 秒` : '未設定'}
+                    <div className={styles.inputRow}>
+                      <input
+                        type="text"
+                        value={startInputStr}
+                        onChange={(e) => setStartInputStr(e.target.value)}
+                        onBlur={handleStartBlur}
+                        placeholder="MM:SS"
+                      />
+                      <button
+                        className={styles.btnSetCurrent}
+                        onClick={setCurrentAsStart}
+                        disabled={!playerReady}
+                        title="現在の再生位置を開始時刻に設定 [キー: []"
+                      >
+                        現在位置にセット [ [ ]
+                      </button>
+                    </div>
+
+                    <div className={styles.adjustButtons}>
+                      <button onClick={() => adjustStart(-5)}>-5s</button>
+                      <button onClick={() => adjustStart(-1)}>-1s</button>
+                      <button onClick={() => adjustStart(1)}>+1s</button>
+                      <button onClick={() => adjustStart(5)}>+5s</button>
+                    </div>
+                  </div>
+
+                  {/* 終了時刻 */}
+                  <div className={styles.timeCard}>
+                    <div className={styles.cardHeader}>
+                      <span className={styles.fieldLabel}>終了時刻 (End)</span>
+                      <span className={styles.calculatedSec}>
+                        {editEnd !== null ? `${editEnd} 秒` : '未設定'}
+                      </span>
+                    </div>
+
+                    <div className={styles.inputRow}>
+                      <input
+                        type="text"
+                        value={endInputStr}
+                        onChange={(e) => setEndInputStr(e.target.value)}
+                        onBlur={handleEndBlur}
+                        placeholder="MM:SS"
+                      />
+                      <button
+                        className={styles.btnSetCurrent}
+                        onClick={setCurrentAsEnd}
+                        disabled={!playerReady}
+                        title="現在の再生位置を終了時刻に設定 [キー: ]]"
+                      >
+                        現在位置にセット [ ] ]
+                      </button>
+                    </div>
+
+                    <div className={styles.adjustButtons}>
+                      <button onClick={() => adjustEnd(-5)}>-5s</button>
+                      <button onClick={() => adjustEnd(-1)}>-1s</button>
+                      <button onClick={() => adjustEnd(1)}>+1s</button>
+                      <button onClick={() => adjustEnd(5)}>+5s</button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 計算された曲長サマリー */}
+                <div className={styles.durationSummaryBar}>
+                  <span className={styles.durationLabel}>算出された演奏時間:</span>
+                  <span
+                    className={`${styles.durationValue} ${
+                      currentDurationSec && currentDurationSec >= 300
+                        ? styles.warning
+                        : styles.ok
+                    }`}
+                  >
+                    {currentDurationSec !== null
+                      ? `${formatTime(currentDurationSec)} (${currentDurationSec}秒)`
+                      : '終了時刻を設定してください'}
+                    {currentDurationSec && currentDurationSec >= 300 && ' ⚠️ 5分以上（長尺）'}
+                  </span>
+                </div>
+
+                {/* 歌唱者・タグ編集セクション */}
+                <div className={styles.metaEditSection}>
+                  {/* 歌唱者（singers） */}
+                  <div className={styles.metaEditRow}>
+                    <div className={styles.metaEditHeader}>
+                      <span className={styles.label}>🎤 歌唱者 (Singers)</span>
+                      <span className={styles.hint}>複数人コラボの場合は全員追加してください</span>
+                    </div>
+
+                    <div className={styles.chipsContainer}>
+                      {editSingers.map((singer) => (
+                        <span key={singer} className={styles.singerChip}>
+                          {singer}
+                          <button
+                            type="button"
+                            className={styles.removeBtn}
+                            onClick={() => removeSinger(singer)}
+                            title="削除"
+                          >
+                            <MdClose />
+                          </button>
                         </span>
-                      </div>
+                      ))}
 
-                      <div className={styles.inputRow}>
+                      <div className={styles.addSingerInputWrapper}>
                         <input
                           type="text"
-                          value={endInputStr}
-                          onChange={(e) => setEndInputStr(e.target.value)}
-                          onBlur={handleEndBlur}
-                          placeholder="MM:SS"
+                          placeholder="歌唱者名を追加"
+                          value={newSingerInput}
+                          onChange={(e) => setNewSingerInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              addSinger(newSingerInput);
+                            }
+                          }}
                         />
                         <button
-                          className={styles.btnSetCurrent}
-                          onClick={setCurrentAsEnd}
-                          title="現在の再生位置を終了時刻に設定 [キー: ]]"
+                          type="button"
+                          onClick={() => addSinger(newSingerInput)}
+                          title="追加"
                         >
-                          現在位置にセット [ ] ]
+                          <MdAdd /> 追加
                         </button>
                       </div>
 
-                      <div className={styles.adjustButtons}>
-                        <button onClick={() => adjustEnd(-5)}>-5s</button>
-                        <button onClick={() => adjustEnd(-1)}>-1s</button>
-                        <button onClick={() => adjustEnd(1)}>+1s</button>
-                        <button onClick={() => adjustEnd(5)}>+5s</button>
+                      <div className={styles.quickAddSingers}>
+                        <span>候補:</span>
+                        {COMMON_SINGERS.map((s) => (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => addSinger(s)}
+                          >
+                            +{s}
+                          </button>
+                        ))}
                       </div>
                     </div>
                   </div>
 
-                  {/* 計算された曲長サマリー */}
-                  <div className={styles.durationSummaryBar}>
-                    <span className={styles.durationLabel}>算出された演奏時間:</span>
-                    <span
-                      className={`${styles.durationValue} ${
-                        currentDurationSec && currentDurationSec >= 300
-                          ? styles.warning
-                          : styles.ok
-                      }`}
+                  {/* ムード（Mood） */}
+                  <div className={styles.metaEditRow}>
+                    <div className={styles.metaEditHeader}>
+                      <span className={styles.label}>✨ ムード (Mood)</span>
+                      {editMood && (
+                        <button
+                          style={{ background: 'none', border: 'none', color: '#71717a', cursor: 'pointer', fontSize: '0.72rem', textDecoration: 'underline' }}
+                          onClick={() => setEditMood(null)}
+                        >
+                          クリア
+                        </button>
+                      )}
+                    </div>
+                    <div className={styles.tagButtonGroup}>
+                      {Object.entries(MOOD_LABELS).map(([key, val]) => (
+                        <button
+                          key={key}
+                          type="button"
+                          className={editMood === key ? styles.active : ''}
+                          onClick={() => setEditMood(editMood === key ? null : key)}
+                        >
+                          <span>{val.icon}</span>
+                          <span>{val.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* ジャンル（Genre） */}
+                  <div className={styles.metaEditRow}>
+                    <div className={styles.metaEditHeader}>
+                      <span className={styles.label}>🎵 ジャンル (Genre)</span>
+                      {editGenre && (
+                        <button
+                          style={{ background: 'none', border: 'none', color: '#71717a', cursor: 'pointer', fontSize: '0.72rem', textDecoration: 'underline' }}
+                          onClick={() => setEditGenre(null)}
+                        >
+                          クリア
+                        </button>
+                      )}
+                    </div>
+                    <div className={styles.tagButtonGroup}>
+                      {Object.entries(GENRE_LABELS).map(([key, val]) => (
+                        <button
+                          key={key}
+                          type="button"
+                          className={editGenre === key ? styles.active : ''}
+                          onClick={() => setEditGenre(editGenre === key ? null : key)}
+                        >
+                          <span>{val.icon}</span>
+                          <span>{val.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 夜曲適性（is_night_pick） */}
+                  <div className={styles.metaEditRow}>
+                    <label className={styles.nightPickToggle}>
+                      <input
+                        type="checkbox"
+                        checked={editNightPick}
+                        onChange={(e) => setEditNightPick(e.target.checked)}
+                      />
+                      <span>🌙 深夜にリラックスして聴きたい「夜曲（今夜聴きたいしっとり）」に設定</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* ボタンの使い分けヘルプガイド */}
+                <div className={styles.helpGuideArea}>
+                  <div className={helpTitleClass(styles)}>
+                    <MdHelpOutline /> ボタンの使い分けガイド
+                  </div>
+                  <div className={styles.helpItem}>
+                    <strong>✅ 変更なしでOKにして次へ:</strong>
+                    <span>試聴して問題ない場合、現在の時間のまま確認済みにマークして次の曲へ進みます（数値変更なし）。</span>
+                  </div>
+                  <div className={styles.helpItem}>
+                    <strong>💾 変更を保存して次へ:</strong>
+                    <span>編集した「時間・歌唱者・タグ」をDBに反映保存し、確認済みにマークして次の曲へ進みます。</span>
+                  </div>
+                </div>
+
+                {/* ステータスメッセージ */}
+                {statusMessage && (
+                  <div
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: 6,
+                      backgroundColor: statusMessage.startsWith('✅')
+                        ? 'rgba(16, 185, 129, 0.15)'
+                        : statusMessage.startsWith('↩️')
+                        ? 'rgba(59, 130, 246, 0.15)'
+                        : 'rgba(239, 68, 68, 0.15)',
+                      color: statusMessage.startsWith('✅')
+                        ? '#10b981'
+                        : statusMessage.startsWith('↩️')
+                        ? '#60a5fa'
+                        : '#f87171',
+                      fontSize: '0.85rem',
+                    }}
+                  >
+                    {statusMessage}
+                  </div>
+                )}
+
+                {/* アクションボタンバー */}
+                <div className={styles.actionButtons}>
+                  <div className={styles.navButtons}>
+                    <button
+                      onClick={handlePrevSong}
+                      disabled={saving}
+                      title="前の曲 [Alt + ←]"
                     >
-                      {currentDurationSec !== null
-                        ? `${formatTime(currentDurationSec)} (${currentDurationSec}秒)`
-                        : '終了時刻を設定してください'}
-                      {currentDurationSec && currentDurationSec >= 300 && ' ⚠️ 5分以上（長尺）'}
-                    </span>
-                  </div>
-
-                  {/* ステータスメッセージ */}
-                  {statusMessage && (
-                    <div
-                      style={{
-                        padding: '8px 12px',
-                        borderRadius: 6,
-                        backgroundColor: statusMessage.startsWith('✅')
-                          ? 'rgba(16, 185, 129, 0.15)'
-                          : statusMessage.startsWith('↩️')
-                          ? 'rgba(59, 130, 246, 0.15)'
-                          : 'rgba(239, 68, 68, 0.15)',
-                        color: statusMessage.startsWith('✅')
-                          ? '#10b981'
-                          : statusMessage.startsWith('↩️')
-                          ? '#60a5fa'
-                          : '#f87171',
-                        fontSize: '0.85rem',
-                      }}
+                      <MdArrowBack /> 前の曲
+                    </button>
+                    <button
+                      onClick={handleNextSong}
+                      disabled={saving}
+                      title="次の曲 [Alt + →]"
                     >
-                      {statusMessage}
-                    </div>
-                  )}
-
-                  {/* アクションボタンバー */}
-                  <div className={styles.actionButtons}>
-                    <div className={styles.navButtons}>
-                      <button
-                        onClick={handlePrevSong}
-                        disabled={saving}
-                        title="前の曲 [Alt + ←]"
-                      >
-                        <MdArrowBack /> 前の曲
-                      </button>
-                      <button
-                        onClick={handleNextSong}
-                        disabled={saving}
-                        title="次の曲 [Alt + →]"
-                      >
-                        次の曲 <MdArrowForward />
-                      </button>
-                    </div>
-
-                    <div className={styles.saveButtons}>
-                      <button
-                        className={styles.btnMarkOkOnly}
-                        onClick={() => handleSave(true, true)}
-                        disabled={saving}
-                        title="現在の時間のまま確認済みにマークして次の曲へ"
-                      >
-                        <MdCheck /> この長さでOKにして次へ
-                      </button>
-
-                      <button
-                        className={styles.btnSaveOnly}
-                        onClick={() => handleSave(false)}
-                        disabled={saving}
-                      >
-                        <MdSave /> 保存のみ
-                      </button>
-
-                      <button
-                        className={styles.btnSaveAndNext}
-                        onClick={() => handleSave(true)}
-                        disabled={saving}
-                        title="保存して次の曲へ進む [Ctrl + Enter]"
-                      >
-                        <MdSave /> 保存して次へ (Ctrl+Enter)
-                      </button>
-                    </div>
+                      次の曲 <MdArrowForward />
+                    </button>
                   </div>
 
-                  {/* ショートカットキーガイド */}
-                  <div className={styles.shortcutHelp}>
-                    <span>⌨️ ショートカット:</span>
-                    <span><kbd>Space</kbd> 再生/停止</span>
-                    <span><kbd>[</kbd> 開始セット</span>
-                    <span><kbd>]</kbd> 終了セット</span>
-                    <span><kbd>1</kbd> 歌い出し確認</span>
-                    <span><kbd>2</kbd> 歌い終わり確認</span>
-                    <span><kbd>3</kbd> 雑談確認</span>
-                    <span><kbd>Ctrl+Enter</kbd> 保存して次へ</span>
-                    <span><kbd>Alt+←/→</kbd> 前後曲へ移動</span>
+                  <div className={styles.saveButtons}>
+                    <button
+                      className={styles.btnMarkOkOnly}
+                      onClick={() => handleSave(true, true)}
+                      disabled={saving}
+                      title="現在の時間のまま確認済みにマークして次の曲へ"
+                    >
+                      <MdCheck /> 変更なしでOKにして次へ
+                    </button>
+
+                    <button
+                      className={styles.btnSaveOnly}
+                      onClick={() => handleSave(false)}
+                      disabled={saving}
+                    >
+                      <MdSave /> 保存のみ
+                    </button>
+
+                    <button
+                      className={styles.btnSaveAndNext}
+                      onClick={() => handleSave(true)}
+                      disabled={saving}
+                      title="時間・歌唱者・タグの変更を保存して次の曲へ進む [Ctrl + Enter]"
+                    >
+                      <MdSave /> 変更を保存して次へ (Ctrl+Enter)
+                    </button>
                   </div>
-                </section>
-              )}
+                </div>
+
+                {/* ショートカットキーガイド */}
+                <div className={styles.shortcutHelp}>
+                  <span>⌨️ ショートカット:</span>
+                  <span><kbd>Space</kbd> 再生/停止</span>
+                  <span><kbd>[</kbd> 開始セット</span>
+                  <span><kbd>]</kbd> 終了セット</span>
+                  <span><kbd>1</kbd> 歌い出し確認 (±0s)</span>
+                  <span><kbd>2</kbd> 歌い終わり確認 (前3s)</span>
+                  <span><kbd>3</kbd> 雑談確認 (+5s)</span>
+                  <span><kbd>Ctrl+Enter</kbd> 変更を保存して次へ</span>
+                  <span><kbd>Alt+←/→</kbd> 前後曲へ移動</span>
+                </div>
+              </section>
+            )}
           </main>
         </div>
       </div>
     </>
   );
+}
+
+function helpTitleClass(styles: any) {
+  return styles.helpTitle || '';
 }
 
 // ローカル開発環境でのみ動作するようガード
