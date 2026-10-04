@@ -137,8 +137,8 @@ export const SINGER_AVATARS: Record<string, string> = {
   '綺沙良': 'https://yt3.googleusercontent.com/2JXV_c9_Fw9_19LZykzhdohREdfh9fAG73y_P0YW3nbzbjdDKhDh97N3z5kHdhFFaer0H2bk=s900-c-k-c0x00ffffff-no-rj',
 };
 
-export function getSingerAvatar(singer: string): string | undefined {
-  return SINGER_AVATARS[singer];
+export function getSingerAvatar(singer: string, fallbackPhoto?: string | null): string | undefined {
+  return SINGER_AVATARS[singer] || fallbackPhoto || undefined;
 }
 
 export function getSingerIcon(singer: string): string {
@@ -200,15 +200,75 @@ export function getSingersWithCount(
 }
 
 /**
- * クエリパラメータから現在選択されている歌い手を判定する
+ * チャンネルIDからマッピング済みの歌い手名を逆引きする
+ */
+export function findSingerByChannelId(channelId?: string | null): string | null {
+  if (!channelId) return null;
+  for (const [singer, id] of Object.entries(SINGER_CHANNEL_IDS)) {
+    if (id === channelId) return singer;
+  }
+  return null;
+}
+
+/**
+ * Holodex のチャンネル名（例: "雲母たまこ / Kirara Tamako【にじさんじ】"）から
+ * 扱いやすい表示名を抽出する
+ */
+export function cleanChannelName(rawName?: string | null): string {
+  if (!rawName) return '';
+  // 【...】や [...] を除去
+  let cleaned = rawName.replace(/【.*?】/g, '').replace(/\[.*?\]/g, '').trim();
+  // "名前 / 英語名" や "英語名 Ch. 名前" の分割
+  if (cleaned.includes('/')) {
+    cleaned = cleaned.split('/')[0].trim();
+  } else if (cleaned.includes(' Ch. ')) {
+    const parts = cleaned.split(' Ch. ');
+    cleaned = (parts[1] || parts[0]).trim();
+  } else if (cleaned.includes(' Channel ')) {
+    const parts = cleaned.split(' Channel ');
+    cleaned = (parts[1] || parts[0]).trim();
+  }
+  return cleaned || rawName;
+}
+
+/**
+ * クエリパラメータ（singer または channel）から現在選択されている歌い手を判定する
  * 未指定時は DEFAULT_SINGER ('戌亥とこ')
  */
-export function resolveCurrentSinger(querySinger?: string | string[]): string {
-  if (!querySinger) {
-    return DEFAULT_SINGER;
+export function resolveCurrentSinger(
+  querySinger?: string | string[],
+  queryChannel?: string | string[],
+  channelsMap?: Record<string, { name?: string | null }>,
+): string {
+  const channelParam = Array.isArray(queryChannel) ? queryChannel[0] : queryChannel;
+  const singerParam = Array.isArray(querySinger) ? querySinger[0] : querySinger;
+
+  // 1. channel パラメータがある場合
+  if (channelParam && channelParam.trim()) {
+    const trimmedChannel = channelParam.trim();
+    const mapped = findSingerByChannelId(trimmedChannel);
+    if (mapped) return mapped;
+    if (channelsMap && channelsMap[trimmedChannel]?.name) {
+      return cleanChannelName(channelsMap[trimmedChannel].name);
+    }
+    return trimmedChannel;
   }
-  const singer = Array.isArray(querySinger) ? querySinger[0] : querySinger;
-  return singer.trim() || DEFAULT_SINGER;
+
+  // 2. singer パラメータがある場合
+  if (singerParam && singerParam.trim()) {
+    const trimmedSinger = singerParam.trim();
+    // singer パラメータが UC から始まるチャンネル ID だった場合の対応
+    if (trimmedSinger.startsWith('UC') && trimmedSinger.length >= 20) {
+      const mapped = findSingerByChannelId(trimmedSinger);
+      if (mapped) return mapped;
+      if (channelsMap && channelsMap[trimmedSinger]?.name) {
+        return cleanChannelName(channelsMap[trimmedSinger].name);
+      }
+    }
+    return trimmedSinger;
+  }
+
+  return DEFAULT_SINGER;
 }
 
 /**
@@ -282,10 +342,10 @@ export const SINGER_CHANNEL_IDS: Record<string, string> = {
 
 /**
  * 歌い手名から NijiViewer (https://nijiviewer.mukwty.com) のライバー個別ページ URL を取得する
- * チャンネル ID が登録されている場合は遷移 URL を返却する
+ * チャンネル ID が登録されている場合（または fallbackChannelId がある場合）は遷移 URL を返却する
  */
-export function getNijiViewerUrl(singer: string): string | null {
-  const channelId = SINGER_CHANNEL_IDS[singer];
+export function getNijiViewerUrl(singer: string, fallbackChannelId?: string): string | null {
+  const channelId = SINGER_CHANNEL_IDS[singer] || fallbackChannelId;
   if (!channelId) {
     return null;
   }

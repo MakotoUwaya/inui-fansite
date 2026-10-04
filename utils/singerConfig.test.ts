@@ -63,6 +63,22 @@ describe('singerConfig', () => {
     it('handles string array from router query', () => {
       expect(resolveCurrentSinger(['珠乃井ナナ', 'その他'])).toBe('珠乃井ナナ');
     });
+
+    it('resolves mapped singer name from channel ID', () => {
+      expect(resolveCurrentSinger(undefined, 'UCCzUftO8KOVkV4wQG1vkUvg')).toBe('宝鐘マリン');
+      expect(resolveCurrentSinger('UCCzUftO8KOVkV4wQG1vkUvg')).toBe('宝鐘マリン');
+    });
+
+    it('resolves unmapped singer name from channelsMap and cleans title', () => {
+      const mockChannels = {
+        'UCw-kTlPnZYSHhlGMFJ17Znw': {
+          name: '雲母たまこ / Kirara Tamako【にじさんじ】',
+        },
+      };
+      expect(
+        resolveCurrentSinger(undefined, 'UCw-kTlPnZYSHhlGMFJ17Znw', mockChannels),
+      ).toBe('雲母たまこ');
+    });
   });
 
   describe('getSingersWithCount', () => {
