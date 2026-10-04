@@ -167,7 +167,7 @@ function SingingStreamsPage() {
             ) : (
               <span className={styles.singerIcon}>{currentSingerIcon}</span>
             )}
-            <span className={styles.singerTitle}>{currentSingerName}</span>
+            <span className={styles.singerTitle} title={currentSingerName}>{currentSingerName}</span>
             {nijiViewerUrl && (
               <a
                 href={nijiViewerUrl}
@@ -183,17 +183,17 @@ function SingingStreamsPage() {
             {!isAllSingers && (currentChannel?.org || currentGroup || currentSubCount) && (
               <div className={styles.singerTags}>
                 {currentChannel?.org && (
-                  <span className={clsx(styles.tag, styles.tagOrg)}>
+                  <span className={clsx(styles.tag, styles.tagOrg)} title={currentChannel.org}>
                     {currentChannel.org}
                   </span>
                 )}
                 {currentGroup && (
-                  <span className={clsx(styles.tag, styles.tagSuborg)}>
+                  <span className={clsx(styles.tag, styles.tagSuborg)} title={currentGroup}>
                     {currentGroup}
                   </span>
                 )}
                 {currentChannel?.type && currentChannel.type.toLowerCase() !== 'vtuber' && (
-                  <span className={clsx(styles.tag, styles.tagType)}>
+                  <span className={clsx(styles.tag, styles.tagType)} title={currentChannel.type}>
                     {currentChannel.type}
                   </span>
                 )}
