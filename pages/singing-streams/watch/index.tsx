@@ -147,13 +147,13 @@ function SingingStreamsWatchPage() {
     playSong,
   ]);
 
-  // プレイリストの同期（URL の条件に基づく baseStreams と同期）
+  // プレイリストの同期（watch ページかつ URL の条件に基づく baseStreams と同期）
   useEffect(() => {
-    if (!router.isReady) return;
+    if (!router.isReady || router.pathname !== '/singing-streams/watch') return;
     if (baseStreams.length > 0) {
       syncPlaylist(baseStreams, filterOptions);
     }
-  }, [router.isReady, baseStreams, filterOptions, syncPlaylist]);
+  }, [router.isReady, router.pathname, baseStreams, filterOptions, syncPlaylist]);
 
   const onMobilePlayerVisibleChange = useCallback(() => {
     setMobilePlaylistVisible((visible) => !visible);

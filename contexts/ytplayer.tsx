@@ -369,7 +369,13 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
   const skipPrev = useCallback(() => {
     if (!currentStream || !playerRef.current) return;
     enableAutoPlay();
-    if (currentTime >= 5 && typeof playerRef.current.seekTo === 'function') {
+    let currentPos = 0;
+    try {
+      currentPos = Math.max(0, playerRef.current.getCurrentTime() - currentStream.start);
+    } catch {
+      currentPos = currentTime;
+    }
+    if (currentPos >= 5 && typeof playerRef.current.seekTo === 'function') {
       playerRef.current.seekTo(currentStream.start);
       setCurrentTime(0);
       return;
@@ -388,7 +394,7 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
     if (prev) {
       playStreamById(prev.id);
     }
-  }, [currentTime, currentStream, enableAutoPlay, playStreamById, streams]);
+  }, [currentStream, enableAutoPlay, playStreamById, streams]);
 
   const skipNext = useCallback(() => {
     if (!streams.length || !currentStream) return;
@@ -485,10 +491,15 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
     [enableAutoPlay],
   );
 
-  // 再生時間の常時更新 (requestAnimationFrame)
+  // 再生時間の常時更新（250ms間隔、かつルート遷移中はReactのページ遷移を最優先するため一時停止）
   useEffect(() => {
-    const step = () => {
-      if (!playerRef.current || !currentStream) return;
+    if (!isPlaying || !currentStream) return;
+
+    let lastSec = -1;
+    const updateTime = () => {
+      if (!playerRef.current || !currentStreamRef.current) return;
+      if (isNavigatingRef.current) return;
+
       let ytCurrentTime = 0;
       try {
         ytCurrentTime = playerRef.current.getCurrentTime();
@@ -496,11 +507,13 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      const stream = currentStreamRef.current;
+
       // 曲終了時刻（end）到達判定
-      if (currentStream.end > 0 && ytCurrentTime >= currentStream.end) {
+      if (stream.end > 0 && ytCurrentTime >= stream.end) {
         if (repeatTypeVariable === 'repeatOne') {
           try {
-            playerRef.current.seekTo(currentStream.start);
+            playerRef.current.seekTo(stream.start);
             setCurrentTime(0);
           } catch {
             // ignore
@@ -517,15 +530,20 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const time = ytCurrentTime - currentStream.start;
-      setCurrentTime(isNaN(time) ? 0 : Math.max(0, time));
-      if (isPlaying) {
-        reqIdRef.current = requestAnimationFrame(step);
+      const time = Math.max(0, ytCurrentTime - stream.start);
+      // 0.25秒単位で変化があった場合のみState更新し、React 19 のトランジション中断を防止
+      const roundedTime = Math.round(time * 4) / 4;
+      if (roundedTime !== lastSec) {
+        lastSec = roundedTime;
+        setCurrentTime(time);
       }
     };
-    reqIdRef.current = requestAnimationFrame(step);
+
+    updateTime();
+    const intervalId = setInterval(updateTime, 250);
+
     return () => {
-      reqIdRef.current && cancelAnimationFrame(reqIdRef.current);
+      clearInterval(intervalId);
     };
   }, [isPlaying, currentStream]);
 
