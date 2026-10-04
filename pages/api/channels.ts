@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import type { HolodexChannelSummary } from '../../utils/holodex';
+import { SINGER_CHANNEL_IDS } from '../../utils/singerConfig';
 
 // サーバー内インメモリキャッシュ（TTL: 1時間）
 let cachedChannels: Record<string, HolodexChannelSummary> | null = null;
@@ -61,6 +62,47 @@ async function fetchChannelsForOrg(
   return allChannels;
 }
 
+/**
+ * Holodex API から個別チャンネルの情報を取得する
+ */
+async function fetchChannelById(
+  channelId: string,
+  apiKey: string,
+): Promise<HolodexChannelSummary | null> {
+  const url = `https://holodex.net/api/v2/channels/${channelId}`;
+  try {
+    const res = await fetch(url, {
+      headers: {
+        'x-apikey': apiKey,
+      },
+    });
+
+    if (!res.ok) {
+      console.warn(`[Holodex API] Error fetching channel ${channelId}: ${res.status}`);
+      return null;
+    }
+
+    const ch = await res.json();
+    if (!ch || !ch.id) return null;
+
+    return {
+      id: ch.id,
+      name: ch.name,
+      english_name: ch.english_name || null,
+      org: ch.org || null,
+      suborg: ch.suborg || null,
+      group: ch.group || null,
+      type: ch.type || null,
+      subscriber_count: ch.subscriber_count ?? null,
+      video_count: ch.video_count ?? null,
+      photo: ch.photo || null,
+    };
+  } catch (err) {
+    console.warn(`[Holodex API] Network error fetching channel ${channelId}:`, err);
+    return null;
+  }
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Record<string, HolodexChannelSummary>>,
@@ -91,17 +133,40 @@ export default async function handler(
   }
 
   try {
-    // Nijisanji（offset 0, 100, 200）と Hololive（offset 0）を取得
-    const [nijisanjiChannels, hololiveChannels] = await Promise.all([
-      fetchChannelsForOrg('Nijisanji', apiKey, [0, 100, 200]),
-      fetchChannelsForOrg('Hololive', apiKey, [0]),
-    ]);
+    // 主要組織（Nijisanji, Hololive, 774inc, Brave Group）を一括取得
+    const [nijisanjiChannels, hololiveChannels, nanashiChannels, braveChannels] =
+      await Promise.all([
+        fetchChannelsForOrg('Nijisanji', apiKey, [0, 100, 200]),
+        fetchChannelsForOrg('Hololive', apiKey, [0, 100]),
+        fetchChannelsForOrg('774inc', apiKey, [0]),
+        fetchChannelsForOrg('Brave Group', apiKey, [0]),
+      ]);
 
     const channelMap: Record<string, HolodexChannelSummary> = {};
 
-    for (const ch of [...nijisanjiChannels, ...hololiveChannels]) {
+    for (const ch of [
+      ...nijisanjiChannels,
+      ...hololiveChannels,
+      ...nanashiChannels,
+      ...braveChannels,
+    ]) {
       if (ch.id) {
         channelMap[ch.id] = ch;
+      }
+    }
+
+    // SINGER_CHANNEL_IDS に登録されているチャンネルのうち、組織一括取得に含まれなかった個人勢・外部チャンネルを個別取得
+    const knownChannelIds = Array.from(new Set(Object.values(SINGER_CHANNEL_IDS)));
+    const missingIds = knownChannelIds.filter((id) => !channelMap[id]);
+
+    if (missingIds.length > 0) {
+      const individualResults = await Promise.all(
+        missingIds.map((id) => fetchChannelById(id, apiKey)),
+      );
+      for (const ch of individualResults) {
+        if (ch && ch.id) {
+          channelMap[ch.id] = ch;
+        }
       }
     }
 

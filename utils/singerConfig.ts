@@ -258,12 +258,85 @@ export const SINGER_CHANNEL_IDS: Record<string, string> = {
   'Doppio Dropscythe': 'UCy91xBlY_Brh3bnHxKtjrrg',
   'Meloco Kyoran': 'UChKXd7oqD18qiIYBoRIHTlw',
   'Yu Q. Wilson': 'UCQQwo2x7EQznEavx8cibFOQ',
+  // ホロライブ
+  '星街すいせい': 'UC5CwaMl1eIgY8h02uZw7u8A',
+  '白上フブキ': 'UCdn5BQ06XqgXoAxIhbqw5Rg',
+  '宝鐘マリン': 'UCCzUftO8KOVkV4wQG1vkUvg',
+  'AZKi': 'UC0TXe_LYZ4scaW2XMyi5_kw',
+  // その他VTuber・個人勢
+  'HACHI': 'UC7XCjKxBEct0uAukpQXNFPw',
+  '田中ヒメ': 'UCFv2z4iM5vHrS8bZPq4fHQQ',
+  '鈴木ヒナ': 'UCFv2z4iM5vHrS8bZPq4fHQQ',
+  '音ノ乃のの': 'UCqe0-vqZwAvZUb22wCMu1fA',
+  'エルセ': 'UCGphOcrcx_oLH22bevHe8og',
+  'MaiR': 'UCsiKFVHkQSMlSe0vaCG0anw',
+  '朝ノ瑠璃': 'UCODNLyn3L83wEmC0DLL0cxA',
+  'かしこまり': 'UCfiK42sBHraMBK6eNWtsy7A',
+  '奏天まひろ': 'UC_G7GmYMrHg_yLorA0MMy8w',
+  '宗谷いちか': 'UC2kyQhzGOB-JPgcQX9OMgEw',
+  '花鋏キョウ': 'UC4OeUf_KfYRrwksschtRYow',
+  '奏みみ': 'UCpHIwGHq_3OfX42cyfyJp-A',
+  '富士葵': 'UC3Ruo_5doyu514PesWGvCAg',
 };
 
 /**
+ * にじさんじ所属ライバーのセット（NijiViewer への遷移対象）
+ */
+export const NIJISANJI_SINGERS = new Set<string>([
+  '戌亥とこ',
+  '早乙女ベリー',
+  '珠乃井ナナ',
+  '町田ちま',
+  'アンジュ・カトリーナ',
+  'リゼ・ヘルエスタ',
+  '長尾景',
+  '弦月藤士郎',
+  '甲斐田晴',
+  '緑仙',
+  '渡会雲雀',
+  '宇佐美リト',
+  '伊波ライ',
+  '榊ネス',
+  '倉持めると',
+  '小清水透',
+  'フレン・E・ルスタリオ',
+  'ルンルン',
+  '樋口楓',
+  '竜胆尊',
+  'ドーラ',
+  'ベルモンド・バンデラス',
+  '夢追翔',
+  '三枝明那',
+  '葉加瀬冬雪',
+  '朝日南アカネ',
+  '東堂コハク',
+  '風楽奏斗',
+  '緋八マナ',
+  '北見遊征',
+  '立伝都々',
+  '渚トラウト',
+  '蝸堂みかる',
+  '城瀬いすみ',
+  '天宮こころ',
+  '鈴原るる',
+  '綺沙良',
+  'Elira Pendora',
+  'Finana Ryugu',
+  'Luca Kaneshiro',
+  'Maria Marionette',
+  'Doppio Dropscythe',
+  'Meloco Kyoran',
+  'Yu Q. Wilson',
+]);
+
+/**
  * 歌い手名から NijiViewer (https://nijiviewer.mukwty.com) のライバー個別ページ URL を取得する
+ * にじさんじ所属ライバーの場合のみ URL を返却する
  */
 export function getNijiViewerUrl(singer: string): string | null {
+  if (!NIJISANJI_SINGERS.has(singer)) {
+    return null;
+  }
   const channelId = SINGER_CHANNEL_IDS[singer];
   if (!channelId) {
     return null;
