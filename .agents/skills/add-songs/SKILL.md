@@ -44,10 +44,9 @@ pnpm exec tsx --env-file=.env.local scripts/add-songs.ts "<YouTube動画URL>"
    - TypeSafe AI (Jev) により、楽曲のムード（`ballad`, `emotional`, `cool`, `bright`, `jazz_rnb`）、ジャンル（`vocaloid`, `anime`, `jpop`, `nostalgic`, `vtuber`）、夜曲適性（`is_night_pick`）が即座に判定・保存されます。
    - ※万一スキップや失敗があった場合は、事後に `pnpm exec tsx scripts/tag-all-songs.ts` を実行して未タグ曲を補完します。
 
-2. **Gemini による歌唱区間自動検出・雑談カット (`check-song-length` スキル連携)**:
-   - 登録完了時に `autoCheckVideo(videoId)` が自動起動し、**Gemini のマルチモーダル解析**により動画内の歌唱開始点（曲前MCカット）と終了点（歌い終わり・雑談カット）を高精度に自動検出・補正します。
-   - （Gemini API キー未設定時やエラー時は iTunes 公式曲長＋余韻15秒に自動フォールバック）
-   - 判定完了した曲は `is_length_checked = true` としてマークされます。
+2. **Antigravity による歌唱区間診断・雑談カット (`check-song-length` スキル連携)**:
+   - 登録完了後、`pnpm exec tsx scripts/check-song-length.ts --inspect --video-id <VIDEO_ID> --threshold 0` を実行し、Antigravity（Gemini）が公式音源尺との差分や次曲タイムラインを推論。
+   - 歌唱後の長時間の雑談が含まれている曲を自動特定し、適正な終了時刻（`end`）へ補正（または適正承認）します。
    - ※目視・耳で細かく確認・微調整したい場合は、ローカル微調整UI（`http://localhost:3000/admin/adjust-length`）でブラウザから即座に調整可能です。
 
 ---

@@ -17,3 +17,6 @@ build/
 
 # Vercel
 .vercel
+
+# temporary audio clips
+tmp/

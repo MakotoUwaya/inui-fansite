@@ -1,5 +1,7 @@
 import './load-env';
 import * as fs from 'fs';
+import * as path from 'path';
+import { execSync, spawnSync } from 'child_process';
 import { supabase } from '../utils/supabaseClient';
 import { detectSongBoundariesWithGemini } from '../utils/geminiSongLengthDetector';
 
@@ -76,6 +78,13 @@ function printHelp() {
     --order <desc|asc>          長さ順（デフォルト: desc）
     --video-id <videoId>        特定の動画IDに絞り込み
     --all                       チェック済みも含めて表示
+  --inspect                     Antigravity (Gemini) 推論用の詳細診断（公式音源時間・次曲ギャップ・補正候補を表示）
+    --threshold <秒数|MM:SS>     対象とする最小の曲長（デフォルト: 300秒 = 5分、0で全曲）
+    --video-id <videoId>        特定の動画IDに絞り込み
+    --json                      JSON形式で構造化出力（エージェント向け）
+  --clip <id>                   指定した曲の終了予定付近（前後20秒）の音声をピンポイント切り出し（Antigravity直接試聴用）
+    --padding <秒数>             終了時刻の前後のマージン秒数（デフォルト: 20秒）
+  --clip-range --video-id <id> --start <時刻> --end <時刻> 任意区間の音声をピンポイント切り出し
   --update <id> --end <秒|MM:SS> 指定した曲の終了時刻を更新し、チェック済みにする
   --mark-ok <id>                指定した曲の長さを変更せず、確認済みにする
   --auto-check                  Gemini / iTunes による歌唱区間自動判定・雑談カットを実行
@@ -87,7 +96,7 @@ function printHelp() {
 
 例:
   pnpm exec tsx scripts/check-song-length.ts --stats
-  pnpm exec tsx scripts/check-song-length.ts --list --limit 10
+  pnpm exec tsx scripts/check-song-length.ts --inspect --video-id sz3SGilaOAA --threshold 0
   pnpm exec tsx scripts/check-song-length.ts --update e5d73... --end 4:15
   pnpm exec tsx scripts/check-song-length.ts --mark-ok e5d73...
 `);
@@ -277,6 +286,321 @@ async function listSongs(args: string[]) {
   console.log(`\n💡 修正方法の例:`);
   console.log(`  終了時刻を修正: pnpm exec tsx scripts/check-song-length.ts --update ${records[0].id} --end 4:15`);
   console.log(`  長さは正しいと承認: pnpm exec tsx scripts/check-song-length.ts --mark-ok ${records[0].id}`);
+}
+
+async function inspectSongs(args: string[]) {
+  let threshold = 300; // デフォルト5分
+  let limit = 50;
+  let videoIdFilter: string | null = null;
+  let includeAll = false;
+  const isJson = args.includes('--json');
+
+  const thresholdIdx = args.indexOf('--threshold');
+  if (thresholdIdx !== -1 && args[thresholdIdx + 1]) {
+    threshold = parseTimeString(args[thresholdIdx + 1]);
+  }
+
+  const limitIdx = args.indexOf('--limit');
+  if (limitIdx !== -1 && args[limitIdx + 1]) {
+    limit = parseInt(args[limitIdx + 1], 10);
+  }
+
+  const videoIdIdx = args.indexOf('--video-id');
+  if (videoIdIdx !== -1 && args[videoIdIdx + 1]) {
+    videoIdFilter = args[videoIdIdx + 1];
+  }
+
+  includeAll = args.includes('--all');
+
+  if (!isJson) {
+    console.log(`🔍 楽曲詳細診断 (Antigravity 推論モード):`);
+    console.log(`   しきい値: >= ${formatTime(threshold)} (${threshold}秒) / 対象: ${includeAll ? '全曲' : '未チェックのみ'}`);
+    if (videoIdFilter) console.log(`   対象動画ID: ${videoIdFilter}`);
+  }
+
+  let allData: SongRecord[] = [];
+  const pageSize = 1000;
+  let from = 0;
+
+  while (true) {
+    let query = supabase
+      .from('singing_stream')
+      .select(`
+        id,
+        start,
+        end,
+        video_id,
+        published_at,
+        is_length_checked,
+        length_checked_at,
+        song(title, artist),
+        video!video_id(title, url)
+      `)
+      .range(from, from + pageSize - 1);
+
+    if (!includeAll) {
+      query = query.eq('is_length_checked', false);
+    }
+    if (videoIdFilter) {
+      query = query.eq('video_id', videoIdFilter);
+    }
+
+    const { data, error } = await query;
+    if (error || !data) {
+      console.error('❌ データ取得に失敗しました:', error);
+      process.exit(1);
+    }
+
+    allData = allData.concat(data as unknown as SongRecord[]);
+    if (data.length < pageSize) break;
+    from += pageSize;
+  }
+
+  // 同一動画内のタイムライン（全曲の開始時刻リスト）を作成
+  const videoSongsMap = new Map<string, { start: number }[]>();
+  for (const item of allData) {
+    if (!videoSongsMap.has(item.video_id)) {
+      videoSongsMap.set(item.video_id, []);
+    }
+    videoSongsMap.get(item.video_id)!.push({ start: item.start });
+  }
+  for (const starts of videoSongsMap.values()) {
+    starts.sort((a, b) => a.start - b.start);
+  }
+
+  const filtered = allData
+    .map((r) => {
+      const end = r.end ?? r.start;
+      const duration = end - r.start;
+      return { ...r, duration };
+    })
+    .filter((r) => r.duration >= threshold)
+    .sort((a, b) => b.duration - a.duration)
+    .slice(0, limit);
+
+  if (filtered.length === 0) {
+    if (isJson) {
+      console.log('[]');
+    } else {
+      console.log('\n✨ 条件に該当する楽曲はありませんでした。');
+    }
+    return;
+  }
+
+  const results = [];
+
+  for (let i = 0; i < filtered.length; i++) {
+    const r = filtered[i];
+    const title = r.song?.title || '（不明）';
+    const artist = r.song?.artist || '（不明）';
+    const officialDuration = await fetchTrackDuration(title, artist);
+
+    // 次の曲の開始時刻を探索
+    const streamTimeline = videoSongsMap.get(r.video_id) || [];
+    const nextItem = streamTimeline.find((s) => s.start > r.start);
+    const nextStart = nextItem ? nextItem.start : null;
+    const currentEnd = r.end ?? r.start;
+    const gapToNext = nextStart !== null ? nextStart - currentEnd : null;
+
+    let diffFromOfficial: number | null = null;
+    let suggestedEnd: number | null = null;
+    let recommendation = '調査が必要';
+
+    if (officialDuration) {
+      diffFromOfficial = r.duration - officialDuration;
+      // 余韻約12秒を想定した終了時刻
+      suggestedEnd = r.start + officialDuration + 12;
+
+      if (diffFromOfficial <= -30) {
+        recommendation = 'ショート版/ワンコーラスの可能性大。現行維持（--mark-ok）を推奨';
+      } else if (diffFromOfficial >= -20 && diffFromOfficial <= 20) {
+        recommendation = '原曲尺に合致（余韻含む適正範囲）。現行維持（--mark-ok）を推奨';
+      } else if (diffFromOfficial > 20) {
+        recommendation = `歌唱後雑談が含まれている疑いあり。補正候補: ${formatTime(suggestedEnd)} (${suggestedEnd}s)`;
+      }
+    } else {
+      recommendation = '公式音源尺不明。Web検索による原曲調査を推奨';
+    }
+
+    results.push({
+      id: r.id,
+      title,
+      artist,
+      start: r.start,
+      startFormatted: formatTime(r.start),
+      end: currentEnd,
+      endFormatted: formatTime(currentEnd),
+      duration: r.duration,
+      durationFormatted: formatTime(r.duration),
+      officialDuration,
+      officialDurationFormatted: officialDuration ? formatTime(officialDuration) : null,
+      diffFromOfficial,
+      nextSongStart: nextStart,
+      nextSongStartFormatted: nextStart ? formatTime(nextStart) : null,
+      gapToNext,
+      suggestedEnd,
+      suggestedEndFormatted: suggestedEnd ? formatTime(suggestedEnd) : null,
+      recommendation,
+      isChecked: r.is_length_checked,
+      videoId: r.video_id,
+      playUrl: `https://youtu.be/${r.video_id}?t=${r.start}`,
+      endNearUrl: `https://youtu.be/${r.video_id}?t=${Math.max(r.start, currentEnd - 15)}`,
+    });
+  }
+
+  if (isJson) {
+    console.log(JSON.stringify(results, null, 2));
+    return;
+  }
+
+  console.log(`\n📋 診断対象: ${results.length} 件\n`);
+
+  results.forEach((item, idx) => {
+    console.log(`[#${idx + 1}] ${item.title} / ${item.artist} (ID: ${item.id})`);
+    console.log(`   ・現在区間:     ${item.startFormatted} 〜 ${item.endFormatted} (尺: ${item.durationFormatted} / ${item.duration}秒)`);
+    console.log(`   ・公式音源尺:   ${item.officialDurationFormatted ? `${item.officialDurationFormatted} (${item.officialDuration}秒)` : '取得不可'} (差: ${item.diffFromOfficial !== null ? `${item.diffFromOfficial > 0 ? '+' : ''}${item.diffFromOfficial}秒` : '-'})`);
+    if (item.nextSongStartFormatted) {
+      console.log(`   ・次曲開始:     ${item.nextSongStartFormatted} (現終了から次曲まで: ${item.gapToNext}秒の余白)`);
+    }
+    console.log(`   ・推奨判定:     💡 ${item.recommendation}`);
+    console.log(`   ・再生リンク:   開始: ${item.playUrl}`);
+    console.log(`                   終了直前(-15s): ${item.endNearUrl}`);
+    console.log('------------------------------------------------------------');
+  });
+
+  console.log(`\n💡 アクション実行例:`);
+  console.log(`  補正する場合:   pnpm exec tsx scripts/check-song-length.ts --update <ID> --end <時刻>`);
+  console.log(`  承認する場合:   pnpm exec tsx scripts/check-song-length.ts --mark-ok <ID>`);
+  console.log(`  音声直接試聴:   pnpm exec tsx scripts/check-song-length.ts --clip <ID>`);
+  console.log(`  一括更新:       pnpm exec tsx scripts/check-song-length.ts --batch '[{"id":"...","end":"4:15"},{"id":"...","markOk":true}]'`);
+}
+
+function getYtDlpPath(): string | null {
+  const customCandidates = [
+    'C:\\Users\\makot\\ghq\\github.com\\ErrorFlynn\\ytdlp-interface\\bin\\yt-dlp.exe',
+    path.join(process.env.USERPROFILE || '', 'ghq/github.com/ErrorFlynn/ytdlp-interface/bin/yt-dlp.exe'),
+  ];
+  for (const c of customCandidates) {
+    if (fs.existsSync(c)) return c;
+  }
+  try {
+    const res = execSync('where yt-dlp', { stdio: 'pipe' }).toString().trim().split(/\r?\n/)[0];
+    if (res && fs.existsSync(res)) return res;
+  } catch {}
+  return null;
+}
+
+async function clipSongAudio(args: string[]) {
+  const ytDlpPath = getYtDlpPath();
+  if (!ytDlpPath) {
+    console.error('❌ yt-dlp.exe が見つかりませんでした。ytdlp-interface/bin または PATH を確認してください。');
+    process.exit(1);
+  }
+  const idIdx = args.indexOf('--clip');
+  const songId = args[idIdx + 1];
+  if (!songId) {
+    console.error('❌ --clip には曲の ID が必要です。');
+    process.exit(1);
+  }
+
+  let padding = 20; // 終了時刻の前後20秒
+  const padIdx = args.indexOf('--padding');
+  if (padIdx !== -1 && args[padIdx + 1]) {
+    padding = parseInt(args[padIdx + 1], 10);
+  }
+
+  const { data: record, error } = await supabase
+    .from('singing_stream')
+    .select('id, start, end, video_id, song(title, artist)')
+    .eq('id', songId)
+    .single();
+
+  if (error || !record) {
+    console.error('❌ 楽曲が見つかりませんでした:', error);
+    process.exit(1);
+  }
+
+  const r = record as unknown as SongRecord;
+  const currentEnd = r.end ?? r.start + 240;
+  const clipStart = Math.max(r.start, currentEnd - padding);
+  const clipEnd = currentEnd + padding;
+
+  const clipDir = path.resolve(process.cwd(), 'tmp/audio-clips');
+  if (!fs.existsSync(clipDir)) {
+    fs.mkdirSync(clipDir, { recursive: true });
+  }
+
+  const baseFileName = `clip-${r.id.slice(0, 8)}-${clipStart}_${clipEnd}`;
+  const outTemplate = path.join(clipDir, `${baseFileName}.%(ext)s`);
+  const finalMp3Path = path.join(clipDir, `${baseFileName}.mp3`);
+
+  console.log(`🎧 音声ピンポイント切り出しを開始します...`);
+  console.log(`   曲名: ${r.song?.title} / ${r.song?.artist}`);
+  console.log(`   動画: https://youtu.be/${r.video_id}`);
+  console.log(`   切り出し区間: ${formatTime(clipStart)} (${clipStart}s) 〜 ${formatTime(clipEnd)} (${clipEnd}s) [計 ${clipEnd - clipStart}秒]`);
+
+  const rangeArg = `*${formatTime(clipStart)}-${formatTime(clipEnd)}`;
+  const cmd = `& "${ytDlpPath}" --download-sections "${rangeArg}" --extractor-args "youtube:player_client=android,web" -x --audio-format mp3 -o "${outTemplate}" --force-overwrites "https://www.youtube.com/watch?v=${r.video_id}"`;
+
+  try {
+    execSync(cmd, { stdio: 'inherit', shell: 'powershell.exe' });
+    console.log(`\n✅ 切り出し完了: ${finalMp3Path}`);
+    console.log(`💡 Antigravity の view_file でこの音声を直接試聴・解析できます。`);
+    console.log(`   切り出し内での現在終了時刻の位置: 開始から +${currentEnd - clipStart} 秒地点`);
+  } catch (e: any) {
+    console.error('❌ 切り出しに失敗しました:', e.message);
+    process.exit(1);
+  }
+}
+
+async function clipRangeAudio(args: string[]) {
+  const ytDlpPath = getYtDlpPath();
+  if (!ytDlpPath) {
+    console.error('❌ yt-dlp.exe が見つかりませんでした。');
+    process.exit(1);
+  }
+
+  const videoIdIdx = args.indexOf('--video-id');
+  const startIdx = args.indexOf('--start');
+  const endIdx = args.indexOf('--end');
+
+  if (videoIdIdx === -1 || !args[videoIdIdx + 1] || startIdx === -1 || !args[startIdx + 1] || endIdx === -1 || !args[endIdx + 1]) {
+    console.error('❌ --clip-range には --video-id <ID> --start <時刻> --end <時刻> が必要です。');
+    process.exit(1);
+  }
+
+  const videoId = args[videoIdIdx + 1];
+  const startSec = parseTimeString(args[startIdx + 1]);
+  const endSec = parseTimeString(args[endIdx + 1]);
+
+  if (endSec <= startSec) {
+    console.error('❌ end は start より後である必要があります。');
+    process.exit(1);
+  }
+
+  const clipDir = path.resolve(process.cwd(), 'tmp/audio-clips');
+  if (!fs.existsSync(clipDir)) {
+    fs.mkdirSync(clipDir, { recursive: true });
+  }
+
+  const baseFileName = `range-${videoId}-${startSec}_${endSec}`;
+  const outTemplate = path.join(clipDir, `${baseFileName}.%(ext)s`);
+  const finalMp3Path = path.join(clipDir, `${baseFileName}.mp3`);
+
+  console.log(`🎧 任意区間の音声切り出しを開始します...`);
+  console.log(`   動画: https://youtu.be/${videoId}`);
+  console.log(`   区間: ${formatTime(startSec)} (${startSec}s) 〜 ${formatTime(endSec)} (${endSec}s) [計 ${endSec - startSec}秒]`);
+
+  const rangeArg = `*${formatTime(startSec)}-${formatTime(endSec)}`;
+  const cmd = `& "${ytDlpPath}" --download-sections "${rangeArg}" -x --audio-format mp3 -o "${outTemplate}" --force-overwrites "https://www.youtube.com/watch?v=${videoId}"`;
+
+  try {
+    execSync(cmd, { stdio: 'inherit', shell: 'powershell.exe' });
+    console.log(`\n✅ 切り出し完了: ${finalMp3Path}`);
+  } catch (e: any) {
+    console.error('❌ 切り出しに失敗しました:', e.message);
+    process.exit(1);
+  }
 }
 
 async function updateSong(id: string, endTimeStr: string) {
@@ -604,6 +928,21 @@ async function main() {
 
   if (args.includes('--list')) {
     await listSongs(args);
+    return;
+  }
+
+  if (args.includes('--inspect')) {
+    await inspectSongs(args);
+    return;
+  }
+
+  if (args.includes('--clip')) {
+    await clipSongAudio(args);
+    return;
+  }
+
+  if (args.includes('--clip-range')) {
+    await clipRangeAudio(args);
     return;
   }
 
