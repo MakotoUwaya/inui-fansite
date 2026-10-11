@@ -4,6 +4,7 @@ import * as path from 'path';
 import crypto from 'crypto';
 import { supabase } from '../utils/supabaseClient';
 import { autoCheckVideo } from './check-song-length';
+import { SINGER_ICONS } from '../utils/singerConfig';
 
 interface ParsedSong {
   title: string;
@@ -149,6 +150,39 @@ function resolveSingers(
       matchedSingers.push(singer);
     }
     if (singer === '西園チグサ' && /🐬|ちぐさ|西園/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '石神のぞみ' && /❤️‍🩹|いしがみ|石神|のぞみ/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === 'ラトナ・プティ' && /🐻|💎|ぷてぃ|プティ|ラトナ/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '月ノ美兎' && /🐰|みと|美兎|委員長/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '栞葉るり' && /🚓|🐾|しおりは|栞葉|るり/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '山神カルタ' && /🎴|やまがみ|山神|カルタ/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '夜見れな' && /🎩|🐤|よるみ|夜見|れな/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '雲母たまこ' && /🐣|📛|きらら|雲母|たまこ/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '司賀りこ' && /📒|しが|司賀|りこ/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '五十嵐梨花' && /⚾|🧡|いがらし|五十嵐|梨花/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '七瀬すず菜' && /🥗|ななせ|七瀬|すず菜/.test(note)) {
+      matchedSingers.push(singer);
+    }
+    if (singer === '明石繆' && /⚔️|あかし|明石|みゅう/.test(note)) {
       matchedSingers.push(singer);
     }
 
@@ -325,6 +359,7 @@ function extractSingersFromTitle(title: string): string[] {
         part === 'にじさんじ' ||
         part === 'NIJISANJI' ||
         part === 'NIJISANJI EN' ||
+        /^(?:MV|Music Video|Official MV|Official Video|オリジナル曲|Original Song|Cover|カバー)$/i.test(part) ||
         part === '歌' ||
         part === '歌枠' ||
         part === 'コラボ歌枠' ||
@@ -348,6 +383,19 @@ function extractSingersFromTitle(title: string): string[] {
         continue;
       }
       foundSingers.add(part);
+    }
+  }
+
+  // covered by / cover by / vocal by 等の検出
+  const coveredMatch = title.match(/(?:covered|cover|vocal|vo)\s*by\s*([^\s\/／|｜\(\)\[\]【】]+)/i);
+  if (coveredMatch && coveredMatch[1]) {
+    foundSingers.add(coveredMatch[1].trim());
+  }
+
+  // 既知の登録済み歌い手名が含まれているかのチェック
+  for (const singerName of Object.keys(SINGER_ICONS)) {
+    if (singerName !== '戌亥とこ' && title.includes(singerName)) {
+      foundSingers.add(singerName);
     }
   }
 
@@ -462,14 +510,18 @@ async function main() {
   let customPublishedAt: string | undefined;
   let manualTitle: string | undefined;
   let manualArtist: string | undefined;
+  let manualSingers: string[] | undefined;
 
-  // オプション解析 (--title, --artist)
+  // オプション解析 (--title, --artist, --singers)
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--title' && args[i + 1]) {
       manualTitle = args[i + 1];
       i++;
     } else if (args[i] === '--artist' && args[i + 1]) {
       manualArtist = args[i + 1];
+      i++;
+    } else if (args[i] === '--singers' && args[i + 1]) {
+      manualSingers = args[i + 1].split(/[\/,、]+/).map((s) => s.trim()).filter(Boolean);
       i++;
     }
   }
@@ -513,7 +565,7 @@ async function main() {
   console.log(`配信日時: ${publishedAt}`);
 
   let songs: ParsedSong[] = customSongs;
-  const videoSingers = extractSingersFromTitle(videoTitle);
+  const videoSingers = manualSingers && manualSingers.length > 0 ? manualSingers : extractSingersFromTitle(videoTitle);
 
   // タイムテーブルテキストがある場合はパース
   if (songs.length === 0 && timetableText.trim()) {

@@ -69,6 +69,17 @@ export const SINGER_ICONS: Record<string, string> = {
   '夢追翔': '🎤',
   '緋八マナ': '🐝',
   '西園チグサ': '🐬',
+  '石神のぞみ': '❤️‍🩹',
+  'ラトナ・プティ': '🐻',
+  '月ノ美兎': '🐰',
+  '栞葉るり': '🚓',
+  '山神カルタ': '🎴',
+  '夜見れな': '🎩',
+  '雲母たまこ': '🐣',
+  '司賀りこ': '📒',
+  '五十嵐梨花': '⚾',
+  '七瀬すず菜': '🥗',
+  '明石繆': '⚔️♥️',
 };
 
 
@@ -138,6 +149,17 @@ export const SINGER_AVATARS: Record<string, string> = {
   '花鋏キョウ': 'https://yt3.googleusercontent.com/YFD87IueOX8p7UcywKgJmTIlsxlbhxTACJZTiAAp2rBPT3_AeQMliFFdX-zFrlAq0FQan9_nvQ=s900-c-k-c0x00ffffff-no-rj',
   '綺沙良': 'https://yt3.googleusercontent.com/2JXV_c9_Fw9_19LZykzhdohREdfh9fAG73y_P0YW3nbzbjdDKhDh97N3z5kHdhFFaer0H2bk=s900-c-k-c0x00ffffff-no-rj',
   '西園チグサ': 'https://yt3.googleusercontent.com/6JihrN90Qv35zVpSd4RGgFMRwokH7lGZnIRnsM-e7NmMkKF36nMcDE23rFQmkkq0qQBPD4NuwGM=s900-c-k-c0x00ffffff-no-rj',
+  '石神のぞみ': 'https://yt3.googleusercontent.com/XxOEKuwoRXgwJI7TlGK2EiKxTiMsj0KVXxTzpQevz4ljZd8Bfr8m9gc-KKCzy0fdmnT4hcuUoFw=s900-c-k-c0x00ffffff-no-rj',
+  'ラトナ・プティ': 'https://yt3.googleusercontent.com/ytc/AIdro_mX9S_nkRRv8Mk7hqcb_S4c4awLoeI0mIbZRQWMoO3ox9I=s900-c-k-c0x00ffffff-no-rj',
+  '月ノ美兎': 'https://yt3.googleusercontent.com/hxux-a8Xfr0O0_Age9LPgRfnVwsXD1SRT-zmNIyr_0ked6CWIKPKxvKzyOfH0tLKPUEPpL-MvA=s900-c-k-c0x00ffffff-no-rj',
+  '栞葉るり': 'https://yt3.googleusercontent.com/A5VkQ-3F9Ibun0t22tE6Gd9WjGWN3g5cyup2h9I7b4BxE_i9Kk0ZMf-7QRmoCIiUnHk-D_qCqg=s900-c-k-c0x00ffffff-no-rj',
+  '山神カルタ': 'https://yt3.googleusercontent.com/H6-Sr3cYWnbG1_DURyDwRLZiTl-cpwB51KzqFgHs7EGQi6-GYlvvEPcxaZmoA6tXfdsjDUXh6uA=s900-c-k-c0x00ffffff-no-rj',
+  '夜見れな': 'https://yt3.googleusercontent.com/87cGpoLYzGJJWveiEfqBOX99uLoceI5H2aYIPrjSo5BAcgM7w4rAT4pCFni0_ZiU9ShvyVmAoQ=s900-c-k-c0x00ffffff-no-rj',
+  '雲母たまこ': 'https://yt3.googleusercontent.com/VW8Qin9o7XIwVOZDRH4jmBLiYH-5gFuUOAKB7D18zmZ1wVc8pEBtUhv817ZF_MmNPGDRl2bZxz4=s900-c-k-c0x00ffffff-no-rj',
+  '司賀りこ': 'https://yt3.googleusercontent.com/S3axkbeG1B8GY-YAJVUDxHd3ccJNEJga8gBkWt3S5DpQ1pIBxk4HrfLCio4CkqT9j1x6Cmc1YwM=s900-c-k-c0x00ffffff-no-rj',
+  '五十嵐梨花': 'https://yt3.googleusercontent.com/eEQ47Y7htFzPBeN0ijDNg-u0fCVYkFYKC7Ji4oYKcC725_aVx4jW8w9YKLtJrBJQTviOOivjEg=s900-c-k-c0x00ffffff-no-rj',
+  '七瀬すず菜': 'https://yt3.googleusercontent.com/7nz6Hs6CnYcuL_GfuVLg14uPl--Wun8rBEpHHAWJayZLWlySHVi_3163OFCV14_g1qnkSdwk=s900-c-k-c0x00ffffff-no-rj',
+  '明石繆': 'https://yt3.googleusercontent.com/b3YHJiFPY3opyYd2Dike3TBA61JbSdN1YIjHDMSTxnanAgKTqS1lBQCYgg_p_LvsNOyfe6PVGw=s900-c-k-c0x00ffffff-no-rj',
 };
 
 
@@ -323,6 +345,17 @@ export const SINGER_CHANNEL_IDS: Record<string, string> = {
   'Doppio Dropscythe': 'UCy91xBlY_Brh3bnHxKtjrrg',
   'Meloco Kyoran': 'UChKXd7oqD18qiIYBoRIHTlw',
   'Yu Q. Wilson': 'UCKpKC3M5fkcEvtOr06dmYlA',
+  '石神のぞみ': 'UCtLfA_qUqCJtjXJM2ZR_keg',
+  'ラトナ・プティ': 'UCIG9rDtgR45VCZmYnd-4DUw',
+  '月ノ美兎': 'UCD-miitqNY3nyukJ4Fnf4_A',
+  '栞葉るり': 'UC7_MFM9b8hp5kuTSpa8WyOQ',
+  '山神カルタ': 'UCllKI7VjyANuS1RXatizfLQ',
+  '夜見れな': 'UCL34fAoFim9oHLbVzMKFavQ',
+  '雲母たまこ': 'UCw-kTlPnZYSHhlGMFJ17Znw',
+  '司賀りこ': 'UCzsCWYuvPUky3-DKzphYbEw',
+  '五十嵐梨花': 'UCu-rV2gPtJ-CsGxe71z_BrQ',
+  '七瀬すず菜': 'UCtC3B1n4XMiJmrDtu1Ni5qw',
+  '明石繆': 'UClH9uJiwhdNXhvikYdNF-RA',
   // ホロライブ
   '星街すいせい': 'UC5CwaMl1eIgY8h02uZw7u8A',
   '白上フブキ': 'UCdn5BQ06XqgXoAxIhbqw5Rg',
