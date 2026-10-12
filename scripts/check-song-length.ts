@@ -592,7 +592,7 @@ async function clipRangeAudio(args: string[]) {
   console.log(`   区間: ${formatTime(startSec)} (${startSec}s) 〜 ${formatTime(endSec)} (${endSec}s) [計 ${endSec - startSec}秒]`);
 
   const rangeArg = `*${formatTime(startSec)}-${formatTime(endSec)}`;
-  const cmd = `& "${ytDlpPath}" --download-sections "${rangeArg}" -x --audio-format mp3 -o "${outTemplate}" --force-overwrites "https://www.youtube.com/watch?v=${videoId}"`;
+  const cmd = `& "${ytDlpPath}" --download-sections "${rangeArg}" --extractor-args "youtube:player_client=android,web" -x --audio-format mp3 -o "${outTemplate}" --force-overwrites "https://www.youtube.com/watch?v=${videoId}"`;
 
   try {
     execSync(cmd, { stdio: 'inherit', shell: 'powershell.exe' });
