@@ -13,6 +13,7 @@ const eslintConfig = [
       '@next/next/link-passhref': 'off',
       'react-hooks/set-state-in-effect': 'off',
       'react-hooks/incompatible-library': 'off',
+      'react-hooks/refs': 'warn',
     },
   },
   {
