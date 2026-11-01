@@ -39,6 +39,15 @@
 - **改行位置の検討と単語の泣き別れ防止**:
   - やむを得ず複数行になる場合や画面幅によって折り返される場合は、意味の区切りに配慮して改行位置を調整するか、インラインブロック（`inline-block` / `nowrap`）等を用いて単語の不自然な途切れ（泣き別れ）を防止すること。
 
+## 6. データベース・Supabase 運用ルール
+- **新規テーブル作成時の明示的権限付与（GRANT）**:
+  - `public` スキーマに新しいテーブルを作成・再定義する際は、Data API（`supabase-js` 等）からのアクセスを有効化するため、作成時に明示的な `GRANT` 文を必ず実行すること（自動付与されない仕様）。
+  ```sql
+  grant select on public.<table_name> to anon;
+  grant select, insert, update, delete on public.<table_name> to authenticated;
+  grant select, insert, update, delete on public.<table_name> to service_role;
+  ```
+
 
 
 <!-- BEGIN:nextjs-agent-rules -->
