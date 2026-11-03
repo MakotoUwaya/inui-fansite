@@ -5,6 +5,7 @@ import { shuffle, without } from 'lodash-es';
 import type { RepeatType } from '../components/RepeatButton/RepeatButton';
 import { useIsPlayedVideos } from '../hooks/useIsPlayedVideos';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useMediaSession } from '../hooks/useMediaSession';
 import type { SingingStreamForSearch, SingingStreamForWatch } from '../types';
 import { filterStreams, getFilterSummary } from '../utils/songFilter';
 
@@ -196,6 +197,7 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
   // 指定した stream をロードして再生
   const loadAndPlayStream = useCallback(
     (target: SingingStreamForSearch | SingingStreamForWatch) => {
+      const prevStream = currentStreamRef.current;
       currentStreamRef.current = target;
       setCurrentStream(target);
       setCurrentStreamId(target.id);
@@ -203,12 +205,24 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
       setEnded(false);
       setPlayedOnce(false);
 
-      if (playerRef.current && typeof playerRef.current.loadVideoById === 'function') {
-        playerRef.current.loadVideoById({
-          videoId: target.video_id,
-          startSeconds: target.start,
-          endSeconds: target.end,
-        });
+      if (playerRef.current) {
+        // 同一動画内の曲遷移の場合は loadVideoById せずシーク＆再生することで
+        // モバイルのバックグラウンド自動再生制限を回避し、高速に切り替える
+        if (
+          prevStream &&
+          prevStream.video_id === target.video_id &&
+          typeof playerRef.current.seekTo === 'function' &&
+          typeof playerRef.current.playVideo === 'function'
+        ) {
+          playerRef.current.seekTo(target.start, true);
+          playerRef.current.playVideo();
+        } else if (typeof playerRef.current.loadVideoById === 'function') {
+          playerRef.current.loadVideoById({
+            videoId: target.video_id,
+            startSeconds: target.start,
+            endSeconds: target.end,
+          });
+        }
       }
 
       // watch ページにいる場合は URL のクエリ v を現在の曲IDに追従同期（shallow）
@@ -650,6 +664,19 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
       };
     }
   }, [scriptLoaded]);
+
+  // Media Session API の連携（ロック画面・通知欄・Bluetoothイヤホン対応）
+  useMediaSession({
+    currentStream,
+    isPlaying,
+    currentTime,
+    duration,
+    play,
+    pause,
+    skipNext,
+    skipPrev,
+    seekTo,
+  });
 
   return (
     <YTPlayerContext.Provider

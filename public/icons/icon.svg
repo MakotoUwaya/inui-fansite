@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#be123c"/>
+      <stop offset="50%" stop-color="#9C3757"/>
+      <stop offset="100%" stop-color="#881337"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- 背景 -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+
+  <!-- メインアイコン: ドリンクグラスと音符 -->
+  <g filter="url(#shadow)" transform="translate(4, 0)">
+    <!-- カクテルグラス (V字型) -->
+    <path d="M150 170 L340 170 L255 285 L255 375 L300 375 C308 375 315 382 315 390 C315 398 308 405 300 405 L190 405 C182 405 175 398 175 390 C175 382 182 375 190 375 L235 375 L235 285 Z" fill="#ffffff" opacity="0.95"/>
+    
+    <!-- カクテルの中身 (液体) -->
+    <path d="M172 200 L318 200 L245 272 Z" fill="#FDA4AF"/>
+
+    <!-- ストロー -->
+    <path d="M225 255 L305 115 L335 115 L320 135 L245 265 Z" fill="#dfb678"/>
+
+    <!-- オレンジスライス / レモン飾り -->
+    <path d="M150 170 A35 35 0 0 1 200 135 L175 170 Z" fill="#f7edde"/>
+    <circle cx="178" cy="150" r="14" fill="#dfb678"/>
+
+    <!-- 浮遊する音符 ♫ -->
+    <!-- 第1音符 -->
+    <g transform="translate(325, 140) scale(0.95)" fill="#ffffff">
+      <path d="M40 5 C40 5 70 -5 85 2 C90 4 92 8 92 14 L92 65 C87 60 80 58 72 58 C55 58 42 70 42 85 C42 100 55 112 72 112 C88 112 98 100 100 86 L100 22 C82 16 60 22 45 26 L45 80 C40 75 33 73 25 73 C8 73 -5 85 -5 100 C-5 115 8 127 25 127 C41 127 51 115 53 101 L53 18 C53 10 47 6 40 5 Z"/>
+    </g>
+  </g>
+</svg>
