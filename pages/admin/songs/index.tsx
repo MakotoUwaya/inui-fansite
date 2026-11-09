@@ -6,15 +6,11 @@ import {
   MdClear,
   MdSearch,
   MdPlayArrow,
-  MdPause,
   MdSave,
   MdCheck,
-  MdArrowForward,
-  MdArrowBack,
   MdRefresh,
   MdClose,
   MdAdd,
-  MdHelpOutline,
   MdDeleteOutline,
 } from 'react-icons/md';
 import { supabase } from '../../../utils/supabaseClient';
@@ -83,7 +79,7 @@ type SongRecord = {
 };
 
 type CheckFilter = 'unchecked' | 'checked' | 'all';
-type LengthFilter = 'all' | 'long' | 'no-end';
+type LengthFilter = 'all' | 'no-end';
 type SortOrder = 'newest' | 'oldest' | 'duration-desc' | 'duration-asc' | 'title';
 
 const COMMON_SINGERS = [
@@ -140,7 +136,6 @@ export default function AdminSongsPage() {
   const [playerReady, setPlayerReady] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
-  const [playbackRate, setPlaybackRate] = useState<number>(1);
   const stopTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // 全曲取得
@@ -192,9 +187,8 @@ export default function AdminSongsPage() {
     const total = songs.length;
     const checked = songs.filter((s) => s.is_length_checked).length;
     const unchecked = total - checked;
-    const longUnchecked = songs.filter((s) => !s.is_length_checked && s.end !== null && s.end - s.start >= 300).length;
     const percentage = total > 0 ? Math.round((checked / total) * 100) : 0;
-    return { total, checked, unchecked, longUnchecked, percentage };
+    return { total, checked, unchecked, percentage };
   }, [songs]);
 
   // フィルタリング＆ソート済み楽曲一覧
@@ -209,9 +203,7 @@ export default function AdminSongsPage() {
     }
 
     // 長さフィルター
-    if (lengthFilter === 'long') {
-      result = result.filter((s) => s.end !== null && s.end - s.start >= 300);
-    } else if (lengthFilter === 'no-end') {
+    if (lengthFilter === 'no-end') {
       result = result.filter((s) => s.end === null);
     }
 
@@ -437,33 +429,15 @@ export default function AdminSongsPage() {
     }
 
     // 終了時刻に達したら停止
-    const durationMs = ((editEnd - seekSec) * 1000) / playbackRate;
+    const durationMs = (editEnd - seekSec) * 1000;
     stopTimerRef.current = setTimeout(() => {
       if (playerRef.current && typeof playerRef.current.pauseVideo === 'function') {
         playerRef.current.pauseVideo();
       }
     }, durationMs + 150);
-  }, [editStart, editEnd, playbackRate]);
+  }, [editStart, editEnd]);
 
-  // 3. 終了後の雑談確認 (終了時刻から5秒再生して自動停止)
-  const playEndAfter = useCallback(() => {
-    if (!playerRef.current || editEnd === null || typeof playerRef.current.seekTo !== 'function') return;
-    clearStopTimer();
-    playerRef.current.seekTo(editEnd, true);
-    if (typeof playerRef.current.playVideo === 'function') {
-      playerRef.current.playVideo();
-    }
-
-    // 5秒後に停止
-    const durationMs = 5000 / playbackRate;
-    stopTimerRef.current = setTimeout(() => {
-      if (playerRef.current && typeof playerRef.current.pauseVideo === 'function') {
-        playerRef.current.pauseVideo();
-      }
-    }, durationMs + 200);
-  }, [editEnd, playbackRate]);
-
-  // 再生 / 一時停止トグル
+  // 再生 / 一時停止トグル (Spaceキー用)
   const togglePlay = useCallback(() => {
     if (!playerRef.current) return;
     clearStopTimer();
@@ -477,14 +451,6 @@ export default function AdminSongsPage() {
       }
     }
   }, [isPlaying]);
-
-  // 再生速度変更
-  const changeRate = (rate: number) => {
-    if (playerRef.current && typeof playerRef.current.setPlaybackRate === 'function') {
-      playerRef.current.setPlaybackRate(rate);
-      setPlaybackRate(rate);
-    }
-  };
 
   // 現在位置を開始にセット
   const setCurrentAsStart = () => {
@@ -763,27 +729,24 @@ export default function AdminSongsPage() {
       if (e.code === 'Space') {
         e.preventDefault();
         togglePlay();
-      } else if (e.key === '[') {
-        e.preventDefault();
-        setCurrentAsStart();
-      } else if (e.key === ']') {
-        e.preventDefault();
-        setCurrentAsEnd();
       } else if (e.key === '1') {
         e.preventDefault();
         playStart();
       } else if (e.key === '2') {
         e.preventDefault();
         playEndBefore();
-      } else if (e.key === '3') {
+      } else if (e.key === '3' || e.key === '[') {
         e.preventDefault();
-        playEndAfter();
+        setCurrentAsStart();
+      } else if (e.key === '4' || e.key === ']') {
+        e.preventDefault();
+        setCurrentAsEnd();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleSave, handleNextSong, handlePrevSong, togglePlay, playStart, playEndBefore, playEndAfter]);
+  }, [handleSave, handleNextSong, handlePrevSong, togglePlay, playStart, playEndBefore]);
 
   // 計算された曲の長さ
   const currentDurationSec = useMemo(() => {
@@ -896,7 +859,6 @@ export default function AdminSongsPage() {
                     onChange={(e) => setLengthFilter(e.target.value as LengthFilter)}
                   >
                     <option value="all">すべての長さ</option>
-                    <option value="long">5分以上のみ (長尺)</option>
                     <option value="no-end">終了時刻未設定</option>
                   </select>
 
@@ -935,7 +897,6 @@ export default function AdminSongsPage() {
                 filteredSongs.map((song) => {
                   const isSelected = song.id === selectedId;
                   const durSec = song.end !== null ? song.end - song.start : null;
-                  const isLong = durSec !== null && durSec >= 300;
                   const singerDisplay = song.singers && song.singers.length > 0 ? song.singers.join(', ') : '戌亥とこ';
 
                   return (
@@ -955,9 +916,7 @@ export default function AdminSongsPage() {
                           <span className={styles.songTitle} title={song.song?.title}>
                             {song.song?.title}
                           </span>
-                          <span
-                            className={`${styles.songDuration} ${isLong ? styles.longSong : ''}`}
-                          >
+                          <span className={styles.songDuration}>
                             {formatTime(durSec)}
                           </span>
                         </div>
@@ -1054,39 +1013,6 @@ export default function AdminSongsPage() {
                       >
                         <MdPlayArrow /> 歌い終わり確認 (前3s)
                       </button>
-
-                      <button
-                        className={styles.btnPlayEndAfter}
-                        onClick={playEndAfter}
-                        disabled={!playerReady || editEnd === null}
-                        title="終了時刻から5秒再生し、自動停止して直後に雑談やMCが入っていないか確認 [キー: 3]"
-                      >
-                        <MdPlayArrow /> 終了後の雑談確認 (+5s)
-                      </button>
-
-                      <button
-                        className={styles.btnTogglePlay}
-                        onClick={togglePlay}
-                        disabled={!playerReady}
-                        title="再生 / 一時停止 [Space]"
-                      >
-                        {isPlaying ? <MdPause /> : <MdPlayArrow />}
-                        {isPlaying ? '一時停止' : '再生'}
-                      </button>
-                    </div>
-
-                    <div className={styles.playerRateGroup}>
-                      <span>速度:</span>
-                      {[1, 1.25, 1.5, 2].map((rate) => (
-                        <button
-                          key={rate}
-                          className={playbackRate === rate ? styles.active : ''}
-                          onClick={() => changeRate(rate)}
-                          disabled={!playerReady}
-                        >
-                          {rate}x
-                        </button>
-                      ))}
                     </div>
                   </div>
                 </>
@@ -1129,9 +1055,9 @@ export default function AdminSongsPage() {
                         className={styles.btnSetCurrent}
                         onClick={setCurrentAsStart}
                         disabled={!playerReady}
-                        title="現在の再生位置を開始時刻に設定 [キー: []"
+                        title="現在の再生位置を開始時刻に設定 [キー: 3]"
                       >
-                        現在位置にセット [ [ ]
+                        現在位置にセット [ 3 ]
                       </button>
                     </div>
 
@@ -1164,9 +1090,9 @@ export default function AdminSongsPage() {
                         className={styles.btnSetCurrent}
                         onClick={setCurrentAsEnd}
                         disabled={!playerReady}
-                        title="現在の再生位置を終了時刻に設定 [キー: ]]"
+                        title="現在の再生位置を終了時刻に設定 [キー: 4]"
                       >
-                        現在位置にセット [ ] ]
+                        現在位置にセット [ 4 ]
                       </button>
                     </div>
 
@@ -1182,17 +1108,10 @@ export default function AdminSongsPage() {
                 {/* 計算された曲長サマリー */}
                 <div className={styles.durationSummaryBar}>
                   <span className={styles.durationLabel}>算出された演奏時間:</span>
-                  <span
-                    className={`${styles.durationValue} ${
-                      currentDurationSec && currentDurationSec >= 300
-                        ? styles.warning
-                        : styles.ok
-                    }`}
-                  >
+                  <span className={styles.durationValue}>
                     {currentDurationSec !== null
                       ? `${formatTime(currentDurationSec)} (${currentDurationSec}秒)`
                       : '終了時刻を設定してください'}
-                    {currentDurationSec && currentDurationSec >= 300 && ' ⚠️ 5分以上（長尺）'}
                   </span>
                 </div>
 
@@ -1326,16 +1245,6 @@ export default function AdminSongsPage() {
                   </div>
                 </div>
 
-                {/* 使い方ガイド */}
-                <div className={styles.helpGuideArea}>
-                  <div className={helpTitleClass(styles)}>
-                    <MdHelpOutline /> 操作の流れ
-                  </div>
-                  <div className={styles.helpItem}>
-                    <span>各確認ボタン（1:歌い出し、2:歌い終わり、3:雑談）で試聴し、必要なら微調整して<strong>「確定して次へ (Ctrl+Enter)」</strong>を押すだけで保存して次の曲へ進みます。</span>
-                  </div>
-                </div>
-
                 {/* ステータスメッセージ */}
                 {statusMessage && (
                   <div
@@ -1361,21 +1270,7 @@ export default function AdminSongsPage() {
 
                 {/* アクションボタンバー */}
                 <div className={styles.actionButtons}>
-                  <div className={styles.navButtons}>
-                    <button
-                      onClick={handlePrevSong}
-                      disabled={saving || deleting}
-                      title="前の曲 [Alt + ←]"
-                    >
-                      <MdArrowBack /> 前の曲
-                    </button>
-                    <button
-                      onClick={handleNextSong}
-                      disabled={saving || deleting}
-                      title="次の曲 [Alt + →]"
-                    >
-                      次の曲 <MdArrowForward />
-                    </button>
+                  <div className={styles.deleteButtonWrapper}>
                     <button
                       className={styles.btnDeleteSong}
                       onClick={handleDelete}
@@ -1411,13 +1306,11 @@ export default function AdminSongsPage() {
                 <div className={styles.shortcutHelp}>
                   <span>⌨️ ショートカット:</span>
                   <span><kbd>Space</kbd> 再生/停止</span>
-                  <span><kbd>[</kbd> 開始セット</span>
-                  <span><kbd>]</kbd> 終了セット</span>
                   <span><kbd>1</kbd> 歌い出し確認 (±0s)</span>
                   <span><kbd>2</kbd> 歌い終わり確認 (前3s)</span>
-                  <span><kbd>3</kbd> 雑談確認 (+5s)</span>
+                  <span><kbd>3</kbd> 開始セット</span>
+                  <span><kbd>4</kbd> 終了セット</span>
                   <span><kbd>Ctrl+Enter</kbd> 確定して次へ</span>
-                  <span><kbd>Alt+←/→</kbd> 前後曲へ移動</span>
                 </div>
               </section>
             )}
@@ -1426,10 +1319,6 @@ export default function AdminSongsPage() {
       </div>
     </>
   );
-}
-
-function helpTitleClass(styles: any) {
-  return styles.helpTitle || '';
 }
 
 // ローカル開発環境でのみ動作するようガード

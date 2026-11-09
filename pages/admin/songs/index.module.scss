@@ -600,54 +600,6 @@
               background-color: #a16207;
             }
           }
-
-          &.btnPlayEndAfter {
-            background-color: #881337;
-            color: #fecdd3;
-            border-color: #be123c;
-
-            &:hover {
-              background-color: #9f1239;
-            }
-          }
-
-          &.btnTogglePlay {
-            background-color: #27272a;
-            color: #fafafa;
-            border-color: #3f3f46;
-
-            &:hover {
-              background-color: #3f3f46;
-            }
-          }
-        }
-      }
-
-      .playerRateGroup {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-
-        span {
-          font-size: 0.75rem;
-          color: #71717a;
-        }
-
-        button {
-          background-color: #27272a;
-          border: 1px solid #3f3f46;
-          color: #a1a1aa;
-          padding: 3px 6px;
-          border-radius: 4px;
-          font-size: 0.72rem;
-          cursor: pointer;
-
-          &.active {
-            background-color: #f43f5e;
-            border-color: #f43f5e;
-            color: #fff;
-            font-weight: 700;
-          }
         }
       }
     }
@@ -828,14 +780,13 @@
       flex-wrap: wrap;
       padding-top: 6px;
 
-      .navButtons {
+      .deleteButtonWrapper {
         display: flex;
-        gap: 8px;
 
-        button {
-          background-color: #27272a;
-          border: 1px solid #3f3f46;
-          color: #d4d4d8;
+        .btnDeleteSong {
+          background-color: rgba(239, 68, 68, 0.1);
+          border: 1px solid rgba(239, 68, 68, 0.4);
+          color: #f87171;
           padding: 8px 14px;
           border-radius: 6px;
           font-size: 0.85rem;
@@ -846,25 +797,14 @@
           transition: all 0.15s;
 
           &:hover:not(:disabled) {
-            background-color: #3f3f46;
-            color: #fff;
+            background-color: rgba(239, 68, 68, 0.25);
+            border-color: #ef4444;
+            color: #fee2e2;
           }
 
           &:disabled {
             opacity: 0.4;
             cursor: not-allowed;
-          }
-
-          &.btnDeleteSong {
-            background-color: rgba(239, 68, 68, 0.1);
-            border-color: rgba(239, 68, 68, 0.4);
-            color: #f87171;
-
-            &:hover:not(:disabled) {
-              background-color: rgba(239, 68, 68, 0.25);
-              border-color: #ef4444;
-              color: #fee2e2;
-            }
           }
         }
       }
@@ -1117,38 +1057,6 @@
             width: 16px;
             height: 16px;
           }
-        }
-      }
-    }
-
-    // ボタンの使い分けヘルプガイド
-    .helpGuideArea {
-      background-color: #1a1a1d;
-      border: 1px solid #27272a;
-      border-radius: 6px;
-      padding: 10px 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      font-size: 0.75rem;
-
-      .helpTitle {
-        font-weight: 700;
-        color: #a1a1aa;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-
-      .helpItem {
-        display: flex;
-        gap: 8px;
-        color: #71717a;
-        line-height: 1.4;
-
-        strong {
-          color: #d4d4d8;
-          white-space: nowrap;
         }
       }
     }
