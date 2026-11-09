@@ -15,6 +15,7 @@ import {
   MdClose,
   MdAdd,
   MdHelpOutline,
+  MdDeleteOutline,
 } from 'react-icons/md';
 import { supabase } from '../../../utils/supabaseClient';
 import { MOOD_LABELS, GENRE_LABELS } from '../../../utils/songMetadata';
@@ -112,6 +113,10 @@ export default function AdjustSongPage() {
   const [lengthFilter, setLengthFilter] = useState<LengthFilter>('all');
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
 
+  // 編集フォーム状態（楽曲情報）
+  const [editTitle, setEditTitle] = useState('');
+  const [editArtist, setEditArtist] = useState('');
+
   // 編集フォーム状態（時間）
   const [editStart, setEditStart] = useState<number>(0);
   const [editEnd, setEditEnd] = useState<number | null>(null);
@@ -124,6 +129,9 @@ export default function AdjustSongPage() {
   const [editMood, setEditMood] = useState<string | null>(null);
   const [editGenre, setEditGenre] = useState<string | null>(null);
   const [editNightPick, setEditNightPick] = useState<boolean>(false);
+
+  // 削除状態
+  const [deleting, setDeleting] = useState(false);
 
   // プレイヤー状態
   const playerRef = useRef<any>(null);
@@ -262,6 +270,8 @@ export default function AdjustSongPage() {
   // 曲選択時の処理
   const handleSelectSong = useCallback((song: SongRecord) => {
     setSelectedId(song.id);
+    setEditTitle(song.song?.title || '');
+    setEditArtist(song.song?.artist || '');
     setEditStart(song.start);
     setEditEnd(song.end);
     setStartInputStr(formatTime(song.start));
@@ -554,6 +564,8 @@ export default function AdjustSongPage() {
       const payload: Record<string, any> = {
         id: currentSong.id,
         song_id: targetSongId,
+        title: editTitle,
+        artist: editArtist,
         start: editStart,
         end: editEnd,
         is_length_checked: true,
@@ -576,6 +588,9 @@ export default function AdjustSongPage() {
         throw new Error(json.error || '保存に失敗しました');
       }
 
+      const updatedTitle = editTitle.trim() || currentSong.song.title;
+      const updatedArtist = editArtist.trim() || currentSong.song.artist;
+
       // ローカル state を更新
       setSongs((prev) =>
         prev.map((s) => {
@@ -589,6 +604,8 @@ export default function AdjustSongPage() {
             length_checked_at: new Date().toISOString(),
             song: {
               ...s.song,
+              title: updatedTitle,
+              artist: updatedArtist,
               song_metadata: {
                 mood: editMood,
                 genre: editGenre,
@@ -599,7 +616,7 @@ export default function AdjustSongPage() {
         })
       );
 
-      setStatusMessage(`✅ 「${currentSong.song.title}」を確定・保存しました`);
+      setStatusMessage(`✅ 「${updatedTitle}」を確定・保存しました`);
 
       if (andNext) {
         // 次の曲へ移動
@@ -613,6 +630,57 @@ export default function AdjustSongPage() {
       setStatusMessage(`❌ 保存エラー: ${err.message}`);
     } finally {
       setSaving(false);
+    }
+  };
+
+  // 楽曲の削除処理
+  const handleDelete = async () => {
+    if (!currentSong || deleting) return;
+    const songTitle = editTitle.trim() || currentSong.song?.title || 'この楽曲';
+    const confirmMsg = `本当に「${songTitle}」を削除しますか？\n（この楽曲データをデータベースから完全に削除します）`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setDeleting(true);
+    setStatusMessage(null);
+
+    const targetId = currentSong.id;
+
+    try {
+      const res = await fetch('/api/admin/delete-song', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: targetId }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error || '削除に失敗しました');
+      }
+
+      // 次に選択する曲を決定
+      const currentIndex = filteredSongs.findIndex((s) => s.id === targetId);
+      let nextSong: SongRecord | null = null;
+      if (filteredSongs.length > 1) {
+        if (currentIndex < filteredSongs.length - 1) {
+          nextSong = filteredSongs[currentIndex + 1];
+        } else if (currentIndex > 0) {
+          nextSong = filteredSongs[currentIndex - 1];
+        }
+      }
+
+      setSongs((prev) => prev.filter((s) => s.id !== targetId));
+      setStatusMessage(`🗑️ 「${songTitle}」を削除しました`);
+
+      if (nextSong) {
+        handleSelectSong(nextSong);
+      } else {
+        setSelectedId(null);
+      }
+    } catch (err: any) {
+      console.error(err);
+      setStatusMessage(`❌ 削除エラー: ${err.message}`);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -921,8 +989,28 @@ export default function AdjustSongPage() {
                 <>
                   <div className={styles.songHeader}>
                     <div className={styles.songDetails}>
-                      <h2 className={styles.title}>{currentSong.song?.title}</h2>
-                      <div className={styles.artist}>原曲アーティスト: {currentSong.song?.artist}</div>
+                      <div className={styles.songEditInputs}>
+                        <div className={styles.inputGroup}>
+                          <span className={styles.inputPrefix}>曲名:</span>
+                          <input
+                            type="text"
+                            className={styles.titleInput}
+                            value={editTitle}
+                            onChange={(e) => setEditTitle(e.target.value)}
+                            placeholder="曲名を入力"
+                          />
+                        </div>
+                        <div className={styles.inputGroup}>
+                          <span className={styles.inputPrefix}>原曲:</span>
+                          <input
+                            type="text"
+                            className={styles.artistInput}
+                            value={editArtist}
+                            onChange={(e) => setEditArtist(e.target.value)}
+                            placeholder="原曲アーティスト名を入力"
+                          />
+                        </div>
+                      </div>
                       <div className={styles.videoTitle}>配信: {currentSong.video?.title}</div>
                     </div>
 
@@ -938,7 +1026,7 @@ export default function AdjustSongPage() {
                         <button
                           style={{ background: 'none', border: 'none', color: '#71717a', cursor: 'pointer', fontSize: '0.75rem', textDecoration: 'underline' }}
                           onClick={handleUncheck}
-                          disabled={saving}
+                          disabled={saving || deleting}
                         >
                           未確認に戻す
                         </button>
@@ -1276,17 +1364,25 @@ export default function AdjustSongPage() {
                   <div className={styles.navButtons}>
                     <button
                       onClick={handlePrevSong}
-                      disabled={saving}
+                      disabled={saving || deleting}
                       title="前の曲 [Alt + ←]"
                     >
                       <MdArrowBack /> 前の曲
                     </button>
                     <button
                       onClick={handleNextSong}
-                      disabled={saving}
+                      disabled={saving || deleting}
                       title="次の曲 [Alt + →]"
                     >
                       次の曲 <MdArrowForward />
+                    </button>
+                    <button
+                      className={styles.btnDeleteSong}
+                      onClick={handleDelete}
+                      disabled={saving || deleting}
+                      title="この楽曲レコードをデータベースから完全に削除します"
+                    >
+                      <MdDeleteOutline /> {deleting ? '削除中...' : '曲を削除'}
                     </button>
                   </div>
 
@@ -1294,7 +1390,7 @@ export default function AdjustSongPage() {
                     <button
                       className={styles.btnSaveOnly}
                       onClick={() => handleSave(false)}
-                      disabled={saving}
+                      disabled={saving || deleting}
                       title="次の曲へ進まずその場で保存"
                     >
                       <MdSave /> 保存のみ
@@ -1303,7 +1399,7 @@ export default function AdjustSongPage() {
                     <button
                       className={styles.btnSaveAndNext}
                       onClick={() => handleSave(true)}
-                      disabled={saving}
+                      disabled={saving || deleting}
                       title="画面の内容で確定し、確認済みにして次の曲へ進む [Ctrl + Enter]"
                     >
                       <MdCheck /> 確定して次へ (Ctrl+Enter)

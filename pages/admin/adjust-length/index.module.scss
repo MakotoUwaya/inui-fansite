@@ -439,7 +439,72 @@
       .songDetails {
         display: flex;
         flex-direction: column;
-        gap: 3px;
+        gap: 6px;
+        flex: 1;
+
+        .songEditInputs {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          flex-wrap: wrap;
+
+          .inputGroup {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+
+            .inputPrefix {
+              font-size: 0.8rem;
+              font-weight: 600;
+              color: #a1a1aa;
+              flex-shrink: 0;
+            }
+
+            .titleInput {
+              background-color: #27272a;
+              border: 1px solid #3f3f46;
+              color: #fff;
+              font-size: 1.05rem;
+              font-weight: 700;
+              padding: 4px 10px;
+              border-radius: 6px;
+              min-width: 220px;
+              max-width: 320px;
+              outline: none;
+              transition: border-color 0.15s;
+
+              &:focus {
+                border-color: #f43f5e;
+              }
+
+              &::placeholder {
+                color: #52525b;
+                font-weight: 400;
+              }
+            }
+
+            .artistInput {
+              background-color: #27272a;
+              border: 1px solid #3f3f46;
+              color: #e4e4e7;
+              font-size: 0.9rem;
+              padding: 4px 10px;
+              border-radius: 6px;
+              min-width: 180px;
+              max-width: 260px;
+              outline: none;
+              transition: border-color 0.15s;
+
+              &:focus {
+                border-color: #f43f5e;
+              }
+
+              &::placeholder {
+                color: #52525b;
+              }
+            }
+          }
+        }
 
         .title {
           font-size: 1.15rem;
@@ -775,6 +840,10 @@
           border-radius: 6px;
           font-size: 0.85rem;
           cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          transition: all 0.15s;
 
           &:hover:not(:disabled) {
             background-color: #3f3f46;
@@ -784,6 +853,18 @@
           &:disabled {
             opacity: 0.4;
             cursor: not-allowed;
+          }
+
+          &.btnDeleteSong {
+            background-color: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #f87171;
+
+            &:hover:not(:disabled) {
+              background-color: rgba(239, 68, 68, 0.25);
+              border-color: #ef4444;
+              color: #fee2e2;
+            }
           }
         }
       }

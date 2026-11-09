@@ -20,7 +20,7 @@ export default async function handler(
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { id, song_id, start, end, is_length_checked, singers, metadata } = req.body;
+  const { id, song_id, title, artist, start, end, is_length_checked, singers, metadata } = req.body;
 
   if (!id || typeof id !== 'string') {
     return res.status(400).json({ error: '有効な曲IDを指定してください。' });
@@ -59,6 +59,27 @@ export default async function handler(
     if (streamError) {
       console.error('Supabase singing_stream update error:', streamError);
       return res.status(500).json({ error: streamError.message });
+    }
+
+    // 1.5. song の更新（title または artist が指定されている場合）
+    if (typeof title === 'string' && title.trim()) {
+      const songPayload: Record<string, any> = {
+        title: title.trim(),
+        updated_at: now,
+      };
+      if (typeof artist === 'string') {
+        songPayload.artist = artist.trim();
+      }
+
+      const { error: songError } = await supabase
+        .from('song')
+        .update(songPayload)
+        .eq('id', id);
+
+      if (songError) {
+        console.error('Supabase song update error:', songError);
+        return res.status(500).json({ error: songError.message });
+      }
     }
 
     // 2. song_metadata の更新（指定されている場合）
