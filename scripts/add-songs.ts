@@ -382,6 +382,10 @@ function extractSingersFromTitle(title: string): string[] {
         foundSingers.add('渡会雲雀');
         continue;
       }
+      if (part === '狂蘭メロコ' || part === 'メロコ') {
+        foundSingers.add('Meloco Kyoran');
+        continue;
+      }
       foundSingers.add(part);
     }
   }
