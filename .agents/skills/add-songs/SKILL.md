@@ -47,7 +47,7 @@ pnpm exec tsx --env-file=.env.local scripts/add-songs.ts "<YouTube動画URL>"
 2. **Antigravity による歌唱区間診断・雑談カット (`check-song-length` スキル連携)**:
    - 登録完了後、`pnpm exec tsx scripts/check-song-length.ts --inspect --video-id <VIDEO_ID> --threshold 0` を実行し、Antigravity（Gemini）が公式音源尺との差分や次曲タイムラインを推論。
    - 歌唱後の長時間の雑談が含まれている曲を自動特定し、適正な終了時刻（`end`）へ補正（または適正承認）します。
-   - ※目視・耳で細かく確認・微調整したい場合は、ローカル微調整UI（`http://localhost:3000/admin/adjust-length`）でブラウザから即座に調整可能です。
+   - ※目視・耳で細かく確認・微調整したい場合は、ローカル管理UI（`http://localhost:3000/admin/songs`）でブラウザから即座に調整可能です。
 
 ---
 

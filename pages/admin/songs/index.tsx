@@ -98,7 +98,7 @@ const COMMON_SINGERS = [
   '渡会雲雀',
 ];
 
-export default function AdjustSongPage() {
+export default function AdminSongsPage() {
   const [songs, setSongs] = useState<SongRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -577,7 +577,7 @@ export default function AdjustSongPage() {
         },
       };
 
-      const res = await fetch('/api/admin/update-song-length', {
+      const res = await fetch('/api/admin/update-song', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -689,7 +689,7 @@ export default function AdjustSongPage() {
     if (!currentSong) return;
     setSaving(true);
     try {
-      const res = await fetch('/api/admin/update-song-length', {
+      const res = await fetch('/api/admin/update-song', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -794,7 +794,7 @@ export default function AdjustSongPage() {
   return (
     <>
       <Head>
-        <title>歌ってみた動画 調整ツール (Local Admin)</title>
+        <title>楽曲データ管理・編集ツール (Local Admin)</title>
       </Head>
 
       <div className={styles.container}>
@@ -802,7 +802,7 @@ export default function AdjustSongPage() {
         <header className={styles.header}>
           <div className={styles.titleArea}>
             <h1>
-              <span>🎤</span> 歌ってみた動画 調整ツール
+              <span>🎤</span> 楽曲データ管理・編集ツール
             </h1>
             <span className={styles.badgeLocal}>LOCAL ONLY</span>
           </div>

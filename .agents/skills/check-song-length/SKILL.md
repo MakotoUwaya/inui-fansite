@@ -43,7 +43,7 @@ description: 歌枠アーカイブに登録された楽曲データのうち、�
 pnpm.cmd dev
 
 # ブラウザでアクセス（ローカル環境のみアクセス可能）
-# http://localhost:3000/admin/adjust-length
+# http://localhost:3000/admin/songs
 ```
 
 - **機能**:
@@ -97,7 +97,7 @@ Antigravity は `view_file` ツールで切り出された mp3 を直接開き�
 
 ### ステップ 4: DBへの反映とクリーンアップ
 特定した正確な終了時刻を DB（`singing_stream` テーブル）へ反映します。
-- ユーザーが Web UI（`/admin/adjust-length`）で確認作業を行う前提の場合は、`end` のみを更新し、`is_length_checked` は `false` のまま保持することで、ユーザーは「歌い終わり確認ボタンを押して即OK」の超快適な状態で確認を進められます。
+- ユーザーが Web UI（`/admin/songs`）で確認作業を行う前提の場合は、`end` のみを更新し、`is_length_checked` は `false` のまま保持することで、ユーザーは「歌い終わり確認ボタンを押して即OK」の超快適な状態で確認を進められます。
 - 一時切り出した音声ファイル（`tmp/audio-clips/`）は削除してクリーンアップします。
 
 ### ステップ 5: 完了報告
