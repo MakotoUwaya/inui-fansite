@@ -10,13 +10,21 @@ type Props = {
   className?: string;
   title: string;
   description?: string;
+  noIndex?: boolean;
   padding?: 'all' | 'vertical' | 'horizontal' | 'none';
   children: ReactNode;
 };
 
 const DEFAULT_DESCRIPTION = 'inui.fans は非公式ファンサイトです。';
 
-export const Layout = memo(function Layout({ className, title, description, padding = 'all', children }: Props) {
+export const Layout = memo(function Layout({
+  className,
+  title,
+  description,
+  noIndex = false,
+  padding = 'all',
+  children,
+}: Props) {
   const router = useRouter();
   const { currentStream } = useContext(YTPlayerContext);
   const isWatchPage = router.pathname === '/singing-streams/watch';
@@ -27,6 +35,7 @@ export const Layout = memo(function Layout({ className, title, description, padd
       <Head>
         <title>{`${title} | inui.fans`}</title>
         <meta name="description" content={description ?? DEFAULT_DESCRIPTION} />
+        {noIndex && <meta name="robots" content="noindex" />}
       </Head>
       <div>
         <Header />

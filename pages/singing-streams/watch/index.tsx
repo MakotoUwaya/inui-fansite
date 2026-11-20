@@ -163,7 +163,12 @@ function SingingStreamsWatchPage() {
   const activeStreams = globalStreams.length > 0 ? globalStreams : baseStreams;
 
   return (
-    <Layout className={styles.root} title={displayStream?.song.title || ''} padding={isMobile ? 'all' : 'horizontal'}>
+    <Layout
+      className={styles.root}
+      title={displayStream?.song.title || ''}
+      noIndex
+      padding={isMobile ? 'all' : 'horizontal'}
+    >
       <main className={styles.main}>
         <div className={styles.player}>
           <div ref={placeholderRef} className={styles.playerPlaceholder} />
