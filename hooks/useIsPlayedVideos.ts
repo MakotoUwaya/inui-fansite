@@ -7,7 +7,7 @@ type PlayedVideos = {
   [videoId: string]: number;
 };
 
-// 3　days
+// 3 days
 export const VALID_TIME = 1000 * 60 * 60 * 24 * 3;
 
 export const useIsPlayedVideos = () => {

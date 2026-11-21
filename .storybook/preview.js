@@ -14,6 +14,7 @@ import * as NextImage from 'next/image';
 
 const OriginalNextImage = NextImage.default;
 
+// oxlint-disable-next-line no-import-assign
 Object.defineProperty(NextImage, 'default', {
   configurable: true,
   value: (props) => <OriginalNextImage {...props} unoptimized />

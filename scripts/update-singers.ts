@@ -35,14 +35,14 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export function extractSingersFromTitle(title: string): string[] {
   // にじさんじの主要ライバー名などの辞書または括弧内の抽出
   // 【戌亥とこ/長尾景/にじさんじ】や【立伝都々/北見遊征/珠乃井ナナ/早乙女ベリー/渚トラウト/にじさんじ】など
-  const bracketMatches = title.match(/[【\[(（]([^【\[(（）)\]】]+)[)）\]】]/g) || [];
+  const bracketMatches = title.match(/[【[(（]([^【[(（）)\]】]+)[)）\]】]/g) || [];
 
   const foundSingers = new Set<string>();
 
   for (const bracket of bracketMatches) {
     const inner = bracket.slice(1, -1);
     // スラッシュやパイプ、カンマで分割（半角スペースは姓名で使われるため分割しない）
-    const parts = inner.split(/[\/／,、|｜]+/).map((s) => s.trim());
+    const parts = inner.split(/[/／,、|｜]+/).map((s) => s.trim());
     for (const part of parts) {
       if (
         !part ||

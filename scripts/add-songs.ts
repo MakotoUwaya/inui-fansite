@@ -226,13 +226,13 @@ function parseTimetable(text: string, videoSingers: string[] = ['戌亥とこ'])
     }
 
     // 全角英数記号の正規化など
-    rest = rest.replace(/^[0-9０-９]+[．\.]\s*/, '').trim();
+    rest = rest.replace(/^[0-9０-９]+[．.]\s*/, '').trim();
 
     // 年号表記 (2017) などの除去
     rest = rest.replace(/\((?:19\d{2}|20\d{2})\)$/, '').trim();
 
     // 歌唱でないノイズ行を除外 (OPやEDは単語・境界として判定)
-    if (/^(?:声入り|開始|待機|オープニング|エンディング|雑談|挨拶|トーク|SET\s*LIST|(?:OP|ED)(?:[\s:：、\-]|$))/i.test(rest)) {
+    if (/^(?:声入り|開始|待機|オープニング|エンディング|雑談|挨拶|トーク|SET\s*LIST|(?:OP|ED)(?:[\s:：、-]|$))/i.test(rest)) {
       continue;
     }
 
@@ -250,7 +250,7 @@ function parseTimetable(text: string, videoSingers: string[] = ['戌亥とこ'])
 
     // "曲名 / アーティスト名" または "曲名 - アーティスト名" または "曲名 by アーティスト名" を分割
     const delimiterMatch =
-      rest.match(/^(.*?)\s*[\/／]\s*(.*)$/) ||
+      rest.match(/^(.*?)\s*[/／]\s*(.*)$/) ||
       rest.match(/^(.*?)\s+[-–—]\s+(.*)$/) ||
       rest.match(/^(.*?)\s+by\s+(.*)$/i) ||
       rest.match(/^(.*?)\s*[-–—]\s*(.*)$/);
@@ -263,7 +263,7 @@ function parseTimetable(text: string, videoSingers: string[] = ['戌亥とこ'])
     if (!note) {
       const noteMatch =
         artist.match(/[(（]([^()（）]+)[)）]?$/) ||
-        artist.match(/[\/／]\s*([\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d]+)/u) ||
+        artist.match(/[/／]\s*([\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d]+)/u) ||
         artist.match(/([\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d]+)$/u) ||
         title.match(/[(（]([^()（）]+)[)）]?$/);
       if (noteMatch) {
@@ -274,7 +274,7 @@ function parseTimetable(text: string, videoSingers: string[] = ['戌亥とこ'])
 
     // アーティスト名末尾の注記を除去してクリーンにする
     artist = artist.replace(/[(（][^()（）]*(?:ソロ|デュエット|コラボ|全員|合唱|🍹|🛼|☯️|☀️|💙|💚|🐣|🌂|🥽|🦁)[^()（）]*[)）]?$/gu, '').trim();
-    artist = artist.replace(/[\/／]\s*[\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d]+/gu, '').trim();
+    artist = artist.replace(/[/／]\s*[\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d]+/gu, '').trim();
     artist = artist.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d]+$/gu, '').trim();
     artist = artist.replace(/[(（][^()（）]*$/g, '').trim();
 
@@ -298,10 +298,10 @@ function parseTimetable(text: string, videoSingers: string[] = ['戌亥とこ'])
  * 動画タイトルから単曲の曲名とアーティスト名を推測
  */
 function parseSongFromVideoTitle(videoTitle: string): { title: string; artist: string } {
-  let clean = videoTitle.replace(/[【\[(（].*?(?:歌ってみた|MV|Music Video|Official|Cover|オリジナル|Shorts?)[)）\]】]/gi, '').trim();
+  let clean = videoTitle.replace(/[【[(（].*?(?:歌ってみた|MV|Music Video|Official|Cover|オリジナル|Shorts?)[)）\]】]/gi, '').trim();
   clean = clean.replace(/^[-\s/／|｜]+|[-\s/／|｜]+$/g, '').trim();
 
-  const match = clean.match(/^(.*?)\s*[\/／|｜]\s*(.*)$/);
+  const match = clean.match(/^(.*?)\s*[/／|｜]\s*(.*)$/);
   if (match) {
     const p1 = match[1].trim();
     const p2 = match[2].trim();
@@ -348,11 +348,11 @@ function extractSingersFromTitle(title: string): string[] {
     foundSingers.add('戌亥とこ');
   }
 
-  const bracketMatches = title.match(/[【\[(（]([^【\[(（）)\]】]+)[)）\]】]/g) || [];
+  const bracketMatches = title.match(/[【[(（]([^【[(（）)\]】]+)[)）\]】]/g) || [];
 
   for (const bracket of bracketMatches) {
     const inner = bracket.slice(1, -1);
-    const parts = inner.split(/[\/／,、|｜]+/).map((s) => s.trim());
+    const parts = inner.split(/[/／,、|｜]+/).map((s) => s.trim());
     for (const part of parts) {
       if (
         !part ||
@@ -391,7 +391,7 @@ function extractSingersFromTitle(title: string): string[] {
   }
 
   // covered by / cover by / vocal by 等の検出
-  const coveredMatch = title.match(/(?:covered|cover|vocal|vo)\s*by\s*([^\s\/／|｜\(\)\[\]【】]+)/i);
+  const coveredMatch = title.match(/(?:covered|cover|vocal|vo)\s*by\s*([^\s/／|｜()[\]【】]+)/i);
   if (coveredMatch && coveredMatch[1]) {
     foundSingers.add(coveredMatch[1].trim());
   }
@@ -424,15 +424,10 @@ async function fetchTrackInfo(title: string, artist?: string): Promise<{ duratio
       const duration = item.trackTimeMillis ? Math.round(item.trackTimeMillis / 1000) : null;
       return { duration, artist: item.artistName };
     }
-  } catch (e) {
+  } catch {
     // ignore
   }
   return { duration: null };
-}
-
-async function fetchTrackDuration(title: string, artist?: string): Promise<number | null> {
-  const info = await fetchTrackInfo(title, artist);
-  return info.duration;
 }
 
 
@@ -468,7 +463,7 @@ async function fetchYouTubeMetadata(videoId: string): Promise<{ title: string | 
       const publishMatch = html.match(/"publishDate":"(.*?)"/) || html.match(/itemprop="datePublished" content="(.*?)"/);
       publishedAt = startMatch ? startMatch[1] : (publishMatch ? publishMatch[1] : null);
     }
-  } catch (e) {
+  } catch {
     // ignore
   }
 
@@ -480,7 +475,7 @@ async function fetchYouTubeMetadata(videoId: string): Promise<{ title: string | 
         const oembedData = await oembedRes.json();
         title = oembedData.title || null;
       }
-    } catch (e) {
+    } catch {
       // ignore
     }
   }
@@ -525,7 +520,7 @@ async function main() {
       manualArtist = args[i + 1];
       i++;
     } else if (args[i] === '--singers' && args[i + 1]) {
-      manualSingers = args[i + 1].split(/[\/,、]+/).map((s) => s.trim()).filter(Boolean);
+      manualSingers = args[i + 1].split(/[/,、]+/).map((s) => s.trim()).filter(Boolean);
       i++;
     }
   }

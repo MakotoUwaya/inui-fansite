@@ -1,6 +1,6 @@
 import type { SingingStreamForSearch } from '../types';
 import { ALL_SINGERS_KEY } from './singerConfig';
-import { FILTER_PRESETS, FilterPresetId } from './songMetadata';
+import { FILTER_PRESETS } from './songMetadata';
 
 export interface SongFilterOptions {
   filter?: string;
