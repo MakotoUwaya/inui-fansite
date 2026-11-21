@@ -6,24 +6,8 @@ const path = require('path');
 module.exports = {
   outputFileTracingRoot: path.join(__dirname),
   images: {
-    minimumCacheTTL: 31536000, // 1年間キャッシュ
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'i.ytimg.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'yt3.googleusercontent.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'yt3.ggpht.com',
-        pathname: '/**',
-      },
-    ],
+    // 外部CDN（YouTube / Google）画像を直接配信し、Vercel Image Optimization の無料枠超過を防ぐ
+    unoptimized: true,
   },
   sassOptions: {
     includePaths: [path.join(__dirname, 'styles')],

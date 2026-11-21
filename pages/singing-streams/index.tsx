@@ -161,7 +161,6 @@ function SingingStreamsPage() {
                   height={36}
                   className={styles.singerHeaderAvatar}
                   style={{ width: '100%', height: '100%' }}
-                  unoptimized={currentAvatar.startsWith('http')}
                 />
               </div>
             ) : (

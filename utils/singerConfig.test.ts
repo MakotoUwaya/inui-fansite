@@ -35,12 +35,21 @@ describe('singerConfig', () => {
   });
 
   describe('getSingerAvatar', () => {
-    it('returns avatar URL for registered singers', () => {
-      expect(getSingerAvatar('戌亥とこ')).toContain('googleusercontent.com');
+    it('returns resized avatar URL for registered singers', () => {
+      const inuiAvatar = getSingerAvatar('戌亥とこ');
+      expect(inuiAvatar).toContain('googleusercontent.com');
+      expect(inuiAvatar).toContain('=s176-c-');
       expect(getSingerAvatar('Elira Pendora')).toContain('googleusercontent.com');
     });
 
-    it('returns undefined for unknown singer', () => {
+    it('uses and resizes fallbackPhoto for unknown singer', () => {
+      const fallback = 'https://yt3.ggpht.com/example=s800-c-k-c0x00ffffff-no-rj';
+      expect(getSingerAvatar('未知のライバー', fallback)).toBe(
+        'https://yt3.ggpht.com/example=s176-c-k-c0x00ffffff-no-rj',
+      );
+    });
+
+    it('returns undefined for unknown singer without fallback', () => {
       expect(getSingerAvatar('未知のライバー')).toBeUndefined();
     });
   });

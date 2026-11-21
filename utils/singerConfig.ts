@@ -166,7 +166,10 @@ export const SINGER_AVATARS: Record<string, string> = {
 
 
 export function getSingerAvatar(singer: string, fallbackPhoto?: string | null): string | undefined {
-  return SINGER_AVATARS[singer] || fallbackPhoto || undefined;
+  const url = SINGER_AVATARS[singer] || fallbackPhoto || undefined;
+  if (!url) return undefined;
+  // Vercel Image Optimization 無効化に伴い、Google CDN 側のサイズパラメータを軽量サイズ（176px）に調整
+  return url.replace(/=s\d+-c-/, '=s176-c-');
 }
 
 export function getSingerIcon(singer: string): string {
