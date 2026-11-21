@@ -15,7 +15,7 @@
   "license": "MIT",
   "dependencies": {
     "@floating-ui/react": "0.27.20",
-    "@supabase/supabase-js": "2.119.1",
+    "@supabase/supabase-js": "2.119.2",
     "@typesafe-ai/sdk": "0.7.0",
     "clsx": "2.1.1",
     "date-fns": "4.4.0",
