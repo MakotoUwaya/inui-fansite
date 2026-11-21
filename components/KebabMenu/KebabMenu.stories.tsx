@@ -16,8 +16,8 @@ export const Default = Template.bind({});
 Default.args = {
   children: (
     <>
-      <a href="">LINK</a>
-      <a href="">LINK</a>
+      <a href="https://example.com">LINK</a>
+      <a href="https://example.com">LINK</a>
     </>
   )
 };

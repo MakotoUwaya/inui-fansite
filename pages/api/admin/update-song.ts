@@ -20,7 +20,7 @@ export default async function handler(
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { id, song_id, title, artist, start, end, is_length_checked, singers, metadata } = req.body;
+  const { id, title, artist, start, end, is_length_checked, singers, metadata } = req.body;
 
   if (!id || typeof id !== 'string') {
     return res.status(400).json({ error: '有効な曲IDを指定してください。' });

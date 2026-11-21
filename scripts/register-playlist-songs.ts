@@ -397,11 +397,4 @@ async function registerSongs() {
   console.log(`========================================\n`);
 }
 
-function formatSecondsToHHMMSS(sec: number): string {
-  const h = Math.floor(sec / 3600);
-  const m = Math.floor((sec % 3600) / 60);
-  const s = sec % 60;
-  return [h, m, s].map(v => v.toString().padStart(2, '0')).join(':');
-}
-
 registerSongs().catch(console.error);

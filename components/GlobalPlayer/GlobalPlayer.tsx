@@ -11,7 +11,6 @@ export const GlobalPlayer = memo(function GlobalPlayer() {
   const router = useRouter();
   const isMobile = useIsMobile();
   const {
-    player,
     scriptLoaded,
     apiReady,
     setYTPlayer,

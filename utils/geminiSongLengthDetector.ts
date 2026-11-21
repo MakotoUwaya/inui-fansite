@@ -37,12 +37,12 @@ function formatTime(totalSeconds: number): string {
  */
 export async function fetchTrackDuration(title: string, artist: string = ''): Promise<number | null> {
   const cleanTitle = title
-    .replace(/[\(（].*?[\)）]/g, '')
-    .replace(/[【\[].*?[】\]]/g, '')
+    .replace(/[(（].*?[)）]/g, '')
+    .replace(/[【[].*?[】\]]/g, '')
     .trim();
   const cleanArtist = artist
-    .replace(/[\(（].*?[\)）]/g, '')
-    .replace(/[【\[].*?[】\]]/g, '')
+    .replace(/[(（].*?[)）]/g, '')
+    .replace(/[【[].*?[】\]]/g, '')
     .trim();
 
   try {
@@ -80,11 +80,6 @@ export async function detectSongBoundariesWithGemini(
     process.env.GEMINI_API_KEY ||
     process.env.GOOGLE_API_KEY ||
     process.env.GOOGLE_GENAI_API_KEY;
-
-  const currentDuration =
-    input.initialEnd !== null && input.initialEnd !== undefined
-      ? input.initialEnd - input.initialStart
-      : 300;
 
   // APIキーがない場合は iTunes フォールバック
   if (!apiKey) {

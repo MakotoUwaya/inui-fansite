@@ -4,7 +4,6 @@ import type {
   SingingStreamForSearch,
   SingingStreamForWatch, SingingStream,
   Song,
-  Video,
 } from '../types/index';
 
 const PREFIX = 'get-singing-stream-' as const;

@@ -1,7 +1,7 @@
 import './load-env';
 import * as fs from 'fs';
 import * as path from 'path';
-import { execSync, spawnSync } from 'child_process';
+import { execSync } from 'child_process';
 import { supabase } from '../utils/supabaseClient';
 import { detectSongBoundariesWithGemini } from '../utils/geminiSongLengthDetector';
 
@@ -750,12 +750,12 @@ async function batchUpdate(jsonOrPath: string) {
 
 async function fetchTrackDuration(title: string, artist: string): Promise<number | null> {
   const cleanTitle = title
-    .replace(/[\(（].*?[\)）]/g, '')
-    .replace(/[【\[].*?[】\]]/g, '')
+    .replace(/[(（].*?[)）]/g, '')
+    .replace(/[【[].*?[】\]]/g, '')
     .trim();
   const cleanArtist = artist
-    .replace(/[\(（].*?[\)）]/g, '')
-    .replace(/[【\[].*?[】\]]/g, '')
+    .replace(/[(（].*?[)）]/g, '')
+    .replace(/[【[].*?[】\]]/g, '')
     .trim();
 
   // 1. アーティスト + タイトルで検索

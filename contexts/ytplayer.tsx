@@ -7,7 +7,7 @@ import { useIsPlayedVideos } from '../hooks/useIsPlayedVideos';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useMediaSession } from '../hooks/useMediaSession';
 import type { SingingStreamForSearch, SingingStreamForWatch } from '../types';
-import { filterStreams, getFilterSummary } from '../utils/songFilter';
+import { getFilterSummary } from '../utils/songFilter';
 
 export type FilterOptions = {
   filter?: string;
@@ -69,7 +69,6 @@ let endSecondsVariable = 0;
 
 export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const reqIdRef = useRef<number | undefined>(undefined);
   const isNavigatingRef = useRef(false);
 
   // ルート遷移中は shallow replace 等によるルーティング干渉を防ぐ
@@ -178,21 +177,6 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
     if (index === -1) return true;
     return index >= streams.length - 1;
   }, [streams, currentStreamId]);
-
-  // watch ページかどうか判定
-  const isWatchPage = router.pathname === '/singing-streams/watch';
-
-  // 絞り込み条件を保持したまま watch ページへ遷移
-  const navigateToStream = useCallback(
-    (targetStreamId: string) => {
-      const query: Record<string, string> = { v: targetStreamId };
-      if (filterOptions.filter) query.filter = filterOptions.filter;
-      if (filterOptions.singer) query.singer = filterOptions.singer;
-      if (filterOptions.keyword) query.keyword = filterOptions.keyword;
-      router.push({ pathname: '/singing-streams/watch', query });
-    },
-    [filterOptions, router],
-  );
 
   // 指定した stream をロードして再生
   const loadAndPlayStream = useCallback(
@@ -434,7 +418,11 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
   const setMute = useCallback(
     (mute: boolean) => {
       if (playerRef.current) {
-        mute ? playerRef.current.mute() : playerRef.current.unMute();
+        if (mute) {
+          playerRef.current.mute();
+        } else {
+          playerRef.current.unMute();
+        }
       }
       setMuteState(mute);
     },
@@ -604,7 +592,11 @@ export function YTPlayerContextProvider({ children }: { children: ReactNode }) {
   // ミュート状態の適用
   useEffect(() => {
     if (!playerRef.current) return;
-    isMute ? playerRef.current.mute() : playerRef.current.unMute();
+    if (isMute) {
+      playerRef.current.mute();
+    } else {
+      playerRef.current.unMute();
+    }
   }, [isMute]);
 
   // 音量の適用
