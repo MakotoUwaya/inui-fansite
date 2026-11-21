@@ -902,6 +902,8 @@ export default function AdminSongsPage() {
                   return (
                     <button
                       key={song.id}
+                      type="button"
+                      aria-label={song.song?.title || '楽曲を選択'}
                       className={`${styles.songItem} ${isSelected ? styles.active : ''}`}
                       onClick={() => handleSelectSong(song)}
                     >
