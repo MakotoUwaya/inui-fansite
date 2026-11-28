@@ -55,7 +55,11 @@ function IndexPage() {
               return (
                 <Link
                   key={singer.name}
-                  href={`/singing-streams?singer=${encodeURIComponent(singer.name)}`}
+                  href={
+                    singer.name === DEFAULT_SINGER
+                      ? '/singing-streams'
+                      : `/singing-streams?singer=${encodeURIComponent(singer.name)}`
+                  }
                   className={styles.singerCard}
                 >
                   <div className={styles.singerCardVisual}>
@@ -151,7 +155,7 @@ function IndexPage() {
             {FILTER_PRESETS.filter((p) => p.id !== 'all').map((preset) => (
               <Link
                 key={preset.id}
-                href={`/singing-streams?singer=${encodeURIComponent(DEFAULT_SINGER)}&filter=${preset.id}`}
+                href={`/singing-streams?filter=${preset.id}`}
                 className={styles.presetCard}
               >
                 <span className={styles.presetIcon}>{preset.icon}</span>

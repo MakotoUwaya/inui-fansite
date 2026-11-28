@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { memo, ReactNode, useContext } from 'react';
 import { YTPlayerContext } from '../../contexts/ytplayer';
+import { buildCanonicalUrl } from '../../utils/siteConfig';
 import { Header } from '../Header/Header';
 import styles from './Layout.module.scss';
 
@@ -11,6 +12,7 @@ type Props = {
   title: string;
   description?: string;
   noIndex?: boolean;
+  canonicalPath?: string;
   padding?: 'all' | 'vertical' | 'horizontal' | 'none';
   children: ReactNode;
 };
@@ -22,6 +24,7 @@ export const Layout = memo(function Layout({
   title,
   description,
   noIndex = false,
+  canonicalPath,
   padding = 'all',
   children,
 }: Props) {
@@ -29,13 +32,18 @@ export const Layout = memo(function Layout({
   const { currentStream } = useContext(YTPlayerContext);
   const isWatchPage = router.pathname === '/singing-streams/watch';
   const hasPersistentPlayer = Boolean(currentStream && !isWatchPage);
+  const canonicalUrl = buildCanonicalUrl(canonicalPath ?? router.pathname);
 
   return (
     <>
       <Head>
         <title>{`${title} | inui.fans`}</title>
         <meta name="description" content={description ?? DEFAULT_DESCRIPTION} />
-        {noIndex && <meta name="robots" content="noindex" />}
+        {noIndex ? (
+          <meta name="robots" content="noindex" />
+        ) : (
+          <link rel="canonical" href={canonicalUrl} />
+        )}
       </Head>
       <div>
         <Header />
